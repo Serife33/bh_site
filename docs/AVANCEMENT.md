@@ -41,10 +41,12 @@
 - [x] Projet Symfony 7.4 créé (`symfony new . --webapp --version=lts`)
 - [x] Stack Docker écrite + `docker compose up -d --build` → 4 conteneurs OK
 - [x] Vérifié : Symfony sur :8080, Adminer sur :8081
-- [ ] **EN COURS** → créer `.env.local` (DATABASE_URL vers MySQL) + tester la connexion
-- [ ] Premier commit + créer le dépôt GitHub
-- [ ] Installer les dépendances MVP (vich, liip, gedmo, paginator, tailwind, fixtures…)
-- [ ] Phase 2 design system → Phase 3 entités (12 tables) → etc. (voir PLAN_DE_MATCH_MVP.md)
+- [x] `.env.local` créé (DATABASE_URL) + connexion testée → **MySQL 8.4.10 OK**
+- [x] `.DS_Store` ignoré + commit `chore: configuration Docker` (3e commit)
+- [x] Branche renommée `master` → `main`
+- [x] **GitHub OK** → dépôt poussé sur https://github.com/Serife33/bh_site (auth par token PAT, mémorisé dans le trousseau Mac). Push suivants : `git push` seul.
+- [x] **Dépendances MVP installées** (via `docker compose exec php composer require`) : stof/doctrine-extensions (Gedmo), vich/uploader, liip/imagine, knp-paginator, symfonycasts/tailwind, symfony/rate-limiter + (dev) doctrine-fixtures + zenstruck/foundry. *(NB : hoquet bind-mount Mac pendant l'install → réglé avec `composer install`.)*
+- [ ] **SOCLE TERMINÉ** → prochaine étape : construire les fonctionnalités (Phase 2 design/Tailwind ou Phase 3 entités des 12 tables — voir PLAN_DE_MATCH_MVP.md)
 
 ## Mémo commandes (réflexe Docker !)
 - **Toute** commande Symfony/Composer se lance DANS le conteneur :
@@ -57,10 +59,11 @@
 - Reconstruire après modif du Dockerfile : `docker compose up -d --build`
 
 ## Prochaine étape immédiate
-1. Créer `.env.local` :
-   `DATABASE_URL="mysql://bh_user:bh_pass@database:3306/bh_site?serverVersion=8.4&charset=utf8mb4"`
-2. Tester : `docker compose exec php php bin/console dbal:run-sql "SELECT VERSION()"`
-3. Premier commit Git + dépôt GitHub.
+GitHub (dépôt privé) via GitHub CLI :
+1. `brew install gh`
+2. `gh auth login` (GitHub.com → HTTPS → navigateur)
+3. `gh repo create bh_site --private --source=. --remote=origin --push`
+Puis : installer les dépendances MVP (voir phase 1 du PLAN_DE_MATCH_MVP.md).
 
 ## Notes de sécurité
 - `.env.local` est **ignoré par git** (secrets protégés) ✅

@@ -19,3 +19,7 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 .DS_Store
+
+###> liip/imagine-bundle ###
+/public/media/cache/
+###< liip/imagine-bundle ###
