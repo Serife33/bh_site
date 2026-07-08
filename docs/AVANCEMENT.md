@@ -24,7 +24,7 @@
 | `bh_php` | build `docker/php/Dockerfile` (php:8.4-fpm) | exécute Symfony | — |
 | `bh_nginx` | nginx:alpine | serveur web | http://localhost:8080 |
 | `bh_database` | mysql:8.4 | base de données | (port 3306) |
-| `bh_adminer` | adminer | admin visuel de la BDD | http://localhost:8081 |
+| `bh_phpmyadmin` | phpmyadmin | admin visuel de la BDD (login `bh_user`/`bh_pass`) | http://localhost:8081 |
 
 **Identifiants MySQL** (dev local, définis dans `compose.yaml`) :
 `base = bh_site` · `user = bh_user` · `pass = bh_pass` · `root pass = root` · hôte depuis les conteneurs = **`database`** (nom du service).
@@ -46,7 +46,19 @@
 - [x] Branche renommée `master` → `main`
 - [x] **GitHub OK** → dépôt poussé sur https://github.com/Serife33/bh_site (auth par token PAT, mémorisé dans le trousseau Mac). Push suivants : `git push` seul.
 - [x] **Dépendances MVP installées** (via `docker compose exec php composer require`) : stof/doctrine-extensions (Gedmo), vich/uploader, liip/imagine, knp-paginator, symfonycasts/tailwind, symfony/rate-limiter + (dev) doctrine-fixtures + zenstruck/foundry. *(NB : hoquet bind-mount Mac pendant l'install → réglé avec `composer install`.)*
-- [ ] **SOCLE TERMINÉ** → prochaine étape : construire les fonctionnalités (Phase 2 design/Tailwind ou Phase 3 entités des 12 tables — voir PLAN_DE_MATCH_MVP.md)
+- [x] **SOCLE TERMINÉ** ✅
+
+## 📅 Session du 7 juillet — Phase 3 : entités (EN COURS)
+- [x] **7 entités créées** (classes PHP) via `make:entity` :
+  - `Fabric` (name) · `Color` (name, hex) · `Family` (name) · `SubCategory` (name, slug) · `Category` (name, slug, seoText, metaTitle, metaDescription)
+  - `AdminUser` (via **`make:user`** → email/roles/password + `security.yaml` configuré)
+  - `Product` (tous les champs scalaires : name, slug, description, dimension **TEXT**, initialPrice/actualPrice **DECIMAL(10,2)**, stock, isCustomMade, isModular, sideLr, leadMin/MaxWeeks, metaTitle, metaDescription, position, isActive)
+- [x] **2 enums PHP** créés dans `src/Enum/` : `ProductModular` (no/yes/module) + `ProductSide` (none/left/right) → branchés dans Product (`enumType` + getters/setters + `use`)
+- [x] `dimension` passé en **TEXT** (mvp-mld.sql mis à jour aussi) · `actualPrice` corrigé en DECIMAL(10,2)
+- [x] **1ʳᵉ migration faite** → seule la table **`fabric`** existe en base (+ `messenger_messages` technique). ⚠️ Les **6 autres entités NE sont PAS encore migrées** (pas de table).
+- [x] Visualiseur BDD : **Adminer remplacé par phpMyAdmin** (compose.yaml + force-recreate) → http://localhost:8081
+- [ ] 🔴 **PAS ENCORE COMMITÉ** — à faire dès que possible :
+  `git add . && git commit -m "feat: entités du catalogue (Fabric, Color, Family, SubCategory, Category, AdminUser, Product + enums)" && git push`
 
 ## Mémo commandes (réflexe Docker !)
 - **Toute** commande Symfony/Composer se lance DANS le conteneur :
@@ -58,12 +70,22 @@
 - Voir les logs : `docker compose logs -f [service]`
 - Reconstruire après modif du Dockerfile : `docker compose up -d --build`
 
-## Prochaine étape immédiate
-GitHub (dépôt privé) via GitHub CLI :
-1. `brew install gh`
-2. `gh auth login` (GitHub.com → HTTPS → navigateur)
-3. `gh repo create bh_site --private --source=. --remote=origin --push`
-Puis : installer les dépendances MVP (voir phase 1 du PLAN_DE_MATCH_MVP.md).
+## Prochaine étape immédiate (reprise Phase 3)
+> Réflexe : `docker compose up -d` en début de session pour rallumer les conteneurs.
+
+1. **Relations sur `Product`** (via `make:entity Product`) — **aucune faite** pour l'instant :
+   - `category` → **ManyToOne** (nullable **no**, + inverse `products` sur Category)
+   - `family` → **ManyToOne** (nullable **yes**, + inverse `products` sur Family)
+   - `subCategories` → **ManyToMany** · `fabrics` → **ManyToMany** · `colors` → **ManyToMany**
+   - `modules` → **ManyToMany réflexive** (Product ↔ Product)
+2. **Créer l'entité `Media`** (`make:entity Media`) : url, alt, `type` (enum Photo/Video), isMain (bool), position (int) + **ManyToOne → Product**
+3. **Comportements Gedmo** à ajouter (Category + Product) : **Sluggable** (slug auto depuis le nom) + **Timestampable** (created_at/updated_at auto)
+4. **Migration groupée** : `docker compose exec php php bin/console make:migration` → relire → `...doctrine:migrations:migrate` → **les 12 tables existent**
+5. **Fixtures** (Foundry) : remplir la base de fausses données de démo (6 catégories, produits, tissus, couleurs…)
+6. **Commit + push** à chaque étape (rappel : `git push` seul suffit maintenant)
+
+## Phases suivantes (après les entités) — voir PLAN_DE_MATCH_MVP.md
+- Phase médias (Vich + Liip WebP) · Auth admin (login `/admin`) · CRUD back-office · Design system Tailwind · Front (accueil, catégorie, fiche produit + WhatsApp) · SEO · mise en ligne
 
 ## Notes de sécurité
 - `.env.local` est **ignoré par git** (secrets protégés) ✅
