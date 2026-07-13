@@ -136,4 +136,10 @@ class Category
 
         return $this;
     }
+
+    // Affiche le nom quand l'objet est converti en texte (listes déroulantes du form Product)
+    public function __toString(): string
+    {
+        return $this->name ?? '';
+    }
 }

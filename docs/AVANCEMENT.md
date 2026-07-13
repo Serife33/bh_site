@@ -103,12 +103,17 @@ Faite **à la main** (pas de `make:security:form-login`) :
 2. **Supprimer le champ `products` parasite** du `...Type.php` généré (c'est le côté **inverse** ManyToMany — on assigne les tissus/couleurs **depuis** le formulaire Product) → garder seulement les vrais champs (+ retirer les `use App\Entity\Product` / `EntityType` devenus inutiles).
    *(Sinon : champ « products » required + vide → au clic Save, le navigateur bloque en silence = « rien ne se passe ».)*
 
-- [x] **Fabric** ✅ : `make:crud Fabric` → route `/admin/fabric` → champ `products` retiré de `FabricType` → **testé, création OK**. URL : http://localhost:8080/admin/fabric
-- [ ] **Color** · **Family** · **SubCategory** — même procédé (make:crud + les 2 réflexes)
-- [ ] **Category** (make:crud → `/admin/category`)
-- [ ] **Product** — form **riche custom** (relations, enums, médias) ; slug saisi à la main en attendant Gedmo
-- [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials »
-- [ ] Commit après le lot de CRUD
+### 🧠 3ᵉ réflexe ajouté : `__toString()`
+Sur chaque entité de référence, ajouter `public function __toString(): string { return $this->name ?? ''; }` — indispensable pour l'affichage dans les listes déroulantes du futur form Product (sinon « could not be converted to string »).
+NB : le champ `products` parasite n'apparaît **que** sur les entités en **ManyToMany** (Fabric, Color, SubCategory). Les entités en **OneToMany** (Family, Category) n'en ont pas → réflexe 2 inutile pour elles.
+
+- [x] **Fabric** ✅ : route `/admin/fabric`, champ `products` retiré. Testé OK.
+- [x] **Color** ✅ : route `/admin/color`, champ `products` retiré, `__toString`. Testé OK.
+- [x] **Family** ✅ : route `/admin/family`, `__toString` (pas de champ `products` : OneToMany). Testé OK.
+- [x] **SubCategory** ✅ : route `/admin/sub-category`, champ `products` retiré, `__toString`. Testé OK (name+slug saisis main).
+- [x] **Category** ✅ : route `/admin/category`, `__toString` (pas de champ `products` : OneToMany). Testé OK. *(seoText affiché en input court — à passer en textarea au stylage admin.)*
+- [ ] **Product** — form **riche custom** (relations, enums, médias) ; slug saisi à la main en attendant Gedmo. **← PROCHAINE ÉTAPE**
+- [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials », seoText Category en textarea
 
 ## ⏳ À garder en tête pour la Phase 4 (pipeline médias)
 - **Upload** = VichUploader (mapping sur `Media`, stockage `public/uploads/products/`, on stocke juste le nom/chemin en base, jamais l'image).
