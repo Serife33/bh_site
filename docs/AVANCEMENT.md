@@ -57,8 +57,24 @@
 - [x] `dimension` passé en **TEXT** (mvp-mld.sql mis à jour aussi) · `actualPrice` corrigé en DECIMAL(10,2)
 - [x] **1ʳᵉ migration faite** → seule la table **`fabric`** existe en base (+ `messenger_messages` technique). ⚠️ Les **6 autres entités NE sont PAS encore migrées** (pas de table).
 - [x] Visualiseur BDD : **Adminer remplacé par phpMyAdmin** (compose.yaml + force-recreate) → http://localhost:8081
-- [ ] 🔴 **PAS ENCORE COMMITÉ** — à faire dès que possible :
-  `git add . && git commit -m "feat: entités du catalogue (Fabric, Color, Family, SubCategory, Category, AdminUser, Product + enums)" && git push`
+- [x] Commité + poussé ✅
+
+## 📅 Session du 8 juillet — Relations + Media + LES 12 TABLES ✅
+- [x] **Relations de `Product`** (via `make:entity Product`) — les 6 :
+  - `category` **ManyToOne** (nullable no, inverse `products`, orphanRemoval no)
+  - `family` **ManyToOne** (nullable **yes**, inverse `products`)
+  - `subCategories` / `fabrics` / `colors` **ManyToMany** (inverses `products`)
+  - `modules` **ManyToMany réflexive** (→ `Product` self, **unidirectionnelle** : pas d'inverse)
+- [x] **Entité `Media`** : url, alt(nullable), type(string photo/video), isMain(bool), position(int) + **ManyToOne → Product** (nullable no, inverse `medias`, **orphanRemoval yes**)
+- [x] **Migration groupée** `Version20260708141607` relue puis appliquée → **LES 12 TABLES EXISTENT** 🎉
+  (8 entités + jonctions `product_sub_category`, `product_fabric`, `product_color`, `product_product`)
+  ⚠️ Note : la jonction modules s'appelle `product_product` (nom auto Doctrine, colonnes product_source/product_target) au lieu de `product_module` du MLD — fonctionnellement identique.
+- [x] Commit + push : `feat: relations Product, entité Media et migration du schéma complet (12 tables)`
+
+## 🧭 Décisions d'ordre (actées le 8/7)
+- **Gedmo repoussé** (pas V2, mais APRÈS auth + CRUD) : slug rempli à la main (ou SluggerInterface dans les contrôleurs CRUD) en attendant ; dates gérées au moment voulu. Gedmo Sluggable sera posé AVANT le front (URLs propres).
+- **Ordre de la suite : Auth admin → CRUD back-office → Gedmo → fixtures → front.**
+- Retard global ~2 jours vs PLANNING-EXAM (setup + design system décalé) ; rythme réel ≈ 1,3× le prévu. Design system sera fait avec le front.
 
 ## Mémo commandes (réflexe Docker !)
 - **Toute** commande Symfony/Composer se lance DANS le conteneur :
@@ -70,22 +86,24 @@
 - Voir les logs : `docker compose logs -f [service]`
 - Reconstruire après modif du Dockerfile : `docker compose up -d --build`
 
-## Prochaine étape immédiate (reprise Phase 3)
-> Réflexe : `docker compose up -d` en début de session pour rallumer les conteneurs.
+## ✅ AUTH ADMIN TERMINÉE (Phase 5) — 13 juillet
+Faite **à la main** (pas de `make:security:form-login`) :
+- `security.yaml` : firewall `main` + `form_login` (login_path/check_path `app_login`, `enable_csrf`) + `logout` + `access_control ^/admin → ROLE_ADMIN`
+- `SecurityController` (routes `/login` app_login, `/logout` app_logout) + `templates/security/login.html.twig` (form HTML manuel : `_username`/`_password`/`_csrf_token`)
+- **Commande console `app:create-admin`** (`src/Command/CreateAdminCommand.php`) : injecte EntityManager + UserPasswordHasher → crée un AdminUser haché
+- `AdminController` (route `/admin`) — page de test « Hello AdminController »
+- ✅ **Testé** : compte créé, login OK, `/admin` accessible avec ROLE_ADMIN (confirmé dans le profiler). Compte actuel : `serifekaragur@gmail.com`.
+- Détour résolu : setup **Tailwind** (`tailwind.config.js` + `config/packages/symfonycasts_tailwind.yaml` avec `binary_version: v3.4.17` épinglé pour éviter GitHub 403 + `assets/styles/app.css` en `@tailwind` + `tailwind:build`).
+- [ ] 🔴 **À COMMITTER** : `git add . && git commit -m "feat: authentification admin (login, firewall, commande create-admin, page /admin)" && git push`
 
-1. **Relations sur `Product`** (via `make:entity Product`) — **aucune faite** pour l'instant :
-   - `category` → **ManyToOne** (nullable **no**, + inverse `products` sur Category)
-   - `family` → **ManyToOne** (nullable **yes**, + inverse `products` sur Family)
-   - `subCategories` → **ManyToMany** · `fabrics` → **ManyToMany** · `colors` → **ManyToMany**
-   - `modules` → **ManyToMany réflexive** (Product ↔ Product)
-2. **Créer l'entité `Media`** (`make:entity Media`) : url, alt, `type` (enum Photo/Video), isMain (bool), position (int) + **ManyToOne → Product**
-3. **Comportements Gedmo** à ajouter (Category + Product) : **Sluggable** (slug auto depuis le nom) + **Timestampable** (created_at/updated_at auto)
-4. **Migration groupée** : `docker compose exec php php bin/console make:migration` → relire → `...doctrine:migrations:migrate` → **les 12 tables existent**
-5. **Fixtures** (Foundry) : remplir la base de fausses données de démo (6 catégories, produits, tissus, couleurs…)
-6. **Commit + push** à chaque étape (rappel : `git push` seul suffit maintenant)
+## Prochaine étape : CRUD back-office 🗂️
 
-## Phases suivantes (après les entités) — voir PLAN_DE_MATCH_MVP.md
-- Phase médias (Vich + Liip WebP) · Auth admin (login `/admin`) · CRUD back-office · Design system Tailwind · Front (accueil, catégorie, fiche produit + WhatsApp) · SEO · mise en ligne
+## Puis (dans l'ordre acté)
+1. **CRUD back-office** : Fabric, Color, Family, SubCategory (make:crud simples) → Category → **Product** (form riche) — slug saisi à la main pour l'instant
+2. **Gedmo** : Sluggable (+ Timestampable) — avant le front
+3. **Fixtures** Foundry (données de démo)
+4. **Front** (Tailwind + design system intégré) : accueil, catégorie, fiche produit + CTA WhatsApp
+5. SEO de base → recette → mise en ligne (17/7 !)
 
 ## Notes de sécurité
 - `.env.local` est **ignoré par git** (secrets protégés) ✅

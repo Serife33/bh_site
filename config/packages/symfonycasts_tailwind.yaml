@@ -1,0 +1,3 @@
+symfonycasts_tailwind:
+    # Version épinglée = utilise le binaire déjà téléchargé, sans rappeler GitHub
+    binary_version: 'v3.4.17'

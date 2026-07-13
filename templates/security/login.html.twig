@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+
+{% block title %} Connexion — Administration {% endblock %}
+
+{% block body %}
+
+{# Formulaire en HTML à la main : c'est le PARE-FEU qui l'intercepte, pas le composant Form de Symfony (cas spécial du login) #}
+<form method="post">
+    {# affiche l'erreur si la connexion précédente a échoué #}
+    {% if error %}
+        <div class="alert" >
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div> 
+    {% endif %}
+
+    <h1> Connexion a l'administration </h1>
+
+    <label for="username">Email</label>
+    {# last_username : valeur pré-remplie avec la donnée précédente | autocomplete : dit au navigateur ce champs est un email | autofocus : le curseur se place automatiquement dans ce champs #}
+    <input type="email" name="_username" id="username" value="{{ last_username }}" autocomplete="email" required autofocus>
+
+    {# name="_password" : idem, nom lu par le pare-feu #}
+    <label for="password">Mot de Passe</label>
+    <input type="password" name="_password" id="password" autocomplete="current-password" required>
+
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+    <button type="submit"> Se connecter </button>
+</form>
+{% endblock %}
