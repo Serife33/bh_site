@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Fabric index{% endblock %}
+
+{% block body %}
+    <h1>Fabric index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for fabric in fabrics %}
+            <tr>
+                <td>{{ fabric.id }}</td>
+                <td>{{ fabric.name }}</td>
+                <td>
+                    <a href="{{ path('app_fabric_show', {'id': fabric.id}) }}">show</a>
+                    <a href="{{ path('app_fabric_edit', {'id': fabric.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_fabric_new') }}">Create new</a>
+{% endblock %}

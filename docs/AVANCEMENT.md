@@ -96,14 +96,25 @@ Faite **à la main** (pas de `make:security:form-login`) :
 - Détour résolu : setup **Tailwind** (`tailwind.config.js` + `config/packages/symfonycasts_tailwind.yaml` avec `binary_version: v3.4.17` épinglé pour éviter GitHub 403 + `assets/styles/app.css` en `@tailwind` + `tailwind:build`).
 - [ ] 🔴 **À COMMITTER** : `git add . && git commit -m "feat: authentification admin (login, firewall, commande create-admin, page /admin)" && git push`
 
-## Prochaine étape : CRUD back-office 🗂️
+## 🗂️ CRUD back-office (EN COURS) — 13 juillet
+
+### ⚙️ Les 2 RÉFLEXES à appliquer sur CHAQUE `make:crud` d'entité
+1. **Protéger sous `/admin`** : dans le contrôleur généré, changer le préfixe de classe `#[Route('/fabric')]` → `#[Route('/admin/fabric')]` (ligne ~14) → verrouillé par `access_control ^/admin`.
+2. **Supprimer le champ `products` parasite** du `...Type.php` généré (c'est le côté **inverse** ManyToMany — on assigne les tissus/couleurs **depuis** le formulaire Product) → garder seulement les vrais champs (+ retirer les `use App\Entity\Product` / `EntityType` devenus inutiles).
+   *(Sinon : champ « products » required + vide → au clic Save, le navigateur bloque en silence = « rien ne se passe ».)*
+
+- [x] **Fabric** ✅ : `make:crud Fabric` → route `/admin/fabric` → champ `products` retiré de `FabricType` → **testé, création OK**. URL : http://localhost:8080/admin/fabric
+- [ ] **Color** · **Family** · **SubCategory** — même procédé (make:crud + les 2 réflexes)
+- [ ] **Category** (make:crud → `/admin/category`)
+- [ ] **Product** — form **riche custom** (relations, enums, médias) ; slug saisi à la main en attendant Gedmo
+- [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials »
+- [ ] Commit après le lot de CRUD
 
 ## Puis (dans l'ordre acté)
-1. **CRUD back-office** : Fabric, Color, Family, SubCategory (make:crud simples) → Category → **Product** (form riche) — slug saisi à la main pour l'instant
-2. **Gedmo** : Sluggable (+ Timestampable) — avant le front
-3. **Fixtures** Foundry (données de démo)
-4. **Front** (Tailwind + design system intégré) : accueil, catégorie, fiche produit + CTA WhatsApp
-5. SEO de base → recette → mise en ligne (17/7 !)
+1. **Gedmo** : Sluggable (+ Timestampable) — avant le front
+2. **Fixtures** Foundry (données de démo)
+3. **Front** (Tailwind + design system intégré) : accueil, catégorie, fiche produit + CTA WhatsApp
+4. SEO de base → recette → mise en ligne
 
 ## Notes de sécurité
 - `.env.local` est **ignoré par git** (secrets protégés) ✅

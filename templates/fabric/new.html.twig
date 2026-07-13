@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Fabric{% endblock %}
+
+{% block body %}
+    <h1>Create new Fabric</h1>
+
+    {{ include('fabric/_form.html.twig') }}
+
+    <a href="{{ path('app_fabric_index') }}">back to list</a>
+{% endblock %}
