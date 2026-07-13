@@ -75,4 +75,10 @@ class Family
 
         return $this;
     }
+
+    // représentation texte de l'entité
+    public function __toString(): string
+    {
+        return $this->name ?? '';
+    }
 }

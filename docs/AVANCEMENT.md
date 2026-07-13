@@ -110,6 +110,11 @@ Faite **à la main** (pas de `make:security:form-login`) :
 - [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials »
 - [ ] Commit après le lot de CRUD
 
+## ⏳ À garder en tête pour la Phase 4 (pipeline médias)
+- **Upload** = VichUploader (mapping sur `Media`, stockage `public/uploads/products/`, on stocke juste le nom/chemin en base, jamais l'image).
+- **Affichage** = LiipImagine (filtres WebP + miniatures/srcset).
+- **⚠️ HEIC (photos iPhone)** : GD ne le lit pas + les navigateurs ne l'affichent pas. **Décision MVP = REJETER** via validation `Assert\File(mimeTypes: ['image/jpeg','image/png','image/webp'])` avec message clair « convertis en JPEG ». L'admin convertit (iPhone → Réglages/Appareil photo/Formats/« Le plus compatible », ou Aperçu Mac → Exporter JPEG). Conversion auto HEIC→JPEG (Imagick+libheif) = **V2** si besoin.
+
 ## Puis (dans l'ordre acté)
 1. **Gedmo** : Sluggable (+ Timestampable) — avant le front
 2. **Fixtures** Foundry (données de démo)
