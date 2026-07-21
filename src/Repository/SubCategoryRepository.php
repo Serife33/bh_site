@@ -21,7 +21,7 @@ class SubCategoryRepository extends ServiceEntityRepository
     
     public function findForIndex(): array
     {
-        return $this->createQueryBuilder('f')
+        return $this->createQueryBuilder('s')
             ->select('s.id', 's.name', 's.slug')
             ->orderBy('s.name', 'ASC')
             ->getQuery()
