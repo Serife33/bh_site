@@ -119,10 +119,6 @@ class ProductType extends AbstractType
         ])
 
         // Seo
-        ->add('slug', TextType::class, [
-            'label' => 'slug',
-            'help' => 'En minuscules, sans accent ni espace. Ex : canape-oslo-3-places' // ffiche un petit texte d'aide sous le champ. Très utile en back-office pour rappeler une règle de saisie
-        ])
         ->add('metaTitle', TextType::class, [
             'label' => 'Meta title (SEO)',
             'required' => false

@@ -13,7 +13,6 @@ class CategoryType extends AbstractType
     {
         $builder
             ->add('name')
-            ->add('slug')
             ->add('seoText')
             ->add('metaTitle')
             ->add('metaDescription')

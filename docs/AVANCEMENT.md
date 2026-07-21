@@ -113,9 +113,28 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 - [x] **SubCategory** ✅ : route `/admin/sub-category`, champ `products` retiré, `__toString`. Testé OK (name+slug saisis main).
 - [x] **Category** ✅ : route `/admin/category`, `__toString` (pas de champ `products` : OneToMany). Testé OK. *(seoText affiché en input court — à passer en textarea au stylage admin.)*
 - [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials », seoText Category en textarea
+- [ ] Plus tard (peaufinage form Product) : champ `modules` → ajouter un `query_builder` pour ne proposer que les produits `is_modular = module` **et exclure le produit courant** (constaté le 21/07 : un produit s'affiche dans sa propre liste de modules). Idem, franciser les libellés des enums via `choice_label` (No/Yes/Module → Non/Oui/Module, None → Sans objet).
 
-## ⏸️ REPRISE — prochaine étape : **Gedmo** (Sluggable + Timestampable)
-Back-office **TERMINÉ** ✅ (6 CRUD dont Product codé main). Suite actée : **Gedmo → Fixtures Foundry → Front (le gros morceau, pas commencé) → SEO → mise en ligne**.
+## ⏸️ REPRISE — prochaine étape : **Fixtures Foundry**
+Back-office **TERMINÉ** ✅ (6 CRUD dont Product codé main) + automatismes en place. Suite : **Fixtures → FRONT (le gros morceau, pas commencé, priorité absolue) → médias upload → SEO → mise en ligne**.
+📄 Points reportés : voir `docs/A-TRAITER.md`.
+
+## ⚙️ Automatismes NATIFS (21 juillet) — Gedmo écarté
+**Décision** : pas de bundle Gedmo, tout en **natif Doctrine/Symfony** (pas de dépendance pour quelques lignes, et 100 % explicable).
+
+### Horodatage — callbacks de cycle de vie Doctrine
+- `Product` seulement (`createdAt` + `updatedAt`, `datetime_immutable`, non nullables) — migration `Version20260721120350` appliquée ✅.
+- `#[ORM\HasLifecycleCallbacks]` sur la classe + `#[ORM\PrePersist] initTimestamps()` et `#[ORM\PreUpdate] refreshUpdatedAt()`.
+- **Setters supprimés** (getters conservés) → les dates ne peuvent pas être falsifiées depuis le code métier, seul Doctrine les écrit.
+- **Pourquoi un callback** : sans lui il faudrait écrire la date dans chaque contrôleur/fixture/commande → un oubli = date nulle = crash (colonne NOT NULL). Le callback se déclenche quel que soit l'endroit qui crée l'objet.
+- **Pourquoi Product seul** : seule entité dont la fraîcheur sert (nouveautés, tri admin, `lastmod` du sitemap). Tables de référence figées = du bruit.
+
+### Slug automatique — `AsciiSlugger` (natif Symfony)
+- `#[ORM\PrePersist] generateSlug()` : `$this->slug = (new AsciiSlugger())->slug($this->name)->lower();`
+- Testé ✅ : « Canapé d'angle Méridienne 4 places » → `canape-d-angle-meridienne-4-places` (accents, apostrophe, espaces, majuscules).
+- Champ `slug` retiré de `ProductType`.
+- **⚠️ Volontairement PAS sur `PreUpdate`** : une URL publiée doit rester **stable** — la régénérer au renommage casserait les liens entrants et le référencement.
+- Reste à appliquer à `Category` et `SubCategory` (aucune migration, colonnes déjà présentes).
 
 ## 🚫 ZÉRO findAll() — refactor fait (21 juillet)
 Choix de Serife, assumé et défendable au jury : **aucun `findAll()` dans le projet** (`grep -rn "findAll()" src/` → 0 résultat).

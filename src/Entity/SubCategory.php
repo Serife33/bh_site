@@ -6,8 +6,10 @@ use App\Repository\SubCategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 #[ORM\Entity(repositoryClass: SubCategoryRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class SubCategory
 {
     #[ORM\Id]
@@ -31,6 +33,19 @@ class SubCategory
     {
         $this->products = new ArrayCollection();
     }
+
+
+
+
+    // Génère le slug depuis le nom, à la création seulement (URLs stables = SEO).
+    #[ORM\PrePersist]
+    public function generateSlug(): void
+    {
+        $this->slug = (new AsciiSlugger())->slug($this->name)->lower();
+    }
+
+
+
 
     public function getId(): ?int
     {

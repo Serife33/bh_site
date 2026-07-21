@@ -9,8 +9,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[ORM\HasLifecycleCallbacks]   // dit à Doctrine : "cette entité a des callbacks, va les chercher"
 class Product
 {
     #[ORM\Id]
@@ -103,6 +105,12 @@ class Product
     #[ORM\OneToMany(targetEntity: Media::class, mappedBy: 'product', orphanRemoval: true)]
     private Collection $media;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
+
     public function __construct()
     {
         $this->subCategories = new ArrayCollection();
@@ -111,6 +119,33 @@ class Product
         $this->modules = new ArrayCollection();
         $this->media = new ArrayCollection();
     }
+
+
+    
+    // Appelée automatiquement par Doctrine juste avant le premier INSERT.
+    #[ORM\PrePersist]
+    public function initTimestamps(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    // Appelée automatiquement par Doctrine juste avant chaque UPDATE.
+    #[ORM\PreUpdate]
+    public function refreshUpdatedAt(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    // Génère le slug depuis le nom, juste avant le premier INSERT.
+    // Volontairement PAS sur PreUpdate : une URL ne doit pas changer quand on renomme un produit (les liens existants et le référencement casseraient).
+    #[ORM\PrePersist]
+    public function generateSlug() : void
+    {
+        $this->slug = (new AsciiSlugger())->slug($this->name)->lower();
+    }
+
+
 
     public function getId(): ?int
     {
@@ -458,4 +493,15 @@ class Product
 
         return $this;
     }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
 }
