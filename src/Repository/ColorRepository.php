@@ -16,28 +16,16 @@ class ColorRepository extends ServiceEntityRepository
         parent::__construct($registry, Color::class);
     }
 
-    //    /**
-    //     * @return Color[] Returns an array of Color objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Color
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    
+    // Liste pour l'index admin : uniquement les colonnes affichées, triées par nom.
+    // Projection → renvoie des tableaux (pas d'objets) : aucun lazy loading possible.
+    
+    public function findForIndex(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c.id', 'c.name', 'c.hex') // SQL : SELECT id, name, hex FROM color
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getArrayResult(); // tableaux bruts, pas d'objets Color
+    }
 }

@@ -18,7 +18,7 @@ final class ColorController extends AbstractController
     public function index(ColorRepository $colorRepository): Response
     {
         return $this->render('color/index.html.twig', [
-            'colors' => $colorRepository->findAll(),
+            'colors' => $colorRepository->findForIndex(),
         ]);
     }
 

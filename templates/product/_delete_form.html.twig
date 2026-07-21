@@ -1,0 +1,8 @@
+
+{# Formulaire POST : une suppression ne se fait jamais par un simple lien #}
+<form method="post" action="{{ path('app_product_delete', {id: product.id}) }}"
+      onsubmit="return confirm('Supprimer ce produit définitivement ?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+    <button type="submit">Supprimer</button>
+</form>
+

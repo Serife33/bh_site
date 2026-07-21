@@ -16,28 +16,16 @@ class FamilyRepository extends ServiceEntityRepository
         parent::__construct($registry, Family::class);
     }
 
-    //    /**
-    //     * @return Family[] Returns an array of Family objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('f.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    // Liste pour l'index admin : uniquement les colonnes affichées, triées par nom.
+    // Projection → renvoie des tableaux (pas d'objets) : aucun lazy loading possible.
+    
+    public function findForIndex(): array
+    {
+        return $this->createQueryBuilder('f')
+            ->select('f.id', 'f.name')
+            ->orderBy('f.name', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 
-    //    public function findOneBySomeField($value): ?Family
-    //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 }

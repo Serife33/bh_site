@@ -1,0 +1,15 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ product.name }}{% endblock %}
+
+{% block body %}
+    <h1>Modifier : {{ product.name }}</h1>
+
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit">Enregistrer les modifications</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('app_product_index') }}">← Retour à la liste</a>
+{% endblock %}

@@ -16,28 +16,16 @@ class CategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, Category::class);
     }
 
-    //    /**
-    //     * @return Category[] Returns an array of Category objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Category
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    // Liste pour l'index admin : uniquement les colonnes affichées, triées par nom.
+    // Projection → renvoie des tableaux (pas d'objets) : aucun lazy loading possible.
+    
+    public function findForIndex(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c.id', 'c.name', 'c.slug', 'c.seoText', 'c.metaTitle', 'c.metaDescription')
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getArrayResult(); // tableaux bruts, pas d'objets Color
+    }
+ 
 }

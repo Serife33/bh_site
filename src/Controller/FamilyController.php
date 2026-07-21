@@ -18,7 +18,7 @@ final class FamilyController extends AbstractController
     public function index(FamilyRepository $familyRepository): Response
     {
         return $this->render('family/index.html.twig', [
-            'families' => $familyRepository->findAll(),
+            'families' => $familyRepository->findForIndex(),
         ]);
     }
 

@@ -112,8 +112,62 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 - [x] **Family** ✅ : route `/admin/family`, `__toString` (pas de champ `products` : OneToMany). Testé OK.
 - [x] **SubCategory** ✅ : route `/admin/sub-category`, champ `products` retiré, `__toString`. Testé OK (name+slug saisis main).
 - [x] **Category** ✅ : route `/admin/category`, `__toString` (pas de champ `products` : OneToMany). Testé OK. *(seoText affiché en input court — à passer en textarea au stylage admin.)*
-- [ ] **Product** — form **riche custom** (relations, enums, médias) ; slug saisi à la main en attendant Gedmo. **← PROCHAINE ÉTAPE**
 - [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials », seoText Category en textarea
+
+## ⏸️ REPRISE — prochaine étape : **Gedmo** (Sluggable + Timestampable)
+Back-office **TERMINÉ** ✅ (6 CRUD dont Product codé main). Suite actée : **Gedmo → Fixtures Foundry → Front (le gros morceau, pas commencé) → SEO → mise en ligne**.
+
+## 🚫 ZÉRO findAll() — refactor fait (21 juillet)
+Choix de Serife, assumé et défendable au jury : **aucun `findAll()` dans le projet** (`grep -rn "findAll()" src/` → 0 résultat).
+- Chaque repository a une méthode **`findForIndex()`** écrite au **QueryBuilder** avec **projection** (`->select(...)` = uniquement les colonnes affichées) + `orderBy` explicite + **`getArrayResult()`** (tableaux, pas d'objets).
+- Colonnes par repo : Color `id,name,hex` · Fabric `id,name` · Family `id,name` · SubCategory `id,name,slug` · Category `id,name,slug,seoText,metaTitle,metaDescription` · Product `id,name,actualPrice,stock`.
+- **Pourquoi les tableaux** : pas d'hydratation d'objets (plus léger) et surtout **aucun lazy loading possible** → le problème **N+1** est éliminé à la source, pas juste évité par discipline.
+- En Twig, `{{ color.name }}` marche pareil sur un tableau que sur un objet → **templates inchangés**.
+- ⚠️ `show`/`edit`/`delete` chargent l'entité **complète par id** (1 ligne) — c'est normal et voulu.
+
+## 🏗️ CRUD Product — CODÉ À LA MAIN (EN COURS) — 14 juillet
+
+> Choix de Serife : **PAS de make:crud** pour Product → tout coder **à la main et commenter**, pour le maîtriser et l'expliquer au jury. Coquille de départ via `make:controller` seulement.
+
+### ✅ Fait
+- **`make:controller ProductController`** (coquille) → route de classe passée à `#[Route('/admin/product')]` (protégée ^/admin), **sans `name:` sur la classe** (sinon préfixe collé au nom des actions).
+- **Action `index` PAGINÉE** codée main : injecte `Request` + `ProductRepository` + `PaginatorInterface` (KnpPaginator, déjà installé). Constante `PRODUCTS_PER_PAGE = 20` (pas de nombre magique).
+- **`ProductRepository::findAllOrderedQuery()`** : renvoie la **Query non exécutée** (`orderBy position ASC`) → c'est le paginator qui ajoute le `LIMIT 20` → **on ne charge jamais toute la table**.
+- **Décision archi (à verbaliser jury)** : on **pagine** les tables qui grossissent (product) ; `findAll()` reste OK pour les **petites tables de référence bornées** (color, fabric, family, sub_category, category ≈ 10 lignes).
+- **`templates/product/index.html.twig`** : tableau + boucle `{% for product in pagination %}` + `{% else %}` (liste vide) + `knp_pagination_render(pagination)`.
+
+### ✅ `ProductType` TERMINÉ (codé main, 21 champs, commenté)
+`src/Form/ProductType.php` — les 5 groupes sont faits :
+1. **Infos** : name (TextType), description + dimension (TextareaType, required:false).
+2. **Prix/stock** : initialPrice + actualPrice (**MoneyType**, currency EUR — jamais de float pour l'argent, DECIMAL en base), stock (IntegerType).
+3. **Options** : isCustomMade (CheckboxType, **required:false obligatoire** sinon la case devrait être cochée), isModular + sideLr (**EnumType** + `class` → choix issus des enums PHP `src/Enum/`), leadMin/MaxWeeks (IntegerType, required:false).
+4. **Relations** (**EntityType** = choix lus en base) : category (single, obligatoire, placeholder), family (single, required:false), subCategories/fabrics/colors (`multiple:true` + `expanded:true` = cases à cocher), modules (multiple, expanded:false = liste, réflexif sur Product). ⚠️ Toujours `choice_label => 'name'` (sinon erreur « could not be converted to string »).
+5. **SEO/publication** : slug (TextType + `help`), metaTitle/metaDescription (required:false → fallback SeoResolver), position (IntegerType), isActive (CheckboxType required:false).
+- ⏭️ **Quand Gedmo arrivera** : retirer le champ `slug` de `ProductType`, `CategoryType`, `SubCategoryType` (généré via `#[Gedmo\Slug(fields:['name'])]`) ; et **ajouter** createdAt/updatedAt aux entités (+migration) pour Timestampable.
+- Pas de `make:form` (générerait des champs nus à réécrire à 80 %).
+- Pourquoi PAS `make:form` : il génère des champs nus (prix sans MoneyType, relations en `choice_label:id` illisibles, labels en anglais) → à réécrire à 80 %, on perd le bénéfice « je maîtrise/commente ».
+
+### 🗺️ Comment on continue (plan ProductType, groupe par groupe)
+1. **Prix + stock** : `initialPrice`/`actualPrice` en **MoneyType** (devise EUR), `stock` en IntegerType.
+2. **Options** : `isCustomMade` (CheckboxType), `isModular` + `sideLr` en **EnumType** (enums PHP `ProductModular`/`ProductSide`), `leadMinWeeks`/`leadMaxWeeks` (IntegerType, required:false).
+3. **Relations** : `category` (**EntityType** single, required — `choice_label:name` grâce aux `__toString`), `family` (EntityType nullable), `subCategories`/`fabrics`/`colors` (EntityType `multiple`), `modules` (EntityType multiple réflexif).
+4. **SEO + publication** : `slug` (TextType, saisi **à la main** en attendant Gedmo), `metaTitle`/`metaDescription`, `position` (IntegerType), `isActive` (CheckboxType).
+5. ⏭️ **Médias exclus** du form pour l'instant → Phase 4 (VichUploader, cf. section « À garder en tête »).
+
+### ✅ Actions + templates TERMINÉS et TESTÉS (21 juillet)
+Les 5 actions codées main dans `ProductController` : `index` (paginée), `new`, `show`, `edit`, `delete`. Templates : `index/new/show/edit/_delete_form`. **Testé OK : créer, modifier, supprimer un produit.**
+
+Notions posées (bon matériel pour l'oral) :
+- **`createForm(ProductType::class, $product)`** : liaison **bidirectionnelle** form ↔ objet → `new` (objet vide = form vierge) et `edit` (objet existant = form pré-rempli) partagent **le même** FormType. `handleRequest()` remplit l'entité via ses setters (d'où l'importance que le 1er arg de `->add()` soit le nom exact de la propriété).
+- **`edit` n'appelle PAS `persist()`** : l'objet vient de la base, Doctrine le surveille déjà (unit of work) → `flush()` suffit pour l'UPDATE.
+- **`show`/`edit`/`delete` : `Product $product` en paramètre** → Symfony fait le `find($id)` tout seul depuis `{id}` (Entity Value Resolver) + 404 auto si inexistant.
+- **`requirements: ['id' => '\d+']`** → `{id}` limité aux chiffres : lève l'ambiguïté avec `/new` sans dépendre de l'ordre, et 404 propre sur URL invalide.
+- **`delete` en POST uniquement + jeton CSRF** (`isCsrfTokenValid('delete'.$id, payload '_token')`) : une action destructrice ne passe jamais par un lien GET (robots/préchargement videraient la base), et le jeton bloque les requêtes forgées depuis un autre site.
+- ⚠️ **Piège rencontré** : `if (...);` — le `;` ferme le `if` → le bloc s'exécutait **toujours** (vérif CSRF neutralisée). Toujours une accolade.
+
+### ⏭️ Après Product
+Gedmo (Sluggable/Timestampable) → Fixtures Foundry → Front (Tailwind + design) → SEO → recette → mise en ligne.
+Tests : plus tard 1-2 **tests fonctionnels Symfony** (WebTestCase, déjà installé — PAS Postman : app à formulaires, pas API JSON).
 
 ## ⏳ À garder en tête pour la Phase 4 (pipeline médias)
 - **Upload** = VichUploader (mapping sur `Media`, stockage `public/uploads/products/`, on stocke juste le nom/chemin en base, jamais l'image).

@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Produits{% endblock %}
+
+{% block body %}
+    <h1>Produits</h1>
+
+    <a href="{{ path('app_product_new') }}">+ Nouveau produit</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prix</th>
+                <th>Stock</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {# On boucle sur la pagination : elle ne contient QUE les 20 produits de la page #}
+        {% for product in pagination %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.actualPrice }} €</td>
+                <td>{{ product.stock }}</td>
+                <td>
+                    <a href="{{ path('app_product_show', {id: product.id}) }}">Voir</a>
+                    <a href="{{ path('app_product_edit', {id: product.id}) }}">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            {# Ce bloc s'affiche si la boucle est vide (aucun produit) #}
+            <tr><td colspan="4">Aucun produit pour l'instant.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {# Les liens de pagination « ‹ 1 2 3 › » générés par KnpPaginator #}
+    <div class="navigation">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+{% endblock %}

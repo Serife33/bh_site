@@ -18,7 +18,7 @@ final class FabricController extends AbstractController
     public function index(FabricRepository $fabricRepository): Response
     {
         return $this->render('fabric/index.html.twig', [
-            'fabrics' => $fabricRepository->findAll(),
+            'fabrics' => $fabricRepository->findForIndex(),
         ]);
     }
 

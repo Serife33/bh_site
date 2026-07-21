@@ -1,0 +1,31 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ product.name }}</h1>
+
+    <table>
+        <tr><th>Slug</th><td>{{ product.slug }}</td></tr>
+        <tr><th>Description</th><td>{{ product.description }}</td></tr>
+        <tr><th>Dimensions</th><td>{{ product.dimension }}</td></tr>
+        <tr><th>Prix initial</th><td>{{ product.initialPrice }} €</td></tr>
+        <tr><th>Prix actuel</th><td>{{ product.actualPrice }} €</td></tr>
+        <tr><th>Stock</th><td>{{ product.stock }}</td></tr>
+        <tr><th>Sur mesure</th><td>{{ product.isCustomMade ? 'Oui' : 'Non' }}</td></tr>
+        <tr><th>Modulable</th><td>{{ product.isModular.value }}</td></tr>
+        <tr><th>Côté</th><td>{{ product.sideLr.value }}</td></tr>
+        <tr><th>Délai</th><td>{{ product.leadMinWeeks }} à {{ product.leadMaxWeeks }} semaines</td></tr>
+        <tr><th>Catégorie</th><td>{{ product.category.name }}</td></tr>
+        <tr><th>Famille</th><td>{{ product.family ? product.family.name : '—' }}</td></tr>
+        <tr><th>Tissus</th><td>{% for f in product.fabrics %}{{ f.name }} {% else %}—{% endfor %}</td></tr>
+        <tr><th>Couleurs</th><td>{% for c in product.colors %}{{ c.name }} {% else %}—{% endfor %}</td></tr>
+        <tr><th>Visible</th><td>{{ product.isActive ? 'Oui' : 'Non' }}</td></tr>
+    </table>
+
+    <a href="{{ path('app_product_index') }}">← Retour</a>
+    <a href="{{ path('app_product_edit', {id: product.id}) }}">Modifier</a>
+
+    {{ include('product/_delete_form.html.twig') }}
+{% endblock %}
