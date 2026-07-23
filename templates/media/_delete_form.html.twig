@@ -1,0 +1,8 @@
+
+{# Formulaire de suppression d'une photo : POST + jeton CSRF #}
+<form method="post"
+      action="{{ path('app_media_delete', {id: media.id}) }}"
+      onsubmit="return confirm('Supprimer cette photo ?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ media.id) }}">
+    <button type="submit">Supprimer</button>
+</form>

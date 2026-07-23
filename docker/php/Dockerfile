@@ -19,5 +19,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # 3. Installer Composer (récupéré depuis l'image officielle Composer)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# 3bis. Copier notre config PHP personnalisée (limites d'upload relevées)
+COPY uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 # 4. Se placer dans le dossier où sera monté ton code
 WORKDIR /var/www

@@ -14,6 +14,15 @@
 - Reste à appliquer la même recette à **`Category`** et **`SubCategory`** (5 min chacune, aucune migration).
 - ⏭️ Un jour : permettre de **personnaliser** un slug en back-office (aujourd'hui, une faute dans le nom à la création reste dans l'URL — on ne régénère pas à la modification, volontairement, pour ne pas casser les URLs publiées).
 
+### 1bis. Médias — points d'architecture (décidés le 22/07)
+- **Pas de `show` ni d'`index` pour Media** : une photo n'a pas de détail à consulter seule (déjà visible sur la fiche produit). On ne crée que les actions utiles : ajouter / afficher / supprimer.
+- **Edit Media = métadonnées seulement** (décidé par Serife le 22/07) : on modifie `alt` / `isMain` / `position`, **pas le fichier** (le fichier se remplace par supprimer + ré-uploader). Réutiliser `MediaType` mais rendre `imageFile` **facultatif en mode edit** via une **option de formulaire** (Vich garde l'image existante si aucun nouveau fichier n'est envoyé). À faire après le delete.
+- **✅ Fichiers orphelins — RÉGLÉ (22/07)** : la suppression via `MediaController::delete` (remove + flush sur l'entité) déclenche bien VichUploader → le fichier physique est supprimé en même temps que la ligne. Confirmé au test. NB : il a fallu rendre `Media::setUrl(?string $url)` nullable, car Vich remet `url` à null en supprimant le fichier. ⚠️ Reste à vérifier le cas « suppression d'un PRODUIT entier » (cascade orphanRemoval) — s'assurer que chaque Media passe bien par remove (pas un DELETE SQL en masse).
+- **Règle métier** : une seule photo `is_main` par produit → à gérer dans `MediaController` (décocher les autres quand on en coche une).
+
+### 1ter. Dépréciation LiipImagine (vue le 22/07)
+- Warning : `Liip\ImagineBundle\Templating\FilterExtension deprecated since 2.7`. → fix en 1 ligne : dans `config/packages/liip_imagine.yaml`, mettre `liip_imagine.twig.mode: lazy`. À faire en Phase C (config LiipImagine). Sans gravité.
+
 ### 2. Pipeline médias — moitié « upload »
 - **État** : l'entité `Media` existe, l'**affichage** se fera avec le front. Il manque l'**upload**.
 - **Quoi** : VichUploader (réception + stockage `public/uploads/products/`) + LiipImagine (WebP, vignettes, srcset).

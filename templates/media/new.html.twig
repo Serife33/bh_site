@@ -1,0 +1,16 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter une photo{% endblock %}
+
+{% block body %}
+    <h1>Ajouter une photo — {{ product.name }}</h1>
+
+    {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+        <button type="submit">Enregistrer la photo</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('app_product_show', {id: product.id}) }}">← Retour au produit</a>
+{% endblock %}

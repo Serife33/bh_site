@@ -24,8 +24,25 @@
         <tr><th>Visible</th><td>{{ product.isActive ? 'Oui' : 'Non' }}</td></tr>
     </table>
 
+
+    <h2>Photos</h2>
+    <a href="{{ path('app_media_new', {id: product.id}) }}">+ Ajouter une photo</a>
+
+    <div>
+        {% for media in product.media %}
+            <figure>
+                <img src="{{ vich_uploader_asset(media, 'imageFile') }}" alt="{{ media.alt }}" width="200">
+                {{ include('media/_delete_form.html.twig', {media: media}) }}
+            </figure>
+        {% else %}
+            <p>Aucune photo pour ce produit.</p>
+        {% endfor %}
+    </div>
+
     <a href="{{ path('app_product_index') }}">← Retour</a>
     <a href="{{ path('app_product_edit', {id: product.id}) }}">Modifier</a>
+
+
 
     {{ include('product/_delete_form.html.twig') }}
 {% endblock %}

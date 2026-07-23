@@ -67,6 +67,21 @@ Zones : `env-` (environnement) · `bdd-` (base de données) · `admin-` (back-of
 
 ---
 
+## Pipeline médias (upload)
+
+### `env-uploads-dossier.png`
+- **Montre** : le contenu de `public/uploads/products/` après un upload (le fichier image physiquement rangé, renommé).
+- **Prouve** : le fichier est stocké sur le **système de fichiers**, avec un nom **unique** généré par le SmartUniqueNamer de VichUploader (pas d'écrasement possible). Le fichier n'est PAS en base.
+- **Partie du dossier** : *Gestion des fichiers / upload*.
+
+### `admin-upload-media-base.png`
+- **Montre** : le résultat d'une requête SQL sur la table `media` (`url`, `type`, `is_main`, `product_id`).
+- **Prouve** : en base, on ne stocke que le **nom du fichier** (colonne `url`), pas le fichier lui-même ; le média est bien **rattaché au produit** (`product_id`), le `type` vaut `photo` (valeur par défaut de l'entité) et `is_main` reflète le choix de l'admin.
+- **Partie du dossier** : *Gestion des fichiers / persistance*.
+- 💬 Phrase associée : « Je ne stocke jamais un fichier en base, seulement son nom ; le fichier vit dans le système de fichiers, la base reste légère. »
+
+---
+
 ## À capturer plus tard (penser-y !)
 
 - [ ] `secu-login.png` — la page de connexion admin
