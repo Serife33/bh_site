@@ -26,13 +26,13 @@
 
 ### 2. Pipeline médias — ce qui RESTE (l'upload est FAIT ✅ le 22/07, cf. AVANCEMENT.md)
 
-**2a. LiipImagine — optimisation des images (le plus important)**
-- **Pourquoi** : aujourd'hui on sert l'image **originale** (plusieurs Mo) et on la réduit en HTML (`width="200"`) → le visiteur télécharge tout le poids pour rien. Il faut de **vraies miniatures**.
-- **Quoi** : filter sets en **WebP** (qualité ~82) — `vignette` (4:3, 400/800/1200 pour le srcset) · `galerie` (1600) · `og` (1200×630 pour le partage social).
-- **Principe** : l'admin uploade **l'original pleine qualité** (il n'a rien à préparer) ; le site génère et met en cache les versions optimisées.
-- **Bonus** : macro Twig `image()` avec `srcset` + `width`/`height` obligatoires (évite le décalage de mise en page au chargement, CLS = 0).
-- ⚠️ Fixer aussi la dépréciation du point 1ter en même temps.
-- **À faire avec le front** (c'est là que ça paie vraiment).
+**2a. LiipImagine — ✅ BASE FAITE (24/07)** : driver gd + WebP + filter set `vignette` (400px) opérationnel (2,2 Mo → 8 Ko). Dépréciation corrigée. RESTE :
+- filter set **`galerie`** (1600px) pour la fiche produit + **`og`** (1200×630) pour le partage social.
+- **srcset** : `vignette` en plusieurs tailles (400/800/1200) pour le responsive.
+- **Macro Twig `image()`** : `srcset` + `width`/`height` obligatoires (évite le décalage de mise en page, CLS=0) + `alt`. Centralise l'affichage image → 1 seul endroit à changer.
+- Appliquer partout au **front** (pour l'instant seulement sur `product/show`).
+- Alternative à garder en tête : **limiter les dimensions max à l'upload** (ex. refuser > 6000px) plutôt que de monter `memory_limit` — les deux se défendent.
+- **Peaufinage Content-Type WebP** (24/07) : le cache LiipImagine garde l'extension `.jpg` alors que le contenu est du WebP → nginx renvoie `Content-Type: image/jpeg` (l'inspecteur affiche « jpeg »). Cosmétique : le navigateur décode par le contenu, le gain de poids est réel (2,2 Mo → 8 Ko). Pour un en-tête correct `image/webp`, configurer le résolveur de cache / la négociation. Pas bloquant.
 
 **2b. Conversion HEIC (photos iPhone)**
 - Aujourd'hui : **refusé** proprement par la validation (message FR clair). L'admin convertit (Aperçu → Exporter JPEG, ou iPhone → Réglages/Appareil photo/Formats/« Le plus compatible »).
@@ -76,6 +76,9 @@
 - En attendant : **recette manuelle** documentée + captures (suffisant pour le TP DWWM).
 
 ---
+
+## 📝 À produire pour Serife (demandé le 22/07)
+- **Récap de tous ses questionnements** : compiler les questions « pourquoi / comment » posées pendant le dev (findAll vs projection, lazy loading / N+1, callbacks Doctrine, slug AsciiSlugger, MoneyType, EnumType, EntityType, CSRF, multipart/form-data, les 3 couches de limite d'upload, VichUploader, persist vs flush, option de formulaire `require_image`, méthode privée vs service, LiipImagine…) avec la réponse-clé + la phrase pour l'oral. → Matériel direct pour le dossier et la soutenance. À faire quand elle le demande.
 
 ## 🟢 Plus tard / V2
 

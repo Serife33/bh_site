@@ -87,6 +87,14 @@ grep -rn "findAll()" src/     # doit renvoyer ZÉRO résultat (choix projet)
 
 **Le profiler** : barre noire en bas des pages en mode dev → onglet **Doctrine** = voir les requêtes SQL exécutées, onglet **Security** = voir l'utilisateur connecté et ses rôles.
 
+**Les logs (réflexe débogage n°1)** : l'erreur exacte y figure avec fichier + ligne.
+```bash
+docker compose exec php tail -30 var/log/dev.log          # les 30 dernières lignes
+docker compose exec php tail -f var/log/dev.log           # EN DIRECT (recharge la page → vois les logs s'écrire ; Ctrl+C pour sortir)
+docker compose exec php tail -50 var/log/dev.log | grep -iE "error|exception|critical"   # filtrer les erreurs
+```
+Ou dans le profiler → onglet **Logs** (les logs de la requête courante).
+
 ---
 
 ## 🆘 Ça ne marche pas ?

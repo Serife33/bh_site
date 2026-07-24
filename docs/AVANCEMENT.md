@@ -119,6 +119,15 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 Back-office **TERMINÉ** ✅ + automatismes ✅ + **upload médias photos TERMINÉ** ✅. Suite : **FRONT (base.html.twig → home → catégorie → fiche produit + CTA WhatsApp) → LiipImagine (optimisation images) → SEO → mise en ligne**. Fixtures : abandonnées (Serife saisit ses vrais produits via l'admin — cf. A-TRAITER).
 📄 Points reportés : voir `docs/A-TRAITER.md`.
 
+## ⚡ OPTIMISATION IMAGES — LiipImagine TERMINÉ ✅ (24 juillet)
+- Config `config/packages/liip_imagine.yaml` : driver **gd**, `twig.mode: lazy` (corrige la dépréciation), filter set **`vignette`** (`format: webp`, `quality: 82`, `thumbnail size:[400,400] mode:inset` = ratio préservé).
+- Affichage : `{{ vich_uploader_asset(media,'imageFile') | imagine_filter('vignette') }}` dans `product/show.html.twig` (width="200" retiré, LiipImagine gère la taille). Cache dans `public/media/cache/` (ignoré par git).
+- **2 galères d'environnement résolues (Dockerfile)** :
+  1. GD compilé **sans WebP** → erreur « Creating an image in webp not supported ». Fix : `libwebp-dev` + `--with-webp` sur `docker-php-ext-configure gd` + rebuild.
+  2. Images 22-30 MP → GD sature la RAM (bitmap = L×H×4 octets ≈ 121 Mo pour du 5500² > 128M). Fix : `memory_limit = 512M` dans `docker/php/uploads.ini`.
+- **Résultat mesuré** : litcoffre 2,2 Mo → vignette WebP **8 Ko** (~275×). Réflexe débogage : lire `var/log/dev.log` a donné l'erreur exacte à chaque fois.
+- ⏭️ Reste (A-TRAITER) : filter sets `galerie` (1600) + `og` (1200×630), macro Twig `image()` avec srcset + width/height (CLS=0), appliquer au front. Alternative envisagée : limiter les dimensions max à l'upload plutôt que monter la mémoire.
+
 ## 🖼️ PIPELINE MÉDIAS — UPLOAD PHOTOS TERMINÉ ✅ (22 juillet)
 Décision : pipeline **costaud** (délai repoussé au 20 août). Upload photos fait ; LiipImagine (WebP/miniatures/srcset) et vidéos = plus tard (avec le front / après).
 

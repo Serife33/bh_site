@@ -9,11 +9,12 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libpng-dev \
     libjpeg-dev \
+    libwebp-dev \
     libfreetype6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Installer les extensions PHP dont Symfony/Doctrine ont besoin
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install pdo_mysql intl zip gd opcache
 
 # 3. Installer Composer (récupéré depuis l'image officielle Composer)

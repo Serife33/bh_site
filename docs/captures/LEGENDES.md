@@ -114,6 +114,16 @@ Zones : `env-` (environnement) · `bdd-` (base de données) · `admin-` (back-of
 
 ---
 
+## Optimisation / performance
+
+### `front-liipimagine-poids-original-vs-webp.png`
+- **Montre** : la comparaison de poids entre l'image originale et sa vignette générée par LiipImagine (`du -h` sur les deux fichiers).
+- **Prouve** : l'optimisation d'images fonctionne — l'original de **2,2 Mo** devient une vignette **WebP de 8 Ko** (~275× plus léger), redimensionnée à 400px et mise en cache. L'admin uploade l'original ; le site sert une version légère.
+- **Partie du dossier** : *Optimisation / performance / expérience utilisateur*.
+- 💬 Phrase : « Sans optimisation, une page catalogue de 12 vignettes ferait ~26 Mo. Avec LiipImagine (redimensionnement + WebP + cache), la même page fait moins de 100 Ko. »
+
+---
+
 ## À capturer plus tard (penser-y !)
 
 - [ ] `secu-login.png` — la page de connexion admin

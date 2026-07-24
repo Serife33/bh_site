@@ -1,4 +1,18 @@
 # Documentation on how to configure the bundle can be found at: https://symfony.com/doc/current/bundles/LiipImagineBundle/basic-usage.html
 liip_imagine:
-    # valid drivers options include "gd" or "gmagick" or "imagick"
+    # Moteur de traitement d'images (GD sait redimensionner + WebP)
     driver: "gd"
+
+    # Corrige la dépréciation (mode "lazy" recommandé)
+    twig:
+        mode: lazy
+
+    # Les "recettes" de transformation d'image
+    filter_sets:
+        vignette:
+            format: webp          # sortie en WebP (léger)
+            quality: 82           # bon compromis qualité / poids
+            filters:
+                thumbnail:
+                    size: [400, 400]   # tient dans un carré de 400×400
+                    mode: inset        # garde les proportions (pas de déformation)
