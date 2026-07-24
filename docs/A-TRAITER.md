@@ -17,20 +17,29 @@
 ### 1bis. Médias — points d'architecture (décidés le 22/07)
 - **Pas de `show` ni d'`index` pour Media** : une photo n'a pas de détail à consulter seule (déjà visible sur la fiche produit). On ne crée que les actions utiles : ajouter / afficher / supprimer.
 - **Edit Media = métadonnées seulement** (décidé par Serife le 22/07) : on modifie `alt` / `isMain` / `position`, **pas le fichier** (le fichier se remplace par supprimer + ré-uploader). Réutiliser `MediaType` mais rendre `imageFile` **facultatif en mode edit** via une **option de formulaire** (Vich garde l'image existante si aucun nouveau fichier n'est envoyé). À faire après le delete.
-- **✅ Fichiers orphelins — RÉGLÉ (22/07)** : la suppression via `MediaController::delete` (remove + flush sur l'entité) déclenche bien VichUploader → le fichier physique est supprimé en même temps que la ligne. Confirmé au test. NB : il a fallu rendre `Media::setUrl(?string $url)` nullable, car Vich remet `url` à null en supprimant le fichier. ⚠️ Reste à vérifier le cas « suppression d'un PRODUIT entier » (cascade orphanRemoval) — s'assurer que chaque Media passe bien par remove (pas un DELETE SQL en masse).
+- **✅ Fichiers orphelins — RÉGLÉ et TESTÉ (22/07)** : suppression d'une photo → le fichier physique part avec la ligne (Vich). **Remplacement** d'une photo (edit avec nouveau fichier) → l'ancien fichier est aussi supprimé (vérifié : 5 lignes = 5 fichiers, noms concordants, 0 orphelin). NB : il a fallu rendre `Media::setUrl(?string $url)` nullable (Vich remet url à null). ⚠️ Reste à vérifier le seul cas « suppression d'un PRODUIT entier » (cascade orphanRemoval) — s'assurer que chaque Media passe bien par remove (pas un DELETE SQL en masse).
 - **Règle métier** : une seule photo `is_main` par produit → à gérer dans `MediaController` (décocher les autres quand on en coche une).
 
 ### 1ter. Dépréciation LiipImagine (vue le 22/07)
 - Warning : `Liip\ImagineBundle\Templating\FilterExtension deprecated since 2.7`. → fix en 1 ligne : dans `config/packages/liip_imagine.yaml`, mettre `liip_imagine.twig.mode: lazy`. À faire en Phase C (config LiipImagine). Sans gravité.
 
-### 2. Pipeline médias — moitié « upload »
-- **État** : l'entité `Media` existe, l'**affichage** se fera avec le front. Il manque l'**upload**.
-- **Quoi** : VichUploader (réception + stockage `public/uploads/products/`) + LiipImagine (WebP, vignettes, srcset).
-- **⚠️ HEIC** : refuser les photos iPhone avec une validation claire —
-  `Assert\File(mimeTypes: ['image/jpeg','image/png','image/webp'])` + message « convertis en JPEG ».
-  Conversion auto HEIC→JPEG (Imagick + libheif) = V2.
-- **Contournement en attendant** : les fixtures créent des lignes `Media` pointant vers des photos de démo posées à la main dans `public/uploads/products/` → **le front est complet et démontrable sans l'upload**.
-- **Astuce prévue** : centraliser l'affichage des images dans **un seul composant Twig** (vignette produit) → le jour où l'upload arrive, on change une ligne.
+### 2. Pipeline médias — ce qui RESTE (l'upload est FAIT ✅ le 22/07, cf. AVANCEMENT.md)
+
+**2a. LiipImagine — optimisation des images (le plus important)**
+- **Pourquoi** : aujourd'hui on sert l'image **originale** (plusieurs Mo) et on la réduit en HTML (`width="200"`) → le visiteur télécharge tout le poids pour rien. Il faut de **vraies miniatures**.
+- **Quoi** : filter sets en **WebP** (qualité ~82) — `vignette` (4:3, 400/800/1200 pour le srcset) · `galerie` (1600) · `og` (1200×630 pour le partage social).
+- **Principe** : l'admin uploade **l'original pleine qualité** (il n'a rien à préparer) ; le site génère et met en cache les versions optimisées.
+- **Bonus** : macro Twig `image()` avec `srcset` + `width`/`height` obligatoires (évite le décalage de mise en page au chargement, CLS = 0).
+- ⚠️ Fixer aussi la dépréciation du point 1ter en même temps.
+- **À faire avec le front** (c'est là que ça paie vraiment).
+
+**2b. Conversion HEIC (photos iPhone)**
+- Aujourd'hui : **refusé** proprement par la validation (message FR clair). L'admin convertit (Aperçu → Exporter JPEG, ou iPhone → Réglages/Appareil photo/Formats/« Le plus compatible »).
+- Version costaude si le temps le permet : **accepter et convertir automatiquement** → nécessite **Imagick + libheif** dans le Dockerfile.
+
+**2c. Upload de vidéos**
+- Reporté volontairement (décidé le 22/07 : « après le front, pas urgent »).
+- Même mécanisme VichUploader ; `Media.type` prévoit déjà `photo|video`. Prévoir un mapping séparé + validation de format/poids adaptée (les vidéos sont lourdes → revoir les limites nginx/PHP).
 
 ### 3. Navigation du back-office
 - Aucun menu ni **bouton Déconnexion** sur `/admin` (il faut taper `/logout` à la main).

@@ -1,0 +1,6 @@
+
+{{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+    {{ form_errors(form) }}
+    {{ form_widget(form) }}
+    <button type="submit">{{ button_label }}</button>
+{{ form_end(form) }}

@@ -6,12 +6,7 @@
 {% block body %}
     <h1>Nouveau produit</h1>
 
-    {# form_start = balise <form> ouvrante (+ token CSRF automatique) #}
-    {{ form_start(form) }}
-        {# form_widget affiche TOUS les champs du ProductType d'un coup #}
-        {{ form_widget(form) }}
-        <button type="submit">Enregistrer</button>
-    {{ form_end(form) }}
+    {{ include('product/_form.html.twig', {form: form, button_label: 'Enregistrer'}) }}
 
     <a href="{{ path('app_product_index') }}">← Retour à la liste</a>
 {% endblock %}

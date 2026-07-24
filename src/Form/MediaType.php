@@ -11,14 +11,17 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 use Symfony\Component\Validator\Constraints as Assert;
 
+use function PHPUnit\Framework\isTrue;
+
 class MediaType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function buildForm(FormBuilderInterface $builder, array $options): void // array : options tableau des options du formulaire
     {
         $builder
             ->add('imageFile', VichImageType::class, [
                 'label' => 'Photo',
-                'allow_delete' => false, // la suppression passe par notre bouton dédié
+                'required' => $options['require_image'], // true en création 
+                'allow_delete' => false, // la suppression passe par le bouton dédié
                 'download_uri' => false, // pas de lien de téléchargement
                 'image_uri' => true,     // affiche un aperçu de l'image existante
                 'constraints' => [
@@ -49,6 +52,8 @@ class MediaType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Media::class,
+            'require_image' => true,  // true a la création, false en edit 
         ]);
+        $resolver->setAllowedTypes('require_image', 'bool');
     }
 }

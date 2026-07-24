@@ -1,4 +1,3 @@
-
 {% extends 'base.html.twig' %}
 
 {% block title %}Ajouter une photo{% endblock %}
@@ -6,7 +5,8 @@
 {% block body %}
     <h1>Ajouter une photo — {{ product.name }}</h1>
 
-    {{ include('media/_form.html.twig', {button_label: 'Enregistrer la photo'}) }}
+    {{ include('media/_form.html.twig', {form: form, button_label: 'Enregistrer la photo'}) }}
 
     <a href="{{ path('app_product_show', {id: product.id}) }}">← Retour au produit</a>
 {% endblock %}
+

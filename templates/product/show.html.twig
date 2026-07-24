@@ -32,6 +32,7 @@
         {% for media in product.media %}
             <figure>
                 <img src="{{ vich_uploader_asset(media, 'imageFile') }}" alt="{{ media.alt }}" width="200">
+                <a href="{{ path('app_media_edit', {id: media.id}) }}">Modifier</a>
                 {{ include('media/_delete_form.html.twig', {media: media}) }}
             </figure>
         {% else %}

@@ -80,6 +80,38 @@ Zones : `env-` (environnement) · `bdd-` (base de données) · `admin-` (back-of
 - **Partie du dossier** : *Gestion des fichiers / persistance*.
 - 💬 Phrase associée : « Je ne stocke jamais un fichier en base, seulement son nom ; le fichier vit dans le système de fichiers, la base reste légère. »
 
+### `admin-upload-formulaire-photo.png`
+- **Montre** : le formulaire d'ajout d'une photo à un produit (`/admin/product/{id}/media/new`).
+- **Prouve** : interface d'upload dédiée (champ fichier VichImageType, texte alternatif, photo principale, position). Le produit est passé par l'URL, pas par un champ.
+- **Partie du dossier** : *Gestion des fichiers / interface d'upload*.
+
+### `admin-fiche-produit-photo-hd.png`
+- **Montre** : la fiche produit du back-office affichant une vraie photo haute résolution uploadée.
+- **Prouve** : la chaîne complète upload → stockage → affichage fonctionne (`vich_uploader_asset` construit l'URL publique depuis le nom stocké en base).
+- **Partie du dossier** : *Gestion des fichiers / affichage*.
+
+### `admin-photo-bouton-supprimer.png`
+- **Montre** : une photo avec son bouton « Supprimer » sous la fiche produit.
+- **Prouve** : suppression depuis l'interface (formulaire POST + jeton CSRF, fragment `_delete_form` réutilisable). La suppression retire la ligne en base **et** le fichier physique (via VichUploader).
+- **Partie du dossier** : *Gestion des fichiers / CRUD médias*.
+
+### `admin-upload-erreur-validation.png`
+- **Montre** : le message d'erreur affiché quand on tente d'uploader un fichier non conforme (ici un fichier texte renommé en .jpg).
+- **Prouve** : la validation inspecte le **type MIME réel** (le contenu), pas l'extension → un fichier déguisé est rejeté avec un message clair en français. Protection contre l'upload de fichiers malveillants.
+- **Partie du dossier** : *Sécurité / validation des entrées*.
+- 💬 Phrase : « Ma validation vérifie le type MIME réel du fichier, pas son extension : un exécutable ou un texte renommé en .jpg serait rejeté. »
+
+### `config-limites-upload-nginx-php.png`
+- **Montre** : la configuration des limites d'upload (nginx `client_max_body_size`, PHP `uploads.ini`, `COPY` dans le Dockerfile).
+- **Prouve** : maîtrise des **3 couches de limite** qu'un upload traverse (serveur web → PHP → application). La limite réelle est la plus petite des trois ; elles sont alignées à 16M. Config placée dans le Dockerfile = reproductible.
+- **Partie du dossier** : *Infrastructure / configuration serveur*.
+- 💬 Phrase : « Un upload franchit trois limites successives : nginx, puis les deux directives PHP. Je les aligne, et je place la config dans le Dockerfile pour un environnement reproductible. »
+
+### `bdd-media-apres-suppression.png`
+- **Montre** : la table `media` et le contenu du dossier `uploads/products/` après une suppression.
+- **Prouve** : cohérence **base ↔ système de fichiers** — autant de fichiers que de lignes, aucun fichier orphelin. VichUploader supprime le fichier physique en même temps que l'entité.
+- **Partie du dossier** : *Gestion des fichiers / intégrité des données*.
+
 ---
 
 ## À capturer plus tard (penser-y !)

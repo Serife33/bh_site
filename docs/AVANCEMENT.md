@@ -115,9 +115,28 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 - [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials », seoText Category en textarea
 - [ ] Plus tard (peaufinage form Product) : champ `modules` → ajouter un `query_builder` pour ne proposer que les produits `is_modular = module` **et exclure le produit courant** (constaté le 21/07 : un produit s'affiche dans sa propre liste de modules). Idem, franciser les libellés des enums via `choice_label` (No/Yes/Module → Non/Oui/Module, None → Sans objet).
 
-## ⏸️ REPRISE — prochaine étape : **Fixtures Foundry**
-Back-office **TERMINÉ** ✅ (6 CRUD dont Product codé main) + automatismes en place. Suite : **Fixtures → FRONT (le gros morceau, pas commencé, priorité absolue) → médias upload → SEO → mise en ligne**.
+## ⏸️ REPRISE — prochaine étape : **LE FRONT** (priorité absolue, rien commencé)
+Back-office **TERMINÉ** ✅ + automatismes ✅ + **upload médias photos TERMINÉ** ✅. Suite : **FRONT (base.html.twig → home → catégorie → fiche produit + CTA WhatsApp) → LiipImagine (optimisation images) → SEO → mise en ligne**. Fixtures : abandonnées (Serife saisit ses vrais produits via l'admin — cf. A-TRAITER).
 📄 Points reportés : voir `docs/A-TRAITER.md`.
+
+## 🖼️ PIPELINE MÉDIAS — UPLOAD PHOTOS TERMINÉ ✅ (22 juillet)
+Décision : pipeline **costaud** (délai repoussé au 20 août). Upload photos fait ; LiipImagine (WebP/miniatures/srcset) et vidéos = plus tard (avec le front / après).
+
+**VichUploader (upload + stockage)**
+- Config `config/packages/vich_uploader.yaml` : mapping `product_media` (uri_prefix `/uploads/products`, upload_destination `public/uploads/products`, `SmartUniqueNamer` = noms uniques anti-collision).
+- Entité `Media` rendue **`#[Vich\Uploadable]`** (namespace **Attribute**, pas Annotation qui est dépréciée). Ajout : `imageFile` (champ virtuel `#[Vich\UploadableField(mapping:'product_media', fileNameProperty:'url')]`, PAS une colonne) + `updatedAt` (colonne, migration `Version20260722135409`). `setImageFile()` touche `updatedAt` → sinon Doctrine ne détecte pas le remplacement de fichier. Valeurs par défaut sur l'entité : `type='photo'`, `isMain=false`, `position=0` (factorisé, pas dans le contrôleur).
+- `public/uploads/products/.gitignore` = `*` + `!.gitignore` (garde le dossier, ignore les fichiers uploadés).
+
+**MediaController (codé main, section dédiée)** : `new` (`/admin/product/{id}/media/new` — produit dans l'URL) + `delete` (`/admin/media/{id}/delete`, POST + CSRF). Pas de show/index/edit (décidé). Affichage des photos dans `product/show.html.twig` via `vich_uploader_asset(media,'imageFile')` + fragment `media/_delete_form.html.twig`.
+
+**MediaType** : `imageFile` en **VichImageType** + validation `Assert\Image` (maxSize 8M, mimeTypes jpeg/png/webp → **rejette le HEIC** avec message FR). alt / isMain / position. Champs `url`/`type`/`product` remplis par le contrôleur.
+
+**⚠️ Les 3 couches de limite d'upload (gros point de debug résolu)** : un upload traverse **nginx → PHP → app**. Fallait aligner les 3 à 16M :
+- nginx `client_max_body_size 16M;` dans `docker/nginx/default.conf` (défaut 1M ! → bloquait avant tout) + `docker compose restart nginx`.
+- PHP `upload_max_filesize`/`post_max_size` = 16M via `docker/php/uploads.ini` copié par le Dockerfile (`COPY uploads.ini /usr/local/etc/php/conf.d/`) + rebuild. Config dans le Dockerfile = reproductible (un conteneur est jetable).
+- La vraie limite = la plus petite des trois.
+
+**Suppression = nettoie aussi le fichier physique** ✅ (Vich, via remove+flush sur l'entité). A nécessité `Media::setUrl(?string $url)` nullable (Vich remet url à null). Pas de fichiers orphelins.
 
 ## ⚙️ Automatismes NATIFS (21 juillet) — Gedmo écarté
 **Décision** : pas de bundle Gedmo, tout en **natif Doctrine/Symfony** (pas de dépendance pour quelques lignes, et 100 % explicable).

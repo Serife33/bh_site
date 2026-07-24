@@ -6,10 +6,7 @@
 {% block body %}
     <h1>Modifier : {{ product.name }}</h1>
 
-    {{ form_start(form) }}
-        {{ form_widget(form) }}
-        <button type="submit">Enregistrer les modifications</button>
-    {{ form_end(form) }}
+    {{ include('product/_form.html.twig', {form: form, button_label: 'Enregistrer les modifications'}) }}
 
     <a href="{{ path('app_product_index') }}">← Retour à la liste</a>
 {% endblock %}

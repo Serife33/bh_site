@@ -42,6 +42,30 @@ final class MediaController extends AbstractController
         ]);
     }
 
+    #[Route('/media/{id}/edit', name:'app_media_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function edit(Request $request, Media $media, EntityManagerInterface $em) : Response 
+    {
+        $form = $this->createForm(MediaType::class, $media, [
+            'require_image' => false,
+        ]);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+
+            $this->addFlash('success', 'Photo modifiée.');
+
+            return $this->redirectToRoute('app_product_show', [
+                'id' => $media->getProduct()->getId(),
+            ]);
+        };
+        
+        return $this->render('media/edit.html.twig', [
+            'form' => $form,
+            'product' => $media->getProduct(),
+        ]);
+    }
+
     #[Route('/media/{id}/delete', name: 'app_media_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(Request $request, Media $media, EntityManagerInterface $em): Response
     {
