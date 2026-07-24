@@ -14,6 +14,24 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin')]
 final class MediaController extends AbstractController
 {
+
+    private function ensureSingleMainPhoto(Media $media): void
+    {
+        // si la photo n'est pas principale : rien a faire 
+        if (!$media->isMain()) {
+            return;
+        }
+
+        // On parcourt toutes les photos du produit 
+        foreach ($media->getProduct()->getMedia() as $otherMedia) {
+            // on décoche toutes celles qui ne sont PAS celle qu'on vient de rendre principale
+            if ($otherMedia !== $media) {
+                $otherMedia->setIsMain(false);
+            }
+        }
+    }
+
+
     #[Route('/product/{id}/media/new', name: 'app_media_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function new (Request $request, Product $product, EntityManagerInterface $em): Response
     {
@@ -25,7 +43,7 @@ final class MediaController extends AbstractController
         $form->handleRequest($request); 
         
         if ($form->isSubmitted() && $form->isValid()) {
-            
+            $this->ensureSingleMainPhoto($media);
             $em->persist($media);
             $em->flush();
 
@@ -51,6 +69,7 @@ final class MediaController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
+            $this->ensureSingleMainPhoto($media);
             $em->flush();
 
             $this->addFlash('success', 'Photo modifiée.');

@@ -39,7 +39,7 @@ class Media
     private ?bool $isMain = false;
 
     #[ORM\Column]
-    private ?int $position = 0;
+    private ?int $position = 1;
 
     #[ORM\ManyToOne(inversedBy: 'media')]
     #[ORM\JoinColumn(nullable: false)]

@@ -11,6 +11,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 use Symfony\Component\Validator\Constraints as Assert;
 
+
 use function PHPUnit\Framework\isTrue;
 
 class MediaType extends AbstractType
@@ -44,6 +45,12 @@ class MediaType extends AbstractType
             ])
             ->add('position', IntegerType::class, [
                 'label' => "Ordre d'affichage",
+                'attr' => ['min' => 1],
+                'constraints' => [
+                    new Assert\Positive(
+                        message: " L'ordre doit être un nombre positif."
+                    ),
+                ],
             ])
         ;
     }
