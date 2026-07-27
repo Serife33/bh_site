@@ -115,9 +115,47 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 - [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials », seoText Category en textarea
 - [ ] Plus tard (peaufinage form Product) : champ `modules` → ajouter un `query_builder` pour ne proposer que les produits `is_modular = module` **et exclure le produit courant** (constaté le 21/07 : un produit s'affiche dans sa propre liste de modules). Idem, franciser les libellés des enums via `choice_label` (No/Yes/Module → Non/Oui/Module, None → Sans objet).
 
-## ⏸️ REPRISE — prochaine étape : **LE FRONT** (priorité absolue, rien commencé)
-Back-office **TERMINÉ** ✅ + automatismes ✅ + **upload médias photos TERMINÉ** ✅. Suite : **FRONT (base.html.twig → home → catégorie → fiche produit + CTA WhatsApp) → LiipImagine (optimisation images) → SEO → mise en ligne**. Fixtures : abandonnées (Serife saisit ses vrais produits via l'admin — cf. A-TRAITER).
-📄 Points reportés : voir `docs/A-TRAITER.md`.
+## ⏸️ REPRISE — prochaine étape : **FRONT F2** (accueil dynamique)
+Back-office ✅ + médias/LiipImagine ✅ + **FRONT F1 TERMINÉ** ✅. On reprend à **F2 : page d'accueil dynamique** (row catégories, best-sellers, nouveautés) + composant `_product_card` + sections contenu + menu header dynamique.
+📄 Feuille de route front : `~/.claude/plans/ticklish-juggling-stroustrup.md`. Points reportés : `docs/A-TRAITER.md`.
+
+## 🎨 FRONT F1 — FONDATIONS TERMINÉES ✅ (24 juillet)
+- **HomeController** : route `/` (nom `front_home`). Front et admin partagent `src/Controller/` (distingués par route/sécurité).
+- **Pipeline CSS** compris : on écrit dans `assets/styles/app.css` → importé par `assets/app.js` → compilé par `tailwind:build --watch` → chargé via `{{ importmap('app') }}`. Réflexe : `Cmd+Shift+R` (cache navigateur) quand « rien ne change ».
+- **DA** dans `app.css` : tokens (variables CSS `:root` : `--bg`, `--accent`… + `--r`), police **Montserrat** (choix client validé accessibilité : taille 16px/contraste/poids), `.wrap` (conteneur centré mobile-first).
+- **Layout `templates/front/base.html.twig`** (séparé de l'admin) : `<head>` (fonts Google Montserrat + `importmap`), header (logo + nav provisoire), `<main class="main">`, footer sombre, bouton WhatsApp flottant. Blocks `title`/`body`.
+- **Sticky footer** : `body { min-height:100dvh; display:flex; flex-direction:column }` + `.main { flex:1 }` → footer collé en bas même page vide.
+- **Global Twig `whatsapp_number`** (`config/packages/twig.yaml` globals ← `%env(WHATSAPP_NUMBER)%`, valeur dans `.env`) → dispo dans tous les templates (layout compris). Lien WhatsApp : `https://wa.me/{{ whatsapp_number }}`.
+- **Infos boutique validées** (à mettre en globals plus tard, réutilisées footer/contact/showroom/SEO) : `12 bis rue Suffren, 33300 Bordeaux` · `Lun–Sam 11h–18h · Dim 14h–17h` · WhatsApp `33781071071`. Baseline : « Spécialiste de l'ameublement intérieur à Bordeaux — salon, salle à manger, chambre et literie ».
+- ⏭️ F2 : menu header dynamique (catégories BDD), `_product_card`, grilles best-sellers/nouveautés, sections contenu.
+- ❓ À décider en F2 : catalogue organisé **par pièce** (Salon/Salle à manger/Chambre) ou **par type** (Canapés/Tables/Lits) → impacte le nommage des catégories en base.
+
+## 🗺️ ÉTAT GLOBAL DU PROJET (au 24 juillet)
+**FAIT** : env Docker · BDD 12 tables · auth admin · 6 CRUD (dont Product codé main) · zéro findAll (projections) · horodatage + slug auto (natif) · **médias complets** (upload VichUploader + validation + suppression + LiipImagine WebP).
+**RESTE avant le 20 août** (3 gros chantiers) :
+1. **FRONT** (~16-21 h guidé) — vitrine, voir feuille de route.
+2. **DÉPLOIEMENT** (~2-3 j) — voir section ci-dessous.
+3. **DOSSIER** projet ~30-40 p. (~1-1,5 sem.) — matière déjà accumulée (ce journal + A-TRAITER + captures/LEGENDES + futur récap questionnements).
+Ordre conseillé : **front → déploiement → dossier** (le déploiement donne l'URL live pour le dossier). Deadline 20 août = large.
+
+## 🎨 PLAN FRONT — l'essentiel (détail dans la feuille de route)
+- **Direction artistique** : benchmark Serife (Micadoni, Bobochic, **Japandi**) + tokens de ses maquettes (`~/Downloads/files_maquettes/desktop|mobile/*.html`). Neutres chauds, Playfair+Inter, **photo produit reine**. Objectif : rendu **authentique, pas "IA"**.
+- **⚠️ MOBILE-FIRST** intégré dès le début (base = mobile, header burger/tiroir, `@media min-width` pour desktop ; 44px tactile, inputs 16px). Le responsive n'est PAS une phase finale.
+- **MVP** : pas de panier/favoris/paiement → **devis WhatsApp pré-rempli** (`wa.me/NUMÉRO?text=…`, `WHATSAPP_NUMBER` en env/global Twig). FR seul.
+- **Layout séparé** : créer `templates/front/base.html.twig` (NE PAS écraser le `base.html.twig` de l'admin).
+- **Routes front** préfixées `front_` (évite collision avec l'admin) : `/` `/categorie/{slug}` `/produit/{slug}` `/recherche` `/contact` `/mentions-legales` `/sitemap.xml`.
+- **Réutilise** : LiipImagine (ajouter filtres `card`/`galerie`/`og`), KnpPaginator, entités/repos existants (+ méthodes `findLatestActive`, `findActiveByCategoryQuery`, `findOneActiveBySlug`, `findSimilar`, `searchActiveQuery`, `CategoryRepository::findOneBySlug`/`findAllForNav`).
+- **Périmètre** : tout (accueil, catégorie, produit, recherche, contact WhatsApp-first, légales, 404, SEO sitemap/robots/JSON-LD).
+- Phasage F1→F6. Répartition : CSS/markup = porté de ses maquettes (elle relit) ; câblage dynamique = pas-à-pas.
+
+## 🚀 DÉPLOIEMENT — à préparer (points clés)
+- **Docker = DEV uniquement**, pas une dépendance de prod. L'appli Symfony est portable → tourne sur du PHP+MySQL natifs.
+- **o2switch** (mutualisé, ~7 €/mois, FR) = **ne gère PAS Docker** (pas de root), MAIS convient très bien : on y déploie l'appli en **natif** (PHP + MySQL fournis). Choix simple/pas cher pour un MVP d'examen.
+  - ⚠️ À vérifier avant : **PHP ≥ 8.2** dispo (Symfony 7.4), **GD compilé avec WebP** (pour LiipImagine), config PHP ajustable (memory_limit 512M, upload 16M).
+  - Étapes : créer BDD MySQL (cPanel) → envoyer le code (git/SSH) → `composer install --no-dev --optimize-autoloader` → `.env.local` prod (`APP_ENV=prod` + `DATABASE_URL` o2switch) → document root sur `public/` → migrations + `cache:clear --env=prod` → permissions (`var/`, `public/uploads/`, `public/media/cache/`).
+  - ⚠️ **Tailwind** : le binaire télécharge depuis internet → prévoir de **compiler le CSS en local** et l'uploader (ne pas dépendre du build sur le mutualisé). Idem, `.env.local` de prod jamais commité.
+- **Alternative si Docker en prod voulu** : VPS (Hetzner ~4 €, OVH) avec droits root. Plus de travail, pas nécessaire pour le MVP.
+- 🎤 Argument jury : « Docker en dev pour un environnement reproductible ; déploiement sur mutualisé natif car l'appli est portable — Docker n'est pas une dépendance de prod. »
 
 ## ⚡ OPTIMISATION IMAGES — LiipImagine TERMINÉ ✅ (24 juillet)
 - Config `config/packages/liip_imagine.yaml` : driver **gd**, `twig.mode: lazy` (corrige la dépréciation), filter set **`vignette`** (`format: webp`, `quality: 82`, `thumbnail size:[400,400] mode:inset` = ratio préservé).

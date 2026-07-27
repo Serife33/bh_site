@@ -1,3 +1,148 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===================== DESIGN SYSTEM BRILLANCE HOME ===================== */
+
+/* Les "tokens" : les couleurs de ta charte, définies UNE fois, réutilisées partout */
+:root {
+  --bg:     #FAFAF8;   /* fond principal (blanc cassé chaud) */
+  --bg2:    #F2EDE8;   /* fond secondaire (beige) */
+  --txt:    #1A1A18;   /* texte principal (presque noir) */
+  --txt2:   #6B6560;   /* texte secondaire (gris chaud) */
+  --accent: #8B6F4E;   /* taupe — couleur d'accent (boutons, liens) */
+  --accent2:#C4A882;   /* taupe clair */
+  --deep:   #6B4C3B;   /* brun profond */
+  --border: #E8E0D8;   /* bordures discrètes */
+  --wa:     #25D366;   /* vert WhatsApp */
+  --ok:     #2E7D32;   /* vert "en stock" */
+  --promo:  #D64C1A;   /* orange promo */
+  --r:      10px;      /* rayon d'arrondi standard */
+}
+
+/* Styles de base */
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  min-height: 100dvh;        /* ← au moins la hauteur de l'écran */
+  display: flex;             /* ← header / main / footer empilés */
+  flex-direction: column;
+}
+a { color: inherit; text-decoration: none; }
+h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
+
+/* Conteneur centré (mobile-first : petit padding, plus large sur desktop) */
+.wrap { 
+    max-width: 1180px; 
+    margin: 0 auto; 
+    padding: 0 20px; 
+}
+@media (min-width: 768px) { .wrap { padding: 0 32px; } }
+
+
+/* ===== HEADER ===== */
+.hdr {
+  position: sticky;               /* reste collé en haut au scroll */
+  top: 0;
+  z-index: 99;                    /* passe au-dessus du contenu */
+  background: var(--bg);
+  border-bottom: .5px solid var(--border);
+}
+.hdr-in {
+  height: 64px;
+  display: flex;                  /* logo + menu sur une ligne */
+  align-items: center;            /* centre verticalement */
+  justify-content: space-between; /* logo à gauche, menu à droite */
+  gap: 20px;
+}
+.logo {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.nav { display: flex; gap: 18px; font-size: 14px; font-weight: 500; }
+.nav a:hover { color: var(--accent); }
+
+
+/* ===== BOUTON WHATSAPP FLOTTANT ===== */
+.wa-float {
+  position: fixed;               /* fixe par rapport à l'écran (suit le scroll) */
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: var(--wa);
+  border-radius: 50%;            /* rond */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, .4);
+  z-index: 150;                  /* au-dessus de tout */
+}
+
+
+/* ===== FOOTER ===== */
+.ft {
+  background: var(--txt);
+  color: rgba(255,255,255,.82);
+  padding: 36px 0 18px;   
+  margin-top: 40px;       
+}
+.ft-in { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 28px; 
+}
+@media (min-width: 768px) { 
+    .ft-in { 
+        flex-direction: row; 
+        justify-content: space-between; 
+        gap: 48px; } 
+    }
+.ft-brand { 
+    font-weight: 700; 
+    font-size: 20px; 
+    letter-spacing: .08em; 
+    text-transform: uppercase; 
+    color: #fff; 
+    margin-bottom: 12px; 
+}
+.ft-col { 
+    max-width: 320px; 
+}
+.ft-col p { 
+    font-size: 13px; 
+    color: rgba(255,255,255,.6); 
+    line-height: 1.7; 
+}
+.ft-col h4 { 
+    font-size: 12px; 
+    font-weight: 600; 
+    letter-spacing: .1em; 
+    text-transform: uppercase; 
+    color: rgba(255,255,255,.5); 
+    margin-bottom: 12px; }
+.ft-col a { 
+    display: block; 
+    font-size: 13.5px; 
+    color: rgba(255,255,255,.78); 
+    line-height: 2; 
+}
+.ft-col a:hover { 
+    color: #fff; 
+}
+.ft-copy { 
+    border-top: .5px solid rgba(255,255,255,.12); 
+    margin-top: 32px; 
+    padding-top: 20px; 
+    font-size: 12px; 
+    color: rgba(255,255,255,.5); 
+    text-align: center; 
+}
+
+/* Le contenu principal s'étire pour pousser le footer tout en bas */
+.main { flex: 1; }

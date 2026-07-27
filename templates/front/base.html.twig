@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Brillance Home{% endblock %}</title>
+
+    {# Polices Google : Playfair Display (titres) + Inter (texte) #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    {# Charge le CSS compilé (via AssetMapper) #}
+    {% block stylesheets %}{% endblock %}
+    {% block javascripts %}
+        {{ importmap('app') }}
+    {% endblock %}
+</head>
+
+
+<body>
+    <header class="hdr">
+        <div class="hdr-in wrap">
+            <a href="{{ path('front_home') }}" class="logo">Brillance Home</a>
+            <nav class="nav">
+                <a href="{{ path('front_home') }}">Accueil</a>
+                <a href="{{ path('front_home') }}">Canapés</a>
+                <a href="{{ path('front_home') }}">Literie</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        {# Le contenu de chaque page viendra ici #}
+        {% block body %}{% endblock %}
+    </main>
+
+    <footer class="ft">
+        <div class="wrap ft-in">
+            <div class="ft-col">
+                <div class="ft-brand">Brillance Home</div>
+                <p>Spécialiste de l'ameublement intérieur à Bordeaux — salon, salle à manger, chambre et literie pour toute la maison.</p>
+            </div>
+            <div class="ft-col">
+                <h4>Showroom</h4>
+                <p>12 bis rue Suffren</p>
+                <p>33300 Bordeaux</p>
+                <p>Lun–Sam · 11h–18h</p>
+                <p>Dimanche · 14h–17h</p>
+            </div>
+            <div class="ft-col">
+                <h4>Aide</h4>
+                <a href="{{ path('front_home') }}">Contact</a>
+                <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener">WhatsApp</a>
+            </div>
+        </div>
+        <div class="ft-copy wrap">© Brillance Home 2026 · Spécialiste de l'ameublement intérieur · Bordeaux, France</div>
+    </footer>
+
+    {# Bouton WhatsApp flottant (présent sur toutes les pages) #}
+    <a href="https://wa.me/{{ whatsapp_number }}"
+        class="wa-float"
+        target="_blank"
+        rel="noopener"
+        aria-label="Nous contacter sur WhatsApp">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="#fff">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 2.13.55 4.12 1.52 5.85L0 24l6.28-1.5A11.93 11.93 0 0 0 12 24c6.63 0 12-5.37 12-12S18.63 0 12 0z"/>
+        </svg>
+    </a>
+</body>
+</html>
