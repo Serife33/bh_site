@@ -39,4 +39,28 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    // Produits en promo (prix actuel < prix initial)
+    public function findOnSale(int $limit = 8): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.isActive = true')
+            ->andWhere('p.actualPrice < p.initialPrice')   // ← la promo
+            ->orderBy('p.updatedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    //Produits disponibles immédiatement (stock > 0)
+    public function findInStock(int $limit = 8): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.isActive = true')
+            ->andWhere('p.stock > 0')                       // ← en stock
+            ->orderBy('p.position', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

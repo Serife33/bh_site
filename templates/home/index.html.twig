@@ -3,7 +3,7 @@
 {% block title %}Brillance Home — Ameublement intérieur à Bordeaux{% endblock %}
 
 {% block body %}
-{# ===== HERO ===== #}
+    {# ===== HERO ===== #}
     <section class="hero">
         <div class="wrap hero-in">
             <p class="hero-eyebrow">Showroom à Bordeaux</p>
@@ -16,42 +16,49 @@
         </div>
     </section>
 
-{# ===== NOS UNIVERS (catégories) ===== #}
-    <section class="section wrap" id="univers">
-        <div class="section-head">
-            <h2>Nos univers</h2>
-            <p>Explorez notre mobilier par catégorie</p>
-        </div>
-        <div class="cats">
-            {% for categorie in categories %}
-                <a href="{{ path('front_home') }}" class="cat">
-                    <div class="cat-ring"></div>
-                    <span class="cat-name">{{ categorie.name }}</span>
-                </a>
-            {% endfor %}
-        </div>
-    </section>
-
-
-{# ===== NOUVEAUTÉS ===== #}
-    <section class="section wrap">
-        <div class="section-head">
-            <h2>Nouveautés</h2>
-            <p>Nos dernières pièces arrivées</p>
-        </div>
-        <div class="grid-produits">
-            {% for product in produits %}
-                {{ include('front/_product_card.html.twig', { product: product }) }}
-            {% else %}
-                <p>Aucun produit pour le moment.</p>
-            {% endfor %}
+    {# ===== NOS UNIVERS (catégories) ===== #}
+    <section class="section">
+        <div class="wrap" id="univers">
+            <div class="section-head">
+                <h2>Nos univers</h2>
+                <p>Explorez notre mobilier par catégorie</p>
+            </div>
+            <div class="cats">
+                {% for categorie in categories %}
+                    <a href="{{ path('front_home') }}" class="cat">
+                        <div class="cat-ring"></div>
+                        <span class="cat-name">{{ categorie.name }}</span>
+                    </a>
+                {% endfor %}
+            </div>
         </div>
     </section>
 
+    {# ===== 3 · PRODUITS : Nouveautés ===== #}
+    {{ include('front/_product_section.html.twig', {
+        titre: 'Nouveautés',
+        sous_titre: 'Nos dernières pièces arrivées',
+        products: nouveautes
+    }) }}
 
+    {{ include('front/_reassurance.html.twig') }}
 
+    {# ===== 5 · PRODUITS : Promotions ===== #}
+    {{ include('front/_product_section.html.twig', {
+        titre: 'Promotions',
+        sous_titre: 'Nos offres du moment',
+        products: promos
+    }) }}
+
+    {{ include('front/_expertise.html.twig') }}
+
+    {# ===== 7 · PRODUITS : Disponible immédiatement ===== #}
+    {{ include('front/_product_section.html.twig', {
+        titre: 'Disponible immédiatement',
+        sous_titre: 'En stock, livraison rapide',
+        products: enStock
+    }) }}
+
+    {{ include('front/_showroom.html.twig') }}
     
 {% endblock %}
-
-
-

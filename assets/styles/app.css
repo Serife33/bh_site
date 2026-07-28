@@ -222,3 +222,93 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .pcard-price { font-size: 15px; font-weight: 700; }
 .pcard-price .promo { color: var(--promo); }
 .pcard-price del { font-size: 13px; font-weight: 400; color: var(--txt2); margin-left: 6px; }
+
+
+
+/* ===== RÉASSURANCE ===== */
+.reassu { background: var(--bg2); padding: 48px 0; }
+/* Petite étiquette au-dessus des titres (réutilisable) */
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.reassu h2 { font-size: 26px; margin-bottom: 28px; }
+@media (min-width: 768px) { .reassu h2 { font-size: 30px; } }
+.reassu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);   /* mobile : 2 par ligne (2×2) */
+  gap: 12px;
+}
+@media (min-width: 1024px) {
+  .reassu-grid { grid-template-columns: repeat(4, 1fr); }   /* desktop : les 4 sur une ligne */
+}
+@media (min-width: 1024px) { .reassu-grid { grid-template-columns: repeat(4, 1fr); } }
+.rcard { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+.rcard h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.rcard p { font-size: 13px; color: var(--txt2); line-height: 1.5; }
+
+
+/* ===== BLOC SOMBRE (expertise) ===== */
+.dark { background: var(--txt); color: #fff; padding: 48px 0; }
+.dark-in { display: flex; flex-direction: column; gap: 24px; }
+@media (min-width: 768px) { .dark-in { flex-direction: row; align-items: center; gap: 48px; } }
+.dark-col { flex: 1; }
+.eyebrow-light { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
+.dark h2 { font-size: 26px; color: #fff; margin-bottom: 14px; }
+@media (min-width: 768px) { .dark h2 { font-size: 32px; } }
+.dark-txt { color: rgba(255,255,255,.78); line-height: 1.6; margin-bottom: 18px; }
+
+
+/* ===== SHOWROOM ===== */
+.showroom-in { display: flex; flex-direction: column; gap: 28px; }
+@media (min-width: 768px) { .showroom-in { flex-direction: row; align-items: stretch; gap: 48px; } }
+.showroom-col { flex: 1; }
+.showroom-col h2 { font-size: 26px; margin-bottom: 12px; }
+@media (min-width: 768px) { .showroom-col h2 { font-size: 32px; } }
+.showroom-txt { color: var(--txt2); line-height: 1.6; margin-bottom: 20px; }
+.showroom-addr { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.showroom-hours { font-size: 14px; color: var(--txt2); margin-bottom: 20px; }
+.showroom-map { flex: 1; border-radius: 16px; overflow: hidden; height: 260px; }
+@media (min-width: 768px) { .showroom-map { height: auto; min-height: 320px; } }
+.showroom-map iframe { display: block; width: 100%; height: 100%; }
+
+
+/* ===== RÉSEAUX SOCIAUX ===== */
+.socials-label { font-size: 14px; font-weight: 600; margin-top: 14px; margin-bottom: 10px; text-align: center; }
+.socials { display: flex; gap: 16px; justify-content: center; }   /* mobile : centré */
+.socials a { font-size: 26px; line-height: 1; transition: transform .2s; }
+.socials a:hover { transform: translateY(-3px); }
+
+/* Couleurs officielles des marques */
+.socials .fa-instagram {
+  background: linear-gradient(45deg, #FEDA75, #FA7E1E, #D62976, #962FBF, #4F5BD5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;   /* laisse voir le dégradé à travers l'icône */
+  color: transparent;                       /* fallback */
+}
+.socials .fa-facebook  { color: #1877F2; }
+.socials .fa-tiktok {
+  color: #010101;
+  text-shadow: 1.5px -1.5px 0 #25F4EE,   /* écho cyan en haut-droite */
+               -1.5px 1.5px 0 #FE2C55;    /* écho magenta en bas-gauche */
+}
+.socials .fa-whatsapp  { color: #25D366; }
+.socials .fa-snapchat {
+  color: #fff;
+  background: #FFFC00;
+  border-radius: 8px;
+  width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  -webkit-text-stroke: 1px #fff;   /* ← épaissit le blanc du ghost */
+}
+
+@media (min-width: 768px) {
+  .socials-label { text-align: left; }
+  .socials { justify-content: flex-start; }
+}

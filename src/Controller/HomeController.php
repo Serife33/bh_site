@@ -15,7 +15,9 @@ final class HomeController extends AbstractController
     {
         return $this->render('home/index.html.twig', [
             'categories' => $categoryRepository->findBy([], ['id' => 'ASC']),
-            'produits' => $productRepository->findLatestActive(8),
+            'nouveautes' => $productRepository->findLatestActive(8),
+            'promos' => $productRepository->findOnSale(8),
+            'enStock' => $productRepository->findInStock(8)
         ]);
     }
 }

@@ -42,6 +42,9 @@
 - Reporté volontairement (décidé le 22/07 : « après le front, pas urgent »).
 - Même mécanisme VichUploader ; `Media.type` prévoit déjà `photo|video`. Prévoir un mapping séparé + validation de format/poids adaptée (les vidéos sont lourdes → revoir les limites nginx/PHP).
 
+### 2ter. Carte Google Maps du showroom — mauvais point (24/07)
+- L'iframe Maps (`_showroom.html.twig`, requête `?q=12+bis+rue+Suffren...`) pointe sur « 12 rue Suffren » et pas « 12 bis rue Suffren, Bordeaux Lac ». Google ignore le « bis » / trouve le mauvais Suffren. → Fix : récupérer l'**embed officiel** depuis maps.google.com (Partager → Intégrer une carte → copier l'`<iframe src="...maps/embed?pb=...">` qui encode les **coordonnées GPS exactes**) et remplacer le src actuel. À faire.
+
 ### 3. Navigation du back-office
 - Aucun menu ni **bouton Déconnexion** sur `/admin` (il faut taper `/logout` à la main).
 - À faire en même temps que le stylage admin.
@@ -97,6 +100,9 @@ Admin CRUD pour les deux. **V2 / fin de projet si le temps le permet.** En atten
 - **Récap de tous ses questionnements** : compiler les questions « pourquoi / comment » posées pendant le dev (findAll vs projection, lazy loading / N+1, callbacks Doctrine, slug AsciiSlugger, MoneyType, EnumType, EntityType, CSRF, multipart/form-data, les 3 couches de limite d'upload, VichUploader, persist vs flush, option de formulaire `require_image`, méthode privée vs service, LiipImagine…) avec la réponse-clé + la phrase pour l'oral. → Matériel direct pour le dossier et la soutenance. À faire quand elle le demande.
 
 ## 🟢 Plus tard / V2
+
+### Héberger Font Awesome + Google Fonts en local (RGPD/perf) — APRÈS l'examen (confirmé Serife 24/07 : pas le temps pour le MVP)
+- Icônes réseaux via **Font Awesome CDN cloudflare** (`<link>` dans `front/base.html.twig`) + **Montserrat via Google Fonts CDN**. → requêtes vers des tiers (RGPD) + poids. Pour la prod : **télécharger et servir en local** depuis `public/` (ou SVG officiels simple-icons pour les réseaux). À mentionner dans le bandeau cookies / politique de confidentialité. **Non bloquant pour le MVP/examen.**
 
 ### 10. Horodatage des autres tables
 - `Category` : un `updatedAt` serait utile pour le `<lastmod>` du sitemap → à voir **avec le sitemap**.

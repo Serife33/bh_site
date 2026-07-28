@@ -1,0 +1,17 @@
+
+{# Section produits réutilisable. Reçoit : titre, sous_titre, products. Ne s'affiche PAS si la liste est vide. #}
+{% if products|length > 0 %}
+<section class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <h2>{{ titre }}</h2>
+            <p>{{ sous_titre }}</p>
+        </div>
+        <div class="grid-produits">
+            {% for product in products %}
+                {{ include('front/_product_card.html.twig', { product: product }) }}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}

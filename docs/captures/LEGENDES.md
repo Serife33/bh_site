@@ -124,6 +124,20 @@ Zones : `env-` (environnement) · `bdd-` (base de données) · `admin-` (back-of
 
 ---
 
+## Front (vitrine)
+
+### `front-accueil-mobile-hero.png`
+- **Montre** : la page d'accueil en **version mobile** — hero (bannière dégradé beige + baseline + boutons Découvrir/WhatsApp) et la rangée « Nos univers » (catégories).
+- **Prouve** : intégration front **mobile-first** (design responsive dès la base), CTA WhatsApp intégré, catégories affichées **dynamiquement** depuis la base.
+- **Partie du dossier** : *Développement front / responsive / expérience utilisateur*.
+
+### `front-accueil-mobile-produits.png`
+- **Montre** : la grille de produits « Nouveautés » sur l'accueil mobile (cartes avec photo, nom, prix).
+- **Prouve** : affichage dynamique des produits (boucle Twig + composant carte réutilisable `_product_card`), photos servies **optimisées en WebP** par LiipImagine, badge promo/stock, prix barré si promo.
+- **Partie du dossier** : *Développement front / composants réutilisables / performance images*.
+
+---
+
 ## À capturer plus tard (penser-y !)
 
 - [ ] `secu-login.png` — la page de connexion admin
