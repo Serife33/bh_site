@@ -115,7 +115,11 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 - [ ] Plus tard : liens de navigation admin + bouton **Déconnexion** sur `/admin`, traduire « Invalid credentials », seoText Category en textarea
 - [ ] Plus tard (peaufinage form Product) : champ `modules` → ajouter un `query_builder` pour ne proposer que les produits `is_modular = module` **et exclure le produit courant** (constaté le 21/07 : un produit s'affiche dans sa propre liste de modules). Idem, franciser les libellés des enums via `choice_label` (No/Yes/Module → Non/Oui/Module, None → Sans objet).
 
-## ⏸️ REPRISE — prochaine étape : **FRONT F2** (accueil dynamique)
+## ⏸️ REPRISE — **FRONT F2 : accueil quasi fait**
+**Accueil dynamique FAIT** ✅ : 6 catégories créées · `HomeController` passe `categories`+`produits` (`ProductRepository::findLatestActive`) · `home/index.html.twig` = HERO (dégradé beige, baseline, boutons `.btn`/`.btn-primary`/`.btn-wa`) + rangée **Nos univers** (boucle catégories, ronds `.cat-ring`, grille 3/6 cols) + grille **Nouveautés** (composant `templates/front/_product_card.html.twig` avec photo LiipImagine `vignette`, promo si `actualPrice<initialPrice`, badge stock, `Product::getMainMedia()`). CSS `.section`/`.cats`/`.grid-produits`/`.pcard` en place.
+**RESTE F2** : (1) **menu header dynamique** (catégories BDD dans le layout → extension Twig ou `render(controller())`) ; (2) sections contenu accueil optionnelles (réassurance, showroom, CTA WhatsApp). Liens produits/catégories = `front_home` provisoire → à brancher sur `front_product`/`front_category` en F3/F4.
+**Note style** : Serife aime bien le rendu actuel ; option « plus Micadoni » (tuiles-photos catégories, photo de couverture Category) = évoquée, reportée.
+Ancien libellé ci-dessous (F2 initial) :
 Back-office ✅ + médias/LiipImagine ✅ + **FRONT F1 TERMINÉ** ✅. On reprend à **F2 : page d'accueil dynamique** (row catégories, best-sellers, nouveautés) + composant `_product_card` + sections contenu + menu header dynamique.
 📄 Feuille de route front : `~/.claude/plans/ticklish-juggling-stroustrup.md`. Points reportés : `docs/A-TRAITER.md`.
 

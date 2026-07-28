@@ -1,7 +1,57 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Brillance Home — Mobilier à Bordeaux{% endblock %}
+{% block title %}Brillance Home — Ameublement intérieur à Bordeaux{% endblock %}
 
 {% block body %}
-    <h1>Accueil Brillance Home</h1>
+{# ===== HERO ===== #}
+    <section class="hero">
+        <div class="wrap hero-in">
+            <p class="hero-eyebrow">Showroom à Bordeaux</p>
+            <h1 class="hero-title">Spécialiste de l'ameublement intérieur.</h1>
+            <p class="hero-sub">Salon, salle à manger, chambre et literie — pensés pour toute la maison. Devis rapide sur WhatsApp.</p>
+            <div class="hero-btns">
+                <a href="#univers" class="btn btn-primary">Découvrir nos univers</a>
+                <a href="https://wa.me/{{ whatsapp_number }}" class="btn btn-wa" target="_blank" rel="noopener">Parler à un conseiller</a>
+            </div>
+        </div>
+    </section>
+
+{# ===== NOS UNIVERS (catégories) ===== #}
+    <section class="section wrap" id="univers">
+        <div class="section-head">
+            <h2>Nos univers</h2>
+            <p>Explorez notre mobilier par catégorie</p>
+        </div>
+        <div class="cats">
+            {% for categorie in categories %}
+                <a href="{{ path('front_home') }}" class="cat">
+                    <div class="cat-ring"></div>
+                    <span class="cat-name">{{ categorie.name }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+
+
+{# ===== NOUVEAUTÉS ===== #}
+    <section class="section wrap">
+        <div class="section-head">
+            <h2>Nouveautés</h2>
+            <p>Nos dernières pièces arrivées</p>
+        </div>
+        <div class="grid-produits">
+            {% for product in produits %}
+                {{ include('front/_product_card.html.twig', { product: product }) }}
+            {% else %}
+                <p>Aucun produit pour le moment.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+
+
+    
 {% endblock %}
+
+
+

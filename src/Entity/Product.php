@@ -505,4 +505,17 @@ class Product
         return $this->updatedAt;
     }
 
+    
+    // Retourne la photo principale du produit (isMain) ou la première photo si aucune n'est marquée principale, ou null.
+    public function getMainMedia(): ?Media
+    {
+        foreach ($this->media as $medium) {
+            if ($medium->isMain()) {
+                return $medium;
+            }
+        }
+
+        return $this->media->first() ?: null;
+    }
+
 }

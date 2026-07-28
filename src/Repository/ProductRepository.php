@@ -27,4 +27,16 @@ class ProductRepository extends ServiceEntityRepository
         ;
     }
 
+
+    // Les derniers produits actifs (pour la grille "Nouveautés" de l'accueil).
+    public function findLatestActive(int $limit = 8): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.isActive = true')   // seulement les produits publiés
+            ->orderBy('p.createdAt', 'DESC')   // les plus récents d'abord
+            ->setMaxResults($limit)            // "limit" produits max
+            ->getQuery()
+            ->getResult();
+    }
+
 }

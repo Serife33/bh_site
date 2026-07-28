@@ -1,0 +1,30 @@
+
+{# Carte produit réutilisable. Attend une variable "product". #}
+<a href="{{ path('front_home') }}" class="pcard">
+    <div class="pcard-photo">
+        {% set photo = product.mainMedia %}
+        {% if photo %}
+            <img src="{{ vich_uploader_asset(photo, 'imageFile') | imagine_filter('vignette') }}"
+                 alt="{{ photo.alt ?? product.name }}" loading="lazy">
+        {% else %}
+            <div class="pcard-noimg"></div>
+        {% endif %}
+
+        {% if product.actualPrice < product.initialPrice %}
+            <span class="pcard-badge promo">Promo</span>
+        {% elseif product.stock > 0 %}
+            <span class="pcard-badge stock">En stock</span>
+        {% endif %}
+    </div>
+    <div class="pcard-info">
+        <div class="pcard-name">{{ product.name }}</div>
+        <div class="pcard-price">
+            {% if product.actualPrice < product.initialPrice %}
+                <span class="promo">{{ product.actualPrice }} €</span>
+                <del>{{ product.initialPrice }} €</del>
+            {% else %}
+                {{ product.actualPrice }} €
+            {% endif %}
+        </div>
+    </div>
+</a>

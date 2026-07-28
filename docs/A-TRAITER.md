@@ -12,7 +12,7 @@
 
 ### 1. Slug automatique — ✅ FAIT sur Product (21/07)
 - Reste à appliquer la même recette à **`Category`** et **`SubCategory`** (5 min chacune, aucune migration).
-- ⏭️ Un jour : permettre de **personnaliser** un slug en back-office (aujourd'hui, une faute dans le nom à la création reste dans l'URL — on ne régénère pas à la modification, volontairement, pour ne pas casser les URLs publiées).
+- ⏭️ **Slug éditable en admin (IMPORTANT — confirmé nécessaire le 24/07)** : aujourd'hui, renommer une catégorie/produit ne met pas à jour le slug (généré à la création seulement) → obligée de corriger EN BASE (SQL), pas viable. Solution retenue = **remettre le champ `slug` dans les formulaires, mais FACULTATIF** : vide → généré auto (callback) ; rempli → on respecte la saisie (comme WordPress/Shopify). Garde la stabilité des URLs tout en laissant la main à l'admin. À faire avant la mise en prod. (Cas rencontré : catégorie « Tête de lit » renommée « Literie » gardait le slug `tete-de-lit`, corrigé en SQL.)
 
 ### 1bis. Médias — points d'architecture (décidés le 22/07)
 - **Pas de `show` ni d'`index` pour Media** : une photo n'a pas de détail à consulter seule (déjà visible sur la fiche produit). On ne crée que les actions utiles : ajouter / afficher / supprimer.
@@ -50,6 +50,19 @@
 
 ## 🟡 Priorité moyenne — confort et qualité
 
+### 🎯 VISION SERIFE (24/07) — Mentions + gestion admin de l'accueil (fin de projet si temps)
+Objectif : un mini-CMS de vitrine, piloté depuis l'admin (choisir quelles sections, dans quel ordre, activer/désactiver une section pour une durée). Deux briques :
+1. **Entité `Mention`** (Nouveauté, Best-seller, Coup de cœur, Mis en avant…) en **ManyToMany avec Product** (table de jonction `product_mention`) → étiquette les produits (badges cartes + contenu des sections).
+   - ⚠️ Nuance : « Nouveauté » (date) et « Promo » (prix `actual<initial`) sont **automatiques/calculées** — pas besoin de les cocher. `Mention` sert surtout aux étiquettes **manuelles** (Best-seller, Sélection). OU tout gérer via Mention si contrôle total voulu (choix à faire).
+2. **Entité `HomeSection`** (config accueil) : quelle section (liée à une Mention ou une requête), `position` (ordre), `isActive`, période `du`/`au` (activer/désactiver pour une durée). → l'admin réorganise/active la home sans toucher au code. C'est le « 3 sections produits admin » du PLAN-DE-MATCH complet.
+Admin CRUD pour les deux. **V2 / fin de projet si le temps le permet.** En attendant : sections en dur dans le template (Nouveautés auto).
+
+### Sections accueil : Promos + Sélection (quand + de produits) — version simple intermédiaire
+- **Factoriser** la section produits en fragment `templates/front/_product_section.html.twig` (titre + sous-titre + liste `products`) → réutilisé pour Nouveautés / Promos / Sélection (markup écrit 1 fois).
+- **Promos** : `ProductRepository::findOnSale()` → `WHERE actualPrice < initialPrice AND isActive`. Automatique.
+- **Sélection / mis en avant** : ajouter champ **`isFeatured`** (bool, défaut false) à `Product` (+ migration) + case dans `ProductType` (« Mettre en avant sur l'accueil ») + `findFeatured()` (`WHERE isFeatured = true`). L'admin choisit sa vitrine (façon « coups de cœur »). *(Vrais best-sellers calculés = V2, quand il y aura des commandes.)*
+- Reporté car aujourd'hui seulement 2 produits → sections vides. À faire quand le catalogue est fourni.
+
 ### 4. `createdAt` sur `AdminUser`
 - **Jugé important par Serife** (traçabilité : « ce compte a été créé le… »), mis de côté le 21/07.
 - Table quasi vide → migration sans risque, ~10 min.
@@ -68,6 +81,9 @@
 
 ### 8. `seoText` de Category affiché en `<input>` court
 - C'est un champ TEXT long → le passer en `TextareaType` dans `CategoryType`.
+
+### 8bis. Relire/adapter les textes SEO des catégories (F6)
+- Les metaTitle/metaDescription/seoText proposés le 24/07 mentionnent « fabriqué sur commande », « bois massif »… → **Serife doit vérifier/adapter à sa réalité commerciale** (ce qu'elle vend vraiment). À faire en phase SEO. Idem baseline et textes du front.
 
 ### 9. Tests fonctionnels Symfony
 - `symfony/test-pack` est **déjà installé**, rien à ajouter.
