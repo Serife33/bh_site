@@ -53,6 +53,11 @@
 
 ## 🟡 Priorité moyenne — confort et qualité
 
+### Image du hero de l'accueil
+- Aujourd'hui : **dégradé placeholder** (`.hero` linear-gradient). À remplacer par une **vraie image lifestyle** (intérieur meublé, ~1920px paysage) en `background-image` + voile sombre (`linear-gradient(rgba(...)) , url()`) + texte passé en blanc.
+- ⚠️ **PAS dans la table `media`** (réservée aux photos produits, liées à un Product). Le hero = **asset de design du site** → fichier statique `public/images/hero.jpg` pour le MVP. Version admin-éditable = entité `SiteSetting`/`HomeSection` (cf. vision Mentions/HomeSection) = V2.
+- À faire quand Serife a choisi une belle photo (c'est LE visuel principal).
+
 ### 🎯 VISION SERIFE (24/07) — Mentions + gestion admin de l'accueil (fin de projet si temps)
 Objectif : un mini-CMS de vitrine, piloté depuis l'admin (choisir quelles sections, dans quel ordre, activer/désactiver une section pour une durée). Deux briques :
 1. **Entité `Mention`** (Nouveauté, Best-seller, Coup de cœur, Mis en avant…) en **ManyToMany avec Product** (table de jonction `product_mention`) → étiquette les produits (badges cartes + contenu des sections).

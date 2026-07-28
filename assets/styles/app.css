@@ -307,8 +307,53 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   font-size: 17px;
   -webkit-text-stroke: 1px #fff;   /* ← épaissit le blanc du ghost */
 }
-
 @media (min-width: 768px) {
   .socials-label { text-align: left; }
   .socials { justify-content: flex-start; }
 }
+
+
+
+/* ===== FAQ ===== */
+.faq-title { font-size: 26px; margin-bottom: 24px; text-align: center; }
+@media (min-width: 768px) { .faq-title { font-size: 32px; } }
+.faq-wrap { max-width: 780px; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 18px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-pm { color: var(--accent); font-size: 22px; flex-shrink: 0; }
+.faq-item p { padding: 0 0 18px; color: var(--txt2); line-height: 1.7; font-size: 15px; }
+
+
+/* ===== CTA WHATSAPP ===== */
+.cta-wa { background: var(--bg2); padding: 36px 0; }
+/* MOBILE : colonne centrée */
+.cta-wa-in {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+}
+/* DESKTOP : ligne, texte à gauche / bouton à droite */
+@media (min-width: 768px) {
+  .cta-wa-in {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
+.cta-wa-txt h2 { font-size: 24px; margin-bottom: 4px; }
+.cta-wa-txt p { font-size: 14px; color: var(--txt2); }
+.cta-wa .btn-wa i { color: #fff; }
