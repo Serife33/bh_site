@@ -1,0 +1,40 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}{{ category.metaTitle ?? (category.name ~ ' — Brillance Home') }}{% endblock %}
+
+{% block body %}
+<section class="section">
+    <div class="wrap">
+
+        {# --- Fil d'Ariane --- #}
+        <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <a href="{{ path('front_home') }}">Accueil</a>
+            <span aria-hidden="true">›</span>
+            <span>{{ category.name }}</span>
+        </nav>
+
+        {# --- Titre + texte SEO de la catégorie --- #}
+        <div class="section-head">
+            <h1>{{ category.name }}</h1>
+            {% if category.seoText %}
+                <p>{{ category.seoText }}</p>
+            {% endif %}
+        </div>
+
+        {# --- Grille produits (pagination = SEULEMENT les 12 de la page) --- #}
+        <div class="grid-produits">
+            {% for product in pagination %}
+                {{ include('front/_product_card.html.twig', { product: product }) }}
+            {% else %}
+                <p class="empty">Aucun produit dans cette catégorie pour le moment.</p>
+            {% endfor %}
+        </div>
+
+        {# --- Liens « ‹ 1 2 3 › » générés par KnpPaginator --- #}
+        <div class="pagination">
+            {{ knp_pagination_render(pagination) }}
+        </div>
+
+    </div>
+</section>
+{% endblock %}

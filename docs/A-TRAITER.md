@@ -42,6 +42,11 @@
 - Reporté volontairement (décidé le 22/07 : « après le front, pas urgent »).
 - Même mécanisme VichUploader ; `Media.type` prévoit déjà `photo|video`. Prévoir un mapping séparé + validation de format/poids adaptée (les vidéos sont lourdes → revoir les limites nginx/PHP).
 
+### 2quater. Peaufinage bandeau (28/07)
+- Fond bandeau = `var(--txt)` (noir, cohérent footer) + texte blanc. `.band-promo` en `#FF3B30` (uppercase) tire vers l'orange → rouge plus franc = `#E01E1E`/`#D50000` si voulu.
+- **Mobile** : messages longs (ex. « Showroom à Bordeaux · 12 bis rue Suffren ») serrés sur petit écran malgré le mobile-first. → garder des **messages courts**, ou clipper. Mineur.
+- Mécanisme `type: 'promo'` conservé (colore + majuscules) même si pas forcément utilisé pour l'instant.
+
 ### 2ter. Carte Google Maps du showroom — mauvais point (24/07)
 - L'iframe Maps (`_showroom.html.twig`, requête `?q=12+bis+rue+Suffren...`) pointe sur « 12 rue Suffren » et pas « 12 bis rue Suffren, Bordeaux Lac ». Google ignore le « bis » / trouve le mauvais Suffren. → Fix : récupérer l'**embed officiel** depuis maps.google.com (Partager → Intégrer une carte → copier l'`<iframe src="...maps/embed?pb=...">` qui encode les **coordonnées GPS exactes**) et remplacer le src actuel. À faire.
 
@@ -53,10 +58,31 @@
 
 ## 🟡 Priorité moyenne — confort et qualité
 
+### ⭐ Réordonner les produits en admin par glisser-déposer (demandé fort par Serife 28/07)
+- **Base déjà là** : `Product.position` (l'admin saisit un numéro, tri par position ASC dans les requêtes front). → fonctionne mais saisie manuelle.
+- **Version voulue** : **drag & drop** dans la liste admin `/admin/product` pour réordonner à la souris (façon Shopify). Nécessite **Sortable.js** (ou lib JS) + un **endpoint AJAX** (`POST /admin/product/reorder`) qui reçoit le nouvel ordre et met à jour les `position` en base. Beau point jury (« l'admin pilote l'ordre de son catalogue »). Même besoin que le réordonnancement des **photos** (mutualiser l'approche). → À faire en **finition back-office** / quand le catalogue est peuplé.
+
+### ⭐ Ajouter `position` à Category (ordre des catégories — pas encore fait, 28/07)
+- L'ordre du menu/rangée univers sort par `id` → pas l'ordre voulu (Canapés, Literie, Tables, Chaises, Fauteuils, Rangements). **À faire** : champ `position` (int, défaut 0) sur `Category` + migration + champ IntegerType dans `CategoryType` + trier `AppExtensionRuntime::getNavCategories()` et `HomeController` par `['position' => 'ASC']`. Puis Serife règle les positions dans l'admin. *(Idem produits : drag&drop admin plus tard.)*
+
+### 🎤 ORAL — points JS / déploiement / perf (à retenir + questions jury type)
+**Principe JS** : natif d'abord (CSS pour le bandeau, `<details>` pour la FAQ = 0 JS), **JavaScript seulement pour l'interactivité/état** (burger, galerie produit F4, configurateur F4). Moins de code = plus maintenable.
+**Déploiement JS** : Symfony **AssetMapper** (importmap) = pas de Node/webpack → JS servi statique. En prod : `php bin/console asset-map:compile`. Aucun souci sur mutualisé o2switch.
+**Perf** : JS burger minimal + chargé en **module différé** (`type=module`) → ne bloque pas le rendu. Vrais leviers perf = **images WebP LiipImagine** (fait) + self-host polices/FA (V2).
+**Questions jury type à préparer** : « Pourquoi ce choix CSS vs JS pour le bandeau/burger ? » · « Comment ton JS est-il déployé sans build ? » · « Qu'est-ce qui pèse sur le temps de chargement et comment tu l'optimises ? » · « C'est quoi `addEventListener` / un module JS différé ? » · « Pourquoi le burger a besoin d'un état alors que le bandeau non ? »
+
 ### Image du hero de l'accueil
 - Aujourd'hui : **dégradé placeholder** (`.hero` linear-gradient). À remplacer par une **vraie image lifestyle** (intérieur meublé, ~1920px paysage) en `background-image` + voile sombre (`linear-gradient(rgba(...)) , url()`) + texte passé en blanc.
 - ⚠️ **PAS dans la table `media`** (réservée aux photos produits, liées à un Product). Le hero = **asset de design du site** → fichier statique `public/images/hero.jpg` pour le MVP. Version admin-éditable = entité `SiteSetting`/`HomeSection` (cf. vision Mentions/HomeSection) = V2.
 - À faire quand Serife a choisi une belle photo (c'est LE visuel principal).
+
+### 📢 CRUD Annonce — bandeau défilant géré en admin (demandé 28/07)
+Aujourd'hui : bandeau (`.band` dans `front/base.html.twig`) avec **messages en dur**. Voulu : l'admin écrit/modifie les annonces, les active/désactive, et les programme sur une **période**.
+- **Entité `Annonce`** : `text` · `isActive` (bool) · `dateStart` (datetime nullable) · `dateEnd` (datetime nullable) · `position` (int). + migration.
+- **CRUD admin** (`make:crud` ou codé main, sous `/admin/annonce`) + réflexes habituels.
+- **Affichage bandeau** : requête `AnnonceRepository::findActiveNow()` → `isActive = true AND (dateStart IS NULL OR dateStart <= NOW) AND (dateEnd IS NULL OR dateEnd >= NOW)` triées par `position`. Boucle Twig dans le bandeau (dupliquer la liste pour la boucle marquee sans couture). Dispo dans le layout → via extension Twig (comme `nav_categories()`) ou globals.
+- Bénéfice : promos programmées qui apparaissent/disparaissent seules. Beau point jury (contenu piloté par l'admin).
+- **Regrouper avec les autres features « admin pilote le contenu »** : Mentions/HomeSection + réordonnancement produits drag&drop → **phase « back-office dynamique » après le cœur du front (F3/F4)**.
 
 ### 🎯 VISION SERIFE (24/07) — Mentions + gestion admin de l'accueil (fin de projet si temps)
 Objectif : un mini-CMS de vitrine, piloté depuis l'admin (choisir quelles sections, dans quel ordre, activer/désactiver une section pour une durée). Deux briques :
@@ -102,7 +128,9 @@ Admin CRUD pour les deux. **V2 / fin de projet si le temps le permet.** En atten
 ---
 
 ## 📝 À produire pour Serife (demandé le 22/07)
+- **Session « prépa oral CSS » (demandée 28/07)** : reprendre `assets/styles/app.css` **bloc par bloc**, avec les **questions que le jury peut poser** + réponse pédagogique une par une. Concepts à couvrir : variables CSS (`:root`/`var()`), **flexbox** (`display:flex`, `align-items`, `justify-content`, `flex:1`, `flex-direction`), **grid** (`grid-template-columns: repeat()`), **media queries mobile-first** (`@media (min-width)`), **animations** (`@keyframes` + `transform: translateX` + `animation` du bandeau), `object-fit: cover`, `aspect-ratio`, `background-clip: text` (dégradé Insta), `position: sticky/fixed`, `overflow: hidden`, `-webkit-text-stroke`, `text-shadow`, le sticky footer (`min-height:100dvh`+flex+`.main{flex:1}`), le patron `.section`(extérieur)/`.wrap`(intérieur). + Rappeler le choix Tailwind (pipeline+Preflight, mais classes sémantiques custom, pas d'utilitaires). → À faire en prépa soutenance.
 - **Récap de tous ses questionnements** : compiler les questions « pourquoi / comment » posées pendant le dev (findAll vs projection, lazy loading / N+1, callbacks Doctrine, slug AsciiSlugger, MoneyType, EnumType, EntityType, CSRF, multipart/form-data, les 3 couches de limite d'upload, VichUploader, persist vs flush, option de formulaire `require_image`, méthode privée vs service, LiipImagine…) avec la réponse-clé + la phrase pour l'oral. → Matériel direct pour le dossier et la soutenance. À faire quand elle le demande.
+- ⚠️ **PAGINATION + objet `Query` = PAS ENCORE DIGÉRÉ** (dit par Serife le 29/07, F3). Elle sait recopier le geste `$paginator->paginate($repo->findXxxQuery(), $request->query->getInt('page',1), N)` mais le **pourquoi** ne coule pas de source. → **La quizzer à l'oral** sur : (1) pourquoi `getQuery()` renvoie une **Query non exécutée** et pas un `getResult()` ? (2) qui ajoute le `LIMIT/OFFSET` et à quel moment ? (3) que se passerait-il si on paginait un `array` déjà chargé (charger toute la table en mémoire) ? (4) d'où vient le n° de page (`?page=` dans l'URL) ? (5) rôle du service `PaginatorInterface` injecté. Reprendre avec l'image « recette pas encore cuisinée ». → À traiter en prépa orale + lui reposer la question spontanément lors des prochaines pages paginées (catégorie F3, recherche F5).
 
 ## 🟢 Plus tard / V2
 

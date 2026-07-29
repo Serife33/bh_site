@@ -357,3 +357,137 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .cta-wa-txt h2 { font-size: 24px; margin-bottom: 4px; }
 .cta-wa-txt p { font-size: 14px; color: var(--txt2); }
 .cta-wa .btn-wa i { color: #fff; }
+
+
+/* ===== BANDEAU DÉFILANT (un message à la fois) ===== */
+.band {
+  background: var(--txt);   /* noir — le même que le footer */     
+  color: #fff;
+  height: 40px; 
+  overflow: hidden;
+}
+.band-track {
+  display: flex;
+  width: max-content;                        /* le ruban s'ajuste à son contenu */
+  animation: band-scroll 55s linear infinite;
+}
+.band-track span {
+  width: 100vw;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;        /* ← MOBILE : plus petit pour tenir sur l'écran */
+  font-weight: 500;
+  letter-spacing: .05em;    /* ← MOBILE : peu d'espacement */
+  padding: 0 16px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.band-track span.band-promo {
+  color: #E01E1E;                /* rouge/vif */
+  font-weight: 700;
+  text-transform: uppercase;   /* ← lettres en MAJUSCULES */
+  letter-spacing: .1em;         /* optionnel : un peu plus d'espacement (effet promo) */
+}
+
+/* DESKTOP : plus gros + plus étalé (la demande du client) */
+@media (min-width: 768px) {
+  .band-track span {
+    font-size: 14px;
+    letter-spacing: .12em;
+  }
+}
+@keyframes band-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+
+
+
+/* ===== BURGER (mobile) ===== */
+.burger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; background: none; border: none; }
+.burger span { width: 24px; height: 2px; background: var(--txt); border-radius: 2px; }
+
+/* ===== NAV = tiroir mobile (caché par défaut) ===== */
+.nav {
+  display: none;
+  position: absolute;
+  top: 64px; left: 0; right: 0;
+  flex-direction: column;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 20px 16px;
+}
+.nav a { padding: 12px 0; font-size: 16px; }
+.nav a:hover { color: var(--accent); }
+.nav.open { display: flex; }   /* affiché quand la classe "open" est là */
+
+/* ===== DESKTOP : nav horizontal, burger caché ===== */
+@media (min-width: 768px) {
+  .burger { display: none; }
+  .nav { display: flex; position: static; flex-direction: row; background: none; border: none; padding: 0; gap: 18px; }
+  .nav a { padding: 6px 0; font-size: 14px; }
+}
+
+
+/* ===== Fil d'Ariane (breadcrumb) ===== */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--txt2);
+    margin-bottom: 24px;
+}
+.breadcrumb a {
+    color: var(--txt2);
+    text-decoration: none;
+    transition: color .15s;
+}
+.breadcrumb a:hover {
+    color: var(--accent);
+}
+.breadcrumb span[aria-hidden] {
+    color: var(--border);   /* le chevron › discret */
+}
+
+/* ===== État vide ===== */
+.empty {
+    grid-column: 1 / -1;    /* occupe toute la largeur de la grille */
+    color: var(--txt2);
+    padding: 40px 0;
+}
+
+/* ===== Pagination ===== */
+.pagination {
+    margin-top: 48px;
+    text-align: center;
+}
+.pagination a,
+.pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 10px;
+    margin: 0 3px;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    color: var(--txt);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all .15s;
+}
+.pagination a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.pagination .current {
+    background: var(--txt);
+    color: #fff;
+    border-color: var(--txt);
+}

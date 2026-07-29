@@ -21,13 +21,19 @@
 
 
 <body>
+    {{ include('front/_band.html.twig') }}
+
     <header class="hdr">
         <div class="hdr-in wrap">
             <a href="{{ path('front_home') }}" class="logo">Brillance Home</a>
-            <nav class="nav">
+            <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="main-nav">
+            <span></span><span></span><span></span>
+            </button>
+            <nav class="nav" id="main-nav">
                 <a href="{{ path('front_home') }}">Accueil</a>
-                <a href="{{ path('front_home') }}">Canapés</a>
-                <a href="{{ path('front_home') }}">Literie</a>
+                {% for categorie in nav_categories() %}
+                    <a href="{{ path('front_category', { slug: categorie.slug }) }}">{{ categorie.name }}</a>
+                {% endfor %}
             </nav>
         </div>
     </header>

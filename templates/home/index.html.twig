@@ -25,7 +25,7 @@
             </div>
             <div class="cats">
                 {% for categorie in categories %}
-                    <a href="{{ path('front_home') }}" class="cat">
+                    <a href="{{ path('front_category', { slug: categorie.slug }) }}" class="cat">
                         <div class="cat-ring"></div>
                         <span class="cat-name">{{ categorie.name }}</span>
                     </a>

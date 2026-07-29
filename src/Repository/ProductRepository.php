@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Category;
 use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query;
@@ -61,6 +62,17 @@ class ProductRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+
+    public function findActiveByCategoryQuery(Category $category): Query
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.isActive = true')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $category)           // valeur liée (jamais concaténée → anti-injection)
+            ->orderBy('p.position', 'ASC')
+            ->getQuery();                                   // Produits actifs d'une catégorie donnée → Query (pour le paginator).
     }
 
 }

@@ -1,0 +1,20 @@
+{# Bandeau défilant. Les messages sont listés UNE fois, bouclés DEUX fois pour la boucle sans couture. #}
+{% set annonces = [
+    { text: "Livraison gratuite dans l'agglomération Bordelaise" },
+    { text: 'Paiement en 2, 3 ou 4 fois sans frais', type: 'promo' },
+    { text: 'Showroom à Bordeaux · 12 bis rue Suffren' },
+    { text: 'Promos exceptionnelles spéciale ouverture', type: 'promo' },
+    { text: 'Tissu, couleur et dimension au choix' },
+] %}
+
+<div class="band">
+    <div class="band-track">
+        {% for annonce in annonces %}
+            <span class="{{ annonce.type|default('') == 'promo' ? 'band-promo' : '' }}">{{ annonce.text }}</span>
+        {% endfor %}
+        {# duplication pour la boucle sans couture #}
+        {% for annonce in annonces %}
+            <span class="{{ annonce.type|default('') == 'promo' ? 'band-promo' : '' }}">{{ annonce.text }}</span>
+        {% endfor %}
+    </div>
+</div>

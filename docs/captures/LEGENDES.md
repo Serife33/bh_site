@@ -136,6 +136,13 @@ Zones : `env-` (environnement) · `bdd-` (base de données) · `admin-` (back-of
 - **Prouve** : affichage dynamique des produits (boucle Twig + composant carte réutilisable `_product_card`), photos servies **optimisées en WebP** par LiipImagine, badge promo/stock, prix barré si promo.
 - **Partie du dossier** : *Développement front / composants réutilisables / performance images*.
 
+### `front-categorie-pagination.png`
+- **Montre** : la page catégorie « Literie » (`/categorie/literie`) — fil d'Ariane « Accueil › Literie », titre `<h1>` + texte SEO de la catégorie, grille produits, et la **pagination stylée** `[1] [2] [›] [»]` (page 1 active en pastille noire).
+- **Prouve** : la page catégorie fonctionne de bout en bout — routing `/categorie/{slug}`, catégorie retrouvée par slug (**404** sinon), produits **paginés** (KnpPaginator → `LIMIT/OFFSET`), composant `_product_card` réutilisé, photos **WebP** LiipImagine, badge promo + prix barré, fil d'Ariane **accessible** (`aria-label`, chevron `aria-hidden`). Le numéro de page vit dans l'**URL** (`?page=`) → serveur **sans état**.
+- **Partie du dossier** : *Développement front / navigation & pagination des listes*.
+- 💬 Phrase associée : « La pagination est sans état côté serveur : le numéro de page voyage dans l'URL, mon contrôleur le lit via `getInt('page', 1)` et le paginator le traduit en LIMIT/OFFSET sur une Query non exécutée — je ne charge jamais que les produits de la page affichée. »
+- ⚠️ Capture prise **temporairement** avec `PRODUCTS_PER_PAGE = 1` (pour rendre la pagination visible avec seulement 2 produits en base) ; la valeur réelle du code est **12**.
+
 ---
 
 ## À capturer plus tard (penser-y !)

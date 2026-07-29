@@ -2,9 +2,20 @@
 
 > Journal de bord pour reprendre le fil rapidement (mis à jour au fil de l'eau).
 
+---
+## 🚀 POUR REPRENDRE (nouvelle conversation Claude Code) — LIRE EN PREMIER
+0. ⚠️⚠️ **TOUT PREMIER GESTE** : dans `src/Controller/CatalogController.php` ligne 16, `PRODUCTS_PER_PAGE` est **resté à `1`** (valeur de test de la démo pagination laissée en place le 29/07). **LA REMETTRE À `12`** avant toute chose, sinon la page catégorie n'affiche qu'1 produit par page.
+1. **Lire ce fichier en entier** + `docs/A-TRAITER.md` (points reportés) + `~/.claude/plans/ticklish-juggling-stroustrup.md` (feuille de route FRONT détaillée, mobile-first).
+2. **Mode de travail impératif** : **guidé pas à pas** — Serife TAPE le code elle-même, pose beaucoup de « pourquoi/comment », doit pouvoir tout défendre au jury. **NE PAS coder à sa place** ; expliquer avant/après, la laisser coder, relire.
+3. **Où on en est** : back-office + médias + LiipImagine ✅ · **FRONT F1 (fondations) ✅** · **FRONT F2 (accueil + finition layout : menu header dynamique, burger mobile, bandeau défilant) ✅** · **FRONT F3 (page catégorie) ✅**. **PROCHAIN PAS = F4 : FICHE PRODUIT** (la + grosse : galerie médias, configurateur affiché tissus/couleurs/variantes/modules, devis WhatsApp pré-rempli, accordéons, produits similaires, SEO metaTitle/metaDescription). Puis **F5** (recherche/contact/légales/404), **F6** (SEO sitemap/robots/JSON-LD).
+4. **Rappels front** : mobile-first partout · CSS dans `assets/styles/app.css` compilé par `tailwind:build --watch` (⚠️ **le watch s'arrête souvent** → si « rien ne change » : relancer `tailwind:build` + `Cmd+Shift+R`) · layout front = `templates/front/base.html.twig` (séparé de l'admin) · piège récurrent CSS : ne pas mettre `.section`/`.wrap` (2 paddings) sur le même élément → `.section` (padding vertical+fond) sur l'extérieur, `.wrap` (largeur+padding horizontal) sur un div intérieur.
+5. **Après le front** : **DÉPLOIEMENT** (o2switch natif, sans Docker — voir section dédiée) puis **DOSSIER PROJET** (voir section dédiée ci-dessous). Deadline **20 août 2026**.
+6. **Réflexe captures** : rappeler à Serife de screenshoter chaque étape pertinente → `docs/captures/` + légende dans `docs/captures/LEGENDES.md` (matière pour le dossier).
+---
+
 ## Contexte
 - E-commerce ameublement **Brillance Home** (vitrine + devis WhatsApp), projet d'examen **TP DWWM** (niveau 5).
-- Deadlines : **appli le 17 juillet 2026** · **dossier le 7 août 2026**.
+- Deadline : **20 août 2026** (appli + dossier). *(Anciennes dates 17/07 et 07/08 obsolètes.)*
 - Mode de travail : **guidé pas à pas** — Serife tape le code elle-même et doit pouvoir tout expliquer au jury. Ne pas coder à sa place.
 - Projet local : `~/bh_site`
 - Docs de conception (MCD/MLD/plans) : `~/Downloads/files_maquettes/` (mvp-mcd.html, mvp-mld.html, mvp-mld.sql, PLAN_DE_MATCH_MVP.md, PLANNING-EXAM.md).
@@ -119,7 +130,20 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 **Accueil dynamique FAIT** ✅ : 6 catégories créées · `HomeController` passe `categories`+`produits` (`ProductRepository::findLatestActive`) · `home/index.html.twig` = HERO (dégradé beige, baseline, boutons `.btn`/`.btn-primary`/`.btn-wa`) + rangée **Nos univers** (boucle catégories, ronds `.cat-ring`, grille 3/6 cols) + grille **Nouveautés** (composant `templates/front/_product_card.html.twig` avec photo LiipImagine `vignette`, promo si `actualPrice<initialPrice`, badge stock, `Product::getMainMedia()`). CSS `.section`/`.cats`/`.grid-produits`/`.pcard` en place.
 **Accueil ÉTOFFÉ** ✅ : sections dans l'ordre de la maquette — Hero · Nos univers (catégories) · **Nouveautés** · **Réassurance** (`_reassurance`, 4 cartes 2×2 mobile) · **Promotions** · **Expertise** (`_expertise`, bloc sombre + WhatsApp) · **En stock** (masquée si vide) · **Showroom** (`_showroom` : vraie carte Google Maps iframe + réseaux sociaux). Sections produits factorisées dans `_product_section` (titre+sous-titre+products, masquée si vide). `.eyebrow` global. Sticky footer OK.
 **Icônes réseaux** : **Font Awesome via CDN** (`<link>` dans `front/base.html.twig`) — `<i class="fa-brands fa-...">`, couleurs de marque en CSS (Insta = dégradé via `background-clip:text`, TikTok = écho cyan/magenta via `text-shadow`, Snapchat = tuile jaune + ghost blanc `-webkit-text-stroke`, WhatsApp vert). ⚠️ CDN → self-host RGPD APRÈS examen (A-TRAITER). Macros `_icons.html.twig` abandonnées au profit de FA.
-**RESTE F2** : (1) **FAQ** + **CTA WhatsApp** final (2 dernières sections info) ; (2) **menu header dynamique** (catégories BDD dans le layout → extension Twig `make:twig-extension AppExtension`) + **burger mobile**. Liens produits/catégories = `front_home` provisoire → `front_product`/`front_category` en F3/F4.
+**BANDEAU défilant FAIT** ✅ : fragment `templates/front/_band.html.twig` (`{% set annonces = [...] %}` liste en dur + boucle ×2), inclus dans `base.html.twig`. CSS marquee : chaque `<span>` en `width:100vw` + `height:34px` (un message à la fois, centré) + `white-space:nowrap`, `animation: band-scroll 55s linear infinite` (translateX 0→-50%, seamless via duplication). ⏭️ deviendra dynamique avec le **CRUD Annonce** (A-TRAITER) : remplacer le `{% set %}` par les annonces actives BDD.
+**FINITION LAYOUT FAITE** ✅ : (1) **menu header dynamique** — extension Twig `src/Twig/Extension/AppExtension.php` (déclare `nav_categories`) + `src/Twig/Runtime/AppExtensionRuntime.php` (injecte `CategoryRepository`, `getNavCategories()` = `findBy([], ['id'=>'ASC'])` — passer à `position` quand la colonne sera ajoutée). Header boucle `{% for categorie in nav_categories() %}`. ⚠️ piège rencontré : les 2 fichiers Extension/Runtime avaient leur contenu inversé (namespace doit matcher le dossier). (2) **Burger mobile** : bouton `.burger` + `.nav` en tiroir absolu (mobile) / horizontal (desktop ≥768px), JS dans `assets/app.js` en **délégation d'événement** (`document` addEventListener + `e.target.closest('.burger')`) — robuste (survit aux re-renders, corrige le « marche une fois puis plus »). ferme au clic sur un lien.
+**→ F2 (accueil + layout) 100% TERMINÉ.** Liens produits/catégories = `front_home` provisoire → à brancher sur `front_product`/`front_category`.
+**FRONT F3 — PAGE CATÉGORIE TERMINÉE ✅ (29 juillet)** :
+- **`src/Controller/CatalogController.php`** : `category(string $slug, Request, CategoryRepository, ProductRepository, PaginatorInterface)` — route `/categorie/{slug}` nom `front_category`. Récupère la catégorie via `findOneBy(['slug'=>$slug])`, **404** propre si `null` (`createNotFoundException`). Pagine via KnpPaginator. Constante `PRODUCTS_PER_PAGE` = **doit valoir 12** (multiple de 2/3/4 → grille propre). ⚠️ **ACTUELLEMENT ENCORE À 1** (valeur de test laissée le 29/07 pour la démo pagination) → **à remettre à 12 en début de prochaine session** (voir point 0 du bloc REPRENDRE).
+- **`ProductRepository::findActiveByCategoryQuery(Category): Query`** : QueryBuilder `isActive=true` + `p.category = :category` (paramètre lié, anti-injection) + `orderBy position ASC` + `getQuery()` (Query NON exécutée → le paginator ajoute le `LIMIT/OFFSET`). `use App\Entity\Category`.
+- **`templates/front/category.html.twig`** (étend `front/base`) : block `title` = `{{ category.metaTitle ?? (category.name ~ ' — Brillance Home') }}` — ⚠️ **parenthèses obligatoires** : en Twig `??` est prioritaire sur `~`, sans parenthèses le suffixe se collait AUSSI au metaTitle (doublon « Brillance Home »). Fil d'Ariane `<nav class="breadcrumb" aria-label>` (Accueil › nom, chevron `aria-hidden`). `<h1>` = nom cat + texte SEO si présent. Grille `.grid-produits` avec boucle `{% for product in pagination %}` + `{% include '_product_card' %}`, `{% else %}` = état vide `.empty`. `{{ knp_pagination_render(pagination) }}`.
+- **CSS ajouté** (`assets/styles/app.css`) : `.breadcrumb` (flex, `--txt2`, hover `--accent`), `.empty` (`grid-column: 1/-1`), `.pagination` (pastilles `a`/`span`, `.current` fond noir/blanc = page active). Compilé via `tailwind:build`.
+- **Liens câblés** : header `nav_categories()` + rangée « Nos univers » (`home/index.html.twig`) → `path('front_category', { slug: categorie.slug })` (avant : `front_home` provisoire).
+- **Vérifié navigateur** : `/categorie/canapes` = état vide OK (0 produit actif) ; `/categorie/literie` = 2 cartes WebP + promo ; pagination testée (`?page=2` → 2ᵉ produit, page active bascule). **Capture dossier** : `docs/captures/front-categorie-pagination.png` (+ légende) générée en headless Chrome.
+- ⚠️ **Point à retravailler (oral)** : la **pagination + l'objet `Query`** ne sont pas encore parfaitement digérés par Serife (noté dans A-TRAITER § prépa orale) → la quizzer sur les prochaines listes paginées (F5 recherche).
+
+**PROCHAIN PAS = F4 : FICHE PRODUIT** (route `/produit/{slug}` nom `front_product` → galerie médias LiipImagine, configurateur affiché (tissus/couleurs/variantes `family`/modules), **devis WhatsApp pré-rempli**, accordéons description/dimensions/livraison, produits similaires même catégorie, SEO metaTitle/metaDescription avec fallback). ⚠️ penser à brancher le lien de `_product_card` (aujourd'hui `front_home` provisoire) sur `front_product`.
+**Accueil = COMPLET** ✅ (hero, catégories, 3 sections produits, réassurance, expertise, showroom+maps+réseaux, FAQ, CTA WhatsApp, footer).
 **Vrais liens réseaux** : href="#" provisoires (WhatsApp OK via global) → Serife met ses URLs.
 **Note style** : Serife aime bien le rendu actuel ; option « plus Micadoni » (tuiles-photos catégories, photo de couverture Category) = évoquée, reportée.
 Ancien libellé ci-dessous (F2 initial) :
@@ -159,10 +183,36 @@ Ordre conseillé : **front → déploiement → dossier** (le déploiement donne
 - **Docker = DEV uniquement**, pas une dépendance de prod. L'appli Symfony est portable → tourne sur du PHP+MySQL natifs.
 - **o2switch** (mutualisé, ~7 €/mois, FR) = **ne gère PAS Docker** (pas de root), MAIS convient très bien : on y déploie l'appli en **natif** (PHP + MySQL fournis). Choix simple/pas cher pour un MVP d'examen.
   - ⚠️ À vérifier avant : **PHP ≥ 8.2** dispo (Symfony 7.4), **GD compilé avec WebP** (pour LiipImagine), config PHP ajustable (memory_limit 512M, upload 16M).
-  - Étapes : créer BDD MySQL (cPanel) → envoyer le code (git/SSH) → `composer install --no-dev --optimize-autoloader` → `.env.local` prod (`APP_ENV=prod` + `DATABASE_URL` o2switch) → document root sur `public/` → migrations + `cache:clear --env=prod` → permissions (`var/`, `public/uploads/`, `public/media/cache/`).
+  - Étapes : créer BDD MySQL (cPanel) → envoyer le code (git/SSH) → `composer install --no-dev --optimize-autoloader` → `.env.local` prod (`APP_ENV=prod` + `DATABASE_URL` o2switch) → **`php bin/console asset-map:compile`** (AssetMapper : dump JS/CSS dans `public/assets/`, pas de Node/build nécessaire → le JS burger etc. marche en mutualisé) → document root sur `public/` → migrations + `cache:clear --env=prod` → permissions (`var/`, `public/uploads/`, `public/media/cache/`).
+  - 💡 JS = **AssetMapper natif** (pas de build webpack/npm), servi statique, chargé en module différé → **aucun souci déploiement ni perf**.
   - ⚠️ **Tailwind** : le binaire télécharge depuis internet → prévoir de **compiler le CSS en local** et l'uploader (ne pas dépendre du build sur le mutualisé). Idem, `.env.local` de prod jamais commité.
 - **Alternative si Docker en prod voulu** : VPS (Hetzner ~4 €, OVH) avec droits root. Plus de travail, pas nécessaire pour le MVP.
 - 🎤 Argument jury : « Docker en dev pour un environnement reproductible ; déploiement sur mutualisé natif car l'appli est portable — Docker n'est pas une dépendance de prod. »
+
+## 📄 DOSSIER PROJET — à rédiger (deadline 20 août)
+Dossier écrit ~30-40 p. pour le **TP DWWM**, à présenter/soutenir. **Ordre conseillé : front → déploiement → dossier** (le déploiement donne l'URL live + captures finales). La rédaction se fait **avec la matière déjà accumulée** (ne pas partir d'une page blanche).
+
+**Matière première déjà constituée** :
+- `docs/AVANCEMENT.md` (ce journal = tout l'historique technique + les « pourquoi »)
+- `docs/A-TRAITER.md` (décisions actées + arbitrages + perspectives V2 → parfait pour la partie « choix techniques » et « évolutions »)
+- `docs/captures/` + `docs/captures/LEGENDES.md` (captures **déjà légendées** : montre / prouve / partie du dossier + phrases pour l'oral)
+- Les **maquettes** `~/Downloads/files_maquettes/` + MCD/MLD (`mvp-mld.sql`, `mvp-mcd.html`).
+
+**À PRODUIRE pour Serife (demandé, pas encore fait)** : un **récap de tous ses questionnements** (les « pourquoi/comment » du dev) avec réponse-clé + phrase pour l'oral → matière directe pour le dossier et la soutenance. Liste des sujets déjà dans `A-TRAITER.md` (section « À produire pour Serife »). **À faire quand elle le demande.**
+
+**Structure type d'un dossier DWWM** (à adapter au réel de Serife) :
+1. Présentation (contexte, entreprise/client, expression du besoin, périmètre MVP vitrine+WhatsApp).
+2. Gestion de projet (planning, choix du MVP, priorisation, outils : Git/GitHub, Docker).
+3. Spécifications & conception : maquettes (mobile-first), **MCD/MLD** (12 tables), règles métier (stock 0 = sur commande, promo, module=produit…).
+4. Réalisation **front-end** (bloc 1 DWWM) : intégration mobile-first, composants Twig réutilisables, responsive, accessibilité (Montserrat/contraste/alt), CTA WhatsApp.
+5. Réalisation **back-end** (bloc 2 DWWM) : Symfony (contrôleurs, routes, entités Doctrine, formulaires), **CRUD Product codé main**, accès aux données (projections, pas de findAll, pagination), **sécurité** (auth admin, CSRF, validation des uploads, access_control), **médias** (VichUploader + LiipImagine WebP, les 3 couches de limite d'upload).
+6. **Sécurité** (transversal) : hachage mots de passe, CSRF, validation MIME réelle des fichiers, protection `/admin`.
+7. **Jeu d'essai / recette** : cahier de recette manuel + captures (+ 1-2 tests fonctionnels WebTestCase si le temps — PAS Postman car app à formulaires).
+8. **Déploiement** (o2switch) + URL live.
+9. **Veille / perspectives** (V2) : Mentions+HomeSection (mini-CMS), i18n EN, paiement, slug éditable, self-host FA/fonts (RGPD), etc. → tout est dans `A-TRAITER.md`.
+10. Bilan / compétences DWWM couvertes.
+
+⚠️ **Adapter tous les textes à la réalité commerciale de Serife** (ce qu'elle vend vraiment) — cf. `A-TRAITER` point 8bis.
 
 ## ⚡ OPTIMISATION IMAGES — LiipImagine TERMINÉ ✅ (24 juillet)
 - Config `config/packages/liip_imagine.yaml` : driver **gd**, `twig.mode: lazy` (corrige la dépréciation), filter set **`vignette`** (`format: webp`, `quality: 82`, `thumbnail size:[400,400] mode:inset` = ratio préservé).
