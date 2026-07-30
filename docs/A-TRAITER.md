@@ -119,6 +119,10 @@ Admin CRUD pour les deux. **V2 / fin de projet si le temps le permet.** En atten
 ### 8bis. Relire/adapter les textes SEO des catégories (F6)
 - Les metaTitle/metaDescription/seoText proposés le 24/07 mentionnent « fabriqué sur commande », « bois massif »… → **Serife doit vérifier/adapter à sa réalité commerciale** (ce qu'elle vend vraiment). À faire en phase SEO. Idem baseline et textes du front.
 
+### 8ter. Sauts de ligne description/dimensions (à traiter en F4)
+- La saisie multi-lignes de `description`/`dimension` est bien enregistrée (avec ses `\n`), mais `{{ product.description }}` les affiche collés (le HTML écrase les retours à la ligne). Constaté le 30/07 sur `product/show` (admin).
+- Fix = filtre Twig `{{ product.description|nl2br }}` (convertit `\n` en `<br>`) OU CSS `white-space: pre-line`. **À appliquer côté FRONT en F4** (accordéons description/dimensions de la fiche produit) — l'affichage admin n'est pas le livrable.
+
 ### 9. Tests fonctionnels Symfony
 - `symfony/test-pack` est **déjà installé**, rien à ajouter.
 - Objectif : 1 ou 2 tests `WebTestCase` sur le CRUD Product (la page répond, la création fonctionne).

@@ -21,6 +21,18 @@
             {% endif %}
         </div>
 
+        {# --- Filtres sous-catégorie --- #}
+        {% if subCategories %}
+            <nav class="subcats" aria-label="Filtrer par type">
+                <a href="{{ path('front_category', { slug: category.slug }) }}"
+                   class="chip {{ currentSubCategory is null ? 'is-active' }}">Tous</a>
+                {% for sc in subCategories %}
+                    <a href="{{ path('front_category', { slug: category.slug, 'sous-categorie': sc.slug }) }}"
+                       class="chip {{ currentSubCategory and currentSubCategory.id == sc.id ? 'is-active' }}">{{ sc.name }}</a>
+                {% endfor %}
+            </nav>
+        {% endif %}
+
         {# --- Grille produits (pagination = SEULEMENT les 12 de la page) --- #}
         <div class="grid-produits">
             {% for product in pagination %}

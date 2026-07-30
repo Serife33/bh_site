@@ -13,6 +13,7 @@ liip_imagine:
             format: webp          # sortie en WebP (léger)
             quality: 82           # bon compromis qualité / poids
             filters:
+                auto_rotate: ~
                 thumbnail:
                     size: [400, 400]   # tient dans un carré de 400×400
                     mode: inset        # garde les proportions (pas de déformation)

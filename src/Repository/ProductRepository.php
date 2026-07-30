@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Category;
 use App\Entity\Product;
+use App\Entity\SubCategory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
@@ -65,14 +66,22 @@ class ProductRepository extends ServiceEntityRepository
     }
 
 
-    public function findActiveByCategoryQuery(Category $category): Query
+    public function findActiveByCategoryQuery(Category $category, ?SubCategory $subCategory = null): Query
     {
-        return $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->andWhere('p.isActive = true')
             ->andWhere('p.category = :category')
-            ->setParameter('category', $category)           // valeur liée (jamais concaténée → anti-injection)
-            ->orderBy('p.position', 'ASC')
-            ->getQuery();                                   // Produits actifs d'une catégorie donnée → Query (pour le paginator).
+            ->setParameter('category', $category)
+            ->orderBy('p.position', 'ASC');
+
+        // Filtre optionnel : seulement si une sous-catégorie est choisie
+        if ($subCategory !== null) {
+            $qb->join('p.subCategories', 'sc')
+            ->andWhere('sc = :subCategory')
+            ->setParameter('subCategory', $subCategory);
+        }
+
+        return $qb->getQuery();
     }
 
 }

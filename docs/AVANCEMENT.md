@@ -7,7 +7,7 @@
 0. ⚠️⚠️ **TOUT PREMIER GESTE** : dans `src/Controller/CatalogController.php` ligne 16, `PRODUCTS_PER_PAGE` est **resté à `1`** (valeur de test de la démo pagination laissée en place le 29/07). **LA REMETTRE À `12`** avant toute chose, sinon la page catégorie n'affiche qu'1 produit par page.
 1. **Lire ce fichier en entier** + `docs/A-TRAITER.md` (points reportés) + `~/.claude/plans/ticklish-juggling-stroustrup.md` (feuille de route FRONT détaillée, mobile-first).
 2. **Mode de travail impératif** : **guidé pas à pas** — Serife TAPE le code elle-même, pose beaucoup de « pourquoi/comment », doit pouvoir tout défendre au jury. **NE PAS coder à sa place** ; expliquer avant/après, la laisser coder, relire.
-3. **Où on en est** : back-office + médias + LiipImagine ✅ · **FRONT F1 (fondations) ✅** · **FRONT F2 (accueil + finition layout : menu header dynamique, burger mobile, bandeau défilant) ✅** · **FRONT F3 (page catégorie) ✅**. **PROCHAIN PAS = F4 : FICHE PRODUIT** (la + grosse : galerie médias, configurateur affiché tissus/couleurs/variantes/modules, devis WhatsApp pré-rempli, accordéons, produits similaires, SEO metaTitle/metaDescription). Puis **F5** (recherche/contact/légales/404), **F6** (SEO sitemap/robots/JSON-LD).
+3. **Où on en est** : back-office + médias + LiipImagine ✅ · **FRONT F1 (fondations) ✅** · **FRONT F2 (accueil + finition layout : menu header dynamique, burger mobile, bandeau défilant) ✅** · **FRONT F3 (page catégorie) ✅** · **FRONT F3+ (filtres sous-catégorie) ✅ (30/07)**. **PROCHAIN PAS = F4 : FICHE PRODUIT** (la + grosse : galerie médias, configurateur affiché tissus/couleurs/variantes/modules, devis WhatsApp pré-rempli, accordéons, produits similaires, SEO metaTitle/metaDescription). Puis **F5** (recherche/contact/légales/404), **F6** (SEO sitemap/robots/JSON-LD).
 4. **Rappels front** : mobile-first partout · CSS dans `assets/styles/app.css` compilé par `tailwind:build --watch` (⚠️ **le watch s'arrête souvent** → si « rien ne change » : relancer `tailwind:build` + `Cmd+Shift+R`) · layout front = `templates/front/base.html.twig` (séparé de l'admin) · piège récurrent CSS : ne pas mettre `.section`/`.wrap` (2 paddings) sur le même élément → `.section` (padding vertical+fond) sur l'extérieur, `.wrap` (largeur+padding horizontal) sur un div intérieur.
 5. **Après le front** : **DÉPLOIEMENT** (o2switch natif, sans Docker — voir section dédiée) puis **DOSSIER PROJET** (voir section dédiée ci-dessous). Deadline **20 août 2026**.
 6. **Réflexe captures** : rappeler à Serife de screenshoter chaque étape pertinente → `docs/captures/` + légende dans `docs/captures/LEGENDES.md` (matière pour le dossier).
@@ -142,6 +142,83 @@ NB : le champ `products` parasite n'apparaît **que** sur les entités en **Many
 - **Vérifié navigateur** : `/categorie/canapes` = état vide OK (0 produit actif) ; `/categorie/literie` = 2 cartes WebP + promo ; pagination testée (`?page=2` → 2ᵉ produit, page active bascule). **Capture dossier** : `docs/captures/front-categorie-pagination.png` (+ légende) générée en headless Chrome.
 - ⚠️ **Point à retravailler (oral)** : la **pagination + l'objet `Query`** ne sont pas encore parfaitement digérés par Serife (noté dans A-TRAITER § prépa orale) → la quizzer sur les prochaines listes paginées (F5 recherche).
 
+## 🏷️ FRONT F3+ — FILTRES SOUS-CATÉGORIE ✅ TERMINÉ (30/07)
+**FAIT ✅** : puces sous-catégorie sur la page catégorie — n'affiche que les sous-cat *utiles* (`SubCategoryRepository::findUsedInCategory` avec join ManyToMany, exclut les vides + celles d'autres catégories) · clic → filtre la grille (`?sous-categorie=slug` → `CatalogController` lit le param via `get()` → `findOneBy(slug)` → passé en 2ᵉ arg optionnel à `ProductRepository::findActiveByCategoryQuery($category, ?SubCategory)` qui ajoute `join('p.subCategories','sc')` + `andWhere` **conditionnel**, motif pagination préservé) · puce active en noir (`.chip.is-active`, ternaire Twig `currentSubCategory.id == sc.id`) · « Tous » = reset (lien sans param, actif si `currentSubCategory is null`) · robustesse slug bidon (`findOneBy` null → pas de filtre). **Testé OK sur Canapés** (3 places → 1, D'angle → 1, Tous → 2). 🕗 RESTE (non testable avec 2 produits) : vérifier que KnpPaginator préserve `?sous-categorie=` sur page 2 (préservation par défaut attendue) — retester quand catalogue fourni. ⏭️ Explications détaillées + matériel oral dans les sous-sections ci-dessous (DQL→SQL, voyage d'un clic).
+**Décision (29/07)** : on a ajouté le **filtrage par sous-catégorie** sur la page catégorie **avant** la fiche produit. Raison de Serife : attaquer le morceau « long » tant qu'il reste du temps (deadline 20/08 large), pas en fin de projet.
+
+**Pourquoi les sous-catégories comptent ICI (à verbaliser jury)** : `Category` = **ManyToOne** (obligatoire, 1 seule, l'ossature du menu). `SubCategory` = **ManyToMany** (optionnel, plusieurs par produit, = étiquettes de raffinement type « 3 places », « convertible », « d'angle »). Serife refuse les titres à la Amazon (« Canapé Oslo 3 places convertible ») → noms courts et élégants (« Canapé Oslo ») cohérents avec sa DA (Micadoni/Japandi). Du coup la spec « 3 places » NE vit PAS dans le nom → elle vit soit dans la **description** (trouvable par la recherche F5), soit en **sous-catégorie** (filtre cliquable, fiable). Serife veut le filtre cliquable.
+
+**État de départ** : entité `SubCategory` (name+slug, slug auto) ✅ · CRUD admin `/admin/sub-category` ✅ · `Product.subCategories` ManyToMany ✅ · **rien côté front** (à faire).
+
+**Le plan (4 niveaux — on ajoute un filtre à l'entonnoir F3)** : slug → produits de la catégorie → **FILTRE sous-catégorie (nouveau)** → paginés. Même motif `Query` + paginator que F3, avec un `andWhere` conditionnel en plus.
+
+**Choix actés (simplicité MVP)** :
+1. Filtre = **paramètre d'URL** `?sous-categorie=slug` (à côté de `?page`) → pagination + filtre cohabitent, URL partageable/SEO.
+2. **Une seule** sous-catégorie à la fois (clic simple) ; multi-sélection = V2.
+3. N'afficher que les **puces utiles** (sous-cat ayant ≥1 produit actif dans cette catégorie) — option : simplifier au début (toutes les sous-cat) puis raffiner.
+
+**Ordre de construction (incrémental, chaque étape testable)** :
+- **Étape 0** — données : créer 2-3 sous-cat en admin + les cocher sur les produits (sinon rien à afficher ; catégorie `literie` a des produits = bon terrain).
+- **Étape 1** — AFFICHER les puces (sans filtrer) : contrôleur passe les sous-cat, template les dessine.
+- **Étape 2** — FILTRER : puces cliquables (`?sous-categorie=`), contrôleur lit le param, repository ajoute `andWhere`.
+- **Étape 3** — FINITIONS : puce active en noir, bouton « Tous » (reset), **pagination qui PRÉSERVE le filtre** (piège : sinon « page 2 » perd le filtre).
+
+**Estimation guidée** : ≈ **2 h 30 – 3 h** (1 session sérieuse). Bien plus petit que F4. ⚠️ Démo peu spectaculaire tant que le catalogue = 2 produits (ne pas être déçue du rendu ; le code marchera).
+**Point oral** : réutilise le motif pagination (Query non exécutée + `andWhere` conditionnel) → bonne occasion de re-quizzer Serife sur la pagination (point pas encore digéré, cf. A-TRAITER).
+
+### 🎤 ORAL — DQL → SQL : le `join` sur un ManyToMany (méthode `SubCategoryRepository::findUsedInCategory`)
+Méthode qui liste les sous-catégories **utiles** d'une catégorie (pour les puces de filtre). DQL :
+```php
+$this->createQueryBuilder('sc')
+    ->join('sc.products', 'p')            // traverse le ManyToMany SubCategory↔Product
+    ->andWhere('p.category = :category')
+    ->andWhere('p.isActive = true')
+    ->setParameter('category', $category)
+    ->distinct()
+    ->orderBy('sc.name', 'ASC')
+    ->getQuery()->getResult();            // exécuté direct (peu de lignes) → PAS de pagination ici
+```
+**SQL réellement exécuté** :
+```sql
+SELECT DISTINCT s.id, s.name, s.slug
+FROM sub_category s
+INNER JOIN product_sub_category ps ON s.id = ps.sub_category_id   -- ①
+INNER JOIN product p             ON p.id = ps.product_id          -- ②
+WHERE p.category_id = 4 AND p.is_active = 1
+ORDER BY s.name ASC;
+```
+**LE point clé à dire au jury** : `Category` et `SubCategory` ne sont **pas liées directement** — seulement via `Product`. Donc pour lister les sous-cat d'une catégorie, on **traverse la relation ManyToMany** avec un `join` → c'est **structurellement nécessaire**, pas juste pour écarter les sous-cat vides (bonus).
+**Ce qui coince souvent** : **1 seul `join('sc.products','p')` en DQL = 2 `INNER JOIN` en SQL**, car un ManyToMany est stocké dans une **table de jonction cachée** (`product_sub_category`, colonnes `product_id`/`sub_category_id`). Doctrine masque cette table → tu raisonnes en objets, il traduit en 2 sauts (sub_category → jonction → product). C'est tout l'intérêt de l'ORM.
+**Détails vocabulaire** : `p.category` (objet) → `p.category_id` (colonne FK) en SQL. `INNER JOIN` = ne garde que les lignes ayant une correspondance des 2 côtés → c'est ça qui exclut « Convertible » (0 produit → rien à joindre). `DISTINCT` = 1 sous-cat une seule fois même si plusieurs produits.
+**Vérifié sur données réelles (30/07)** : catégorie Canapés (id 4) → renvoie « 3 places », « D'angle », « méridienne » ; PAS « Convertible » (créée mais rattachée à aucun produit). ✅
+**Contraste pagination (à verbaliser)** : ici `getResult()` direct (sous-cat = peu nombreuses, bornées) VS produits paginés `getQuery()` non exécutée (peuvent être nombreux). On choisit la technique selon la volumétrie attendue.
+
+### 📖 RÉVISION — Le voyage d'un clic (filtre sous-catégorie, bout en bout)
+Ce qu'on construit à l'étape 2 = **brancher un clic (URL) à une requête filtrée**. Trajet quand le visiteur clique la puce « 3 places » :
+```
+① NAVIGATEUR : clic « 3 places » → URL = /categorie/canapes?sous-categorie=3-places
+② CONTRÔLEUR (CatalogController) — lit DEUX infos dans l'URL :
+     • slug "canapes"        → findOneBy → objet Category « Canapés »
+     • ?sous-categorie "3-places" → findOneBy → objet SubCategory « 3 places »
+   puis commande au repository : « produits actifs de Canapés, filtrés 3 places »
+③ REPOSITORY (findActiveByCategoryQuery) — base isActive+category ; comme une sous-cat
+   est fournie → AJOUTE join('p.subCategories','sc') + andWhere('sc = :subCategory')
+   → renvoie la Query NON exécutée
+④ PAGINATOR — ajoute LIMIT 12, exécute → 1 seul produit
+⑤ TEMPLATE — affiche la grille filtrée
+```
+**Rôle du contrôleur** : il ne filtre pas lui-même, il ne parle pas SQL. Il **traduit l'URL en objets** (`get('sous-categorie')` → slug → `findOneBy` → objet SubCategory) et **passe la commande** au repository qui, lui, sait filtrer.
+**Le pivot `null` = "pas de filtre"** (LE point clé) :
+| Situation | ?sous-categorie | $currentSubCategory | Repository |
+|---|---|---|---|
+| arrivée normale / clic « Tous » | absent | **null** | PAS de filtre → tous les produits |
+| clic « 3 places » | 3-places | objet SubCategory | join + andWhere → produits étiquetés |
+Le contrôleur envoie soit `null` soit un objet ; le `if ($subCategory !== null)` du repository décide d'ajouter le filtre. → **c'est pour ça que le param est facultatif `?SubCategory $subCategory = null`** : le pivot entre « tout montrer » et « filtrer ».
+**Robustesse** : `?sous-categorie=nawak` → `findOneBy` renvoie null → pas de filtre, on montre tout (pas de plantage ; même philosophie que le 404 : ne jamais faire confiance à l'URL).
+**`get()` vs `getInt()`** : la page est un nombre (`getInt('page',1)`), la sous-cat est un texte/slug (`get('sous-categorie')`) → outil adapté au type.
+**Résumé 1 phrase** : on transforme un clic (URL) en requête filtrée, sans jamais charger plus que la page affichée.
+
+## PROCHAIN PAS APRÈS F3+ : F4
 **PROCHAIN PAS = F4 : FICHE PRODUIT** (route `/produit/{slug}` nom `front_product` → galerie médias LiipImagine, configurateur affiché (tissus/couleurs/variantes `family`/modules), **devis WhatsApp pré-rempli**, accordéons description/dimensions/livraison, produits similaires même catégorie, SEO metaTitle/metaDescription avec fallback). ⚠️ penser à brancher le lien de `_product_card` (aujourd'hui `front_home` provisoire) sur `front_product`.
 **Accueil = COMPLET** ✅ (hero, catégories, 3 sections produits, réassurance, expertise, showroom+maps+réseaux, FAQ, CTA WhatsApp, footer).
 **Vrais liens réseaux** : href="#" provisoires (WhatsApp OK via global) → Serife met ses URLs.
@@ -222,6 +299,17 @@ Dossier écrit ~30-40 p. pour le **TP DWWM**, à présenter/soutenir. **Ordre co
   2. Images 22-30 MP → GD sature la RAM (bitmap = L×H×4 octets ≈ 121 Mo pour du 5500² > 128M). Fix : `memory_limit = 512M` dans `docker/php/uploads.ini`.
 - **Résultat mesuré** : litcoffre 2,2 Mo → vignette WebP **8 Ko** (~275×). Réflexe débogage : lire `var/log/dev.log` a donné l'erreur exacte à chaque fois.
 - ⏭️ Reste (A-TRAITER) : filter sets `galerie` (1600) + `og` (1200×630), macro Twig `image()` avec srcset + width/height (CLS=0), appliquer au front. Alternative envisagée : limiter les dimensions max à l'upload plutôt que monter la mémoire.
+
+## 🔄 AUTO-ROTATION PHOTOS iPhone (EXIF) — RÉSOLU ✅ (30 juillet)
+**Symptôme** : une photo iPhone (parmi 10) s'affichait couchée sur le front (vignette LiipImagine), les autres OK.
+**Cause** : le fichier avait `Orientation EXIF = 6` (= « pivoter 90° »), les autres `= 1` (normale). GD ignore l'EXIF → photo non redressée.
+**Fix = 4 pièces qui s'emboîtent (BON MATÉRIEL ORAL/DOSSIER — l'environnement fait partie du code)** :
+1. **Filtre `auto_rotate: ~`** dans `config/packages/liip_imagine.yaml`, placé **AVANT** `thumbnail` (l'ordre compte : redresser puis redimensionner) → dit « redresse selon l'EXIF ».
+2. **Extension `exif`** ajoutée au `docker/php/Dockerfile` (ligne `docker-php-ext-install ... exif`) + **`docker compose up -d --build php`** → sans `exif`, PHP ne sait même pas *lire* l'orientation (même famille de problème que le WebP au début du projet : une capacité manquante dans l'image Docker).
+3. **`php bin/console cache:clear`** → LiipImagine choisit son lecteur d'orientation (ExifMetadataReader vs Default) à la **compilation du conteneur de services** ; tant que l'ancien conteneur compilé (sans `exif`) était en cache, la nouvelle extension était ignorée. **C'est ce maillon qui manquait au début** (exif chargée mais rotation toujours absente).
+4. **`liip:imagine:cache:remove`** (+ `Cmd+Shift+R`) → régénérer la vignette déjà en cache et forcer le navigateur.
+**Diagnostic objectif utilisé** : mesurer les dimensions de la vignette générée — original brut 4032×3024 (paysage) → vignette 400×300 (KO, pas tourné) puis **300×400 (portrait = rotation OK)**. Prouve la rotation sans se fier à l'œil. `exif_read_data()` en CLI pour lire l'`Orientation` de chaque fichier uploadé (1 seul en 6, le reste en 1).
+**Phrase jury** : « Redresser une photo n'était pas un réglage unique mais une chaîne : configurer le filtre, doter l'image Docker de l'extension `exif`, puis vider le cache de services pour que Symfony redétecte cette capacité. J'ai diagnostiqué chaque maillon en mesurant les dimensions de la vignette. »
 
 ## 🖼️ PIPELINE MÉDIAS — UPLOAD PHOTOS TERMINÉ ✅ (22 juillet)
 Décision : pipeline **costaud** (délai repoussé au 20 août). Upload photos fait ; LiipImagine (WebP/miniatures/srcset) et vidéos = plus tard (avec le front / après).

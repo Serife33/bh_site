@@ -491,3 +491,33 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     color: #fff;
     border-color: var(--txt);
 }
+
+
+/* ===== Filtres sous-catégorie ===== */
+.subcats {
+    display: flex;
+    flex-wrap: wrap;      /* passe à la ligne sur mobile si trop de puces */
+    gap: 8px;
+    margin-bottom: 32px;
+}
+.chip {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;   /* pilule bien ronde */
+    color: var(--txt);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all .15s;
+}
+.chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.chip.is-active {           /* servira à l'étape 3 pour la puce active */
+    background: var(--txt);
+    color: #fff;
+    border-color: var(--txt);
+}
