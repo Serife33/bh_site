@@ -521,3 +521,143 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     color: #fff;
     border-color: var(--txt);
 }
+
+
+/* ===== Galerie fiche produit ===== */
+.gallery {
+    max-width: 640px;   /* borne la largeur (fini le "trop grand") */
+}
+.gal-viewport {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;                 /* défilement horizontal */
+    scroll-snap-type: x mandatory;    /* s'arrête pile sur une photo */
+    scroll-behavior: smooth;
+    border-radius: var(--r);
+}
+.gal-viewport img {
+    flex: 0 0 100%;                   /* 1 photo = toute la largeur du cadre */
+    scroll-snap-align: center;
+    width: 100%;
+    aspect-ratio: 4 / 3;             /* le cadre régulier */
+    object-fit: cover;               /* remplit sans déformer */
+    border-radius: var(--r);
+}
+
+.gal-viewport {
+    position: relative;   /* ← AJOUT (repère pour le défilement JS) */
+}
+.gal-thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    overflow-x: auto;     /* la bande défile si beaucoup de photos */
+}
+.gal-thumb {
+    flex: 0 0 72px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: var(--r);
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+}
+.gal-thumb img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    display: block;
+}
+.gal-thumb.is-active {
+    border-color: var(--accent);   /* la miniative active s'entoure */
+}
+
+
+.gal-stage {
+    position: relative;   /* repère pour poser les flèches par-dessus */
+}
+.gal-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);   /* centrées verticalement sur la photo */
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;            /* rondes */
+    background: rgba(255, 255, 255, .85);
+    color: var(--txt);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+}
+.gal-prev { left: 8px; }
+.gal-next { right: 8px; }
+
+
+/* ===== Configurateur ===== */
+.config { margin: 24px 0; }
+.cfg-group { margin-bottom: 20px; }
+.cfg-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--txt2);
+    margin-bottom: 10px;
+}
+.mat-row, .col-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.mat-opt {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .15s;
+}
+.mat-opt:hover { border-color: var(--accent); }
+.mat-opt.is-active {
+    border-color: var(--txt);
+    background: var(--txt);
+    color: #fff;
+}
+.col-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    padding: 0;
+    cursor: pointer;
+    transition: transform .1s, border-color .15s;
+}
+.col-dot:hover { transform: scale(1.1); }
+.col-dot.is-active {
+    border-color: var(--txt);
+    box-shadow: inset 0 0 0 2px #fff;   /* liseré blanc = pastille choisie */
+}
+
+
+
+/* ===== Fiche produit : 2 colonnes ===== */
+.product {
+    display: grid;
+    gap: 24px;                          /* mobile : les 2 boîtes empilées */
+    margin-bottom: 40px;
+}
+@media (min-width: 768px) {
+    .product {
+        grid-template-columns: 1fr 1fr; /* desktop : gauche | droite */
+        gap: 40px;
+        align-items: start;
+    }
+}
+.product-info > * + * {
+    margin-top: 20px;                   /* espace entre titre/prix/config/WhatsApp */
+}

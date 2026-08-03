@@ -1,0 +1,150 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}{{ product.metaTitle ?? (product.name ~ ' — Brillance Home') }}{% endblock %}
+
+{% block body %}
+<section class="section">
+    <div class="wrap">
+
+        {# Fil d'Ariane #}
+        <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <a href="{{ path('front_home') }}">Accueil</a>
+            <span aria-hidden="true">›</span>
+            <a href="{{ path('front_category', { slug: product.category.slug }) }}">{{ product.category.name }}</a>
+            <span aria-hidden="true">›</span>
+            <span>{{ product.name }}</span>
+        </nav>
+
+        {# ===== 2 COLONNES ===== #}
+        <div class="product">
+
+            {# --- GAUCHE : galerie --- #}
+            <div class="product-media">
+                {% if product.media|length %}
+                    <div class="gallery">
+                        <div class="gal-stage">
+                            <div class="gal-viewport">
+                                {% for media in product.media %}
+                                    <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
+                                         alt="{{ media.alt ?? product.name }}">
+                                {% endfor %}
+                            </div>
+                            {% if product.media|length > 1 %}
+                                <button type="button" class="gal-arrow gal-prev" aria-label="Photo précédente">‹</button>
+                                <button type="button" class="gal-arrow gal-next" aria-label="Photo suivante">›</button>
+                            {% endif %}
+                        </div>
+                        <div class="gal-thumbs">
+                            {% for media in product.media %}
+                                <button type="button" class="gal-thumb{{ loop.first ? ' is-active' }}" data-index="{{ loop.index0 }}">
+                                    <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('vignette') }}"
+                                         alt="{{ media.alt ?? product.name }}">
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            {# --- DROITE : infos --- #}
+            <div class="product-info">
+
+                <h1>{{ product.name }}</h1>
+
+                <div class="price-row">
+                    {% if product.actualPrice < product.initialPrice %}
+                        <span class="price">{{ product.actualPrice }} €</span>
+                        <del class="price-old">{{ product.initialPrice }} €</del>
+                    {% else %}
+                        <span class="price">{{ product.actualPrice }} €</span>
+                    {% endif %}
+                </div>
+
+                <div class="config">
+                    {% if product.fabrics|length %}
+                        <div class="cfg-group">
+                            <h3 class="cfg-title">Tissu</h3>
+                            <div class="mat-row">
+                                {% for fabric in product.fabrics %}
+                                    <button type="button" class="mat-opt{{ loop.first ? ' is-active' }}" data-fabric="{{ fabric.name }}">
+                                        {{ fabric.name }}
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if product.colors|length %}
+                        <div class="cfg-group">
+                            <h3 class="cfg-title">Coloris</h3>
+                            <div class="col-row">
+                                {% for color in product.colors %}
+                                    <button type="button" class="col-dot{{ loop.first ? ' is-active' }}"
+                                            style="background: {{ color.hex starts with '#' ? color.hex : '#' ~ color.hex }}"
+                                            data-color="{{ color.name }}"
+                                            aria-label="{{ color.name }}" title="{{ color.name }}"></button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <p class="cfg-selection"></p>
+                </div>
+
+                <a class="btn-devis"
+                   data-wa="{{ whatsapp_number }}"
+                   data-product="{{ product.name }}"
+                   href="https://wa.me/{{ whatsapp_number }}?text={{ ('Bonjour, je suis intéressée par le ' ~ product.name ~ '. Pouvez-vous me faire un devis ?')|url_encode }}"
+                   target="_blank" rel="noopener">
+                    Demander un devis sur WhatsApp
+                </a>
+
+                {# Accordéons — pleine largeur #}
+                <div class="accordions">
+                    {% if product.description %}
+                        <details class="accord" open>
+                            <summary>Description</summary>
+                            <p>{{ product.description|nl2br }}</p>
+                        </details>
+                    {% endif %}
+                    {% if product.dimension %}
+                        <details class="accord">
+                            <summary>Dimensions &amp; caractéristiques</summary>
+                            <p>{{ product.dimension|nl2br }}</p>
+                        </details>
+                    {% endif %}
+                    <details class="accord">
+                        <summary>Livraison &amp; entretien</summary>
+                        <p>Fabrication sur commande, puis livraison. Montage compris en Gironde. Entretien : brossage doux, nettoyage délicat.</p>
+                    </details>
+                </div>
+
+
+            </div>
+
+        </div>
+
+        {# Savoir-faire — pleine largeur #}
+        <section class="savoir">
+            <h2>Fabriqué pour durer</h2>
+            <ul class="savoir-list">
+                <li>Structure bois massif</li>
+                <li>Mousse haute résilience</li>
+                <li>Coutures soignées</li>
+                <li>Fabriqué sur commande</li>
+            </ul>
+        </section>
+
+        {% if similar %}
+            <section class="similar">
+                <h2>Vous aimerez aussi</h2>
+                <div class="grid-produits">
+                    {% for p in similar %}
+                        {{ include('front/_product_card.html.twig', { product: p }) }}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

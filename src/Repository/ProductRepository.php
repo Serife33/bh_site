@@ -84,4 +84,34 @@ class ProductRepository extends ServiceEntityRepository
         return $qb->getQuery();
     }
 
+    public function findSimilar(Product $product, int $limit = 4): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.subCategories', 'sc')
+            ->andWhere('p.isActive = true')
+            ->andWhere('p != :current')          // exclure le produit lui-même
+            ->setParameter('current', $product)
+            ->setMaxResults($limit)
+            ->distinct();
+
+        // Similarité : même sous-catégorie OU même famille
+        $ou = $qb->expr()->orX();
+
+        $sousCatIds = $product->getSubCategories()->map(fn($sc) => $sc->getId())->toArray();
+        if ($sousCatIds) {
+            $ou->add('sc.id IN (:sousCatIds)');
+            $qb->setParameter('sousCatIds', $sousCatIds);
+        }
+        if ($product->getFamily()) {
+            $ou->add('p.family = :family');
+            $qb->setParameter('family', $product->getFamily());
+        }
+
+        if ($ou->count() === 0) {
+            return [];   // ni sous-cat ni famille → aucun similaire
+        }
+
+        return $qb->andWhere($ou)->getQuery()->getResult();
+    }
+
 }

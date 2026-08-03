@@ -17,3 +17,11 @@ liip_imagine:
                 thumbnail:
                     size: [400, 400]   # tient dans un carré de 400×400
                     mode: inset        # garde les proportions (pas de déformation)
+        galerie:
+            format: webp
+            quality: 85
+            filters:
+                auto_rotate: ~          
+                thumbnail:
+                    size: [1600, 1600]  # grand format fiche produit
+                    mode: inset         # garde les proportions

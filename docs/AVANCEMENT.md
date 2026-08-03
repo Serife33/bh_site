@@ -218,8 +218,49 @@ Le contrôleur envoie soit `null` soit un objet ; le `if ($subCategory !== null)
 **`get()` vs `getInt()`** : la page est un nombre (`getInt('page',1)`), la sous-cat est un texte/slug (`get('sous-categorie')`) → outil adapté au type.
 **Résumé 1 phrase** : on transforme un clic (URL) en requête filtrée, sans jamais charger plus que la page affichée.
 
-## PROCHAIN PAS APRÈS F3+ : F4
-**PROCHAIN PAS = F4 : FICHE PRODUIT** (route `/produit/{slug}` nom `front_product` → galerie médias LiipImagine, configurateur affiché (tissus/couleurs/variantes `family`/modules), **devis WhatsApp pré-rempli**, accordéons description/dimensions/livraison, produits similaires même catégorie, SEO metaTitle/metaDescription avec fallback). ⚠️ penser à brancher le lien de `_product_card` (aujourd'hui `front_home` provisoire) sur `front_product`.
+## 🛋️ FRONT F4 — FICHE PRODUIT (PROCHAIN PAS — plan arbitré le 30/07)
+Route `/produit/{slug}` nom `front_product`. **La + grosse brique du front.**
+
+**⚠️ RÉCONCILIATION MVP** : la maquette `~/Downloads/files_maquettes/desktop/produit.html` a été dessinée pour un **e-commerce complet** (panier, favoris, paiement Alma). Le MVP = **vitrine + devis WhatsApp**, SANS panier/paiement. Le travail de plan = adapter :
+- ❌ **Retirés** : « Ajouter au panier », « Favoris », mensualités Alma.
+- ✅ **Remplacés par** : **CTA WhatsApp pré-rempli** = LE bouton principal (`wa.me/{{ whatsapp_number }}?text=Bonjour, je suis intéressée par le {{ product.name }}…`). C'est la conversion, à la place du panier.
+
+**Sections (maquette → donnée → MVP)** :
+| Section maquette | Donnée | MVP |
+|---|---|---|
+| Galerie photos | relation `medias` | filtre LiipImagine **`galerie`** (1600px) à créer (comme `vignette`, plus grand) |
+| Titre + prix (barré si promo) | `name`, `initialPrice`/`actualPrice` | direct |
+| Tissu & coloris (swatches) | `fabrics` + `colors` (ManyToMany) | **configurateur — niveau à décider APRÈS le squelette** (voir ci-dessous) |
+| Dimensions (2/3/4 places) | `family` (variantes) | = les frères de famille |
+| ~~Panier/Favoris/Alma~~ | — | ❌ retirés → CTA WhatsApp |
+| Fabriqué sur commande + délai | `isCustomMade`, `leadMin/MaxWeeks` | direct |
+| Savoir-faire (4 cartes) | — | contenu **statique** (comme l'accueil) |
+| Accordéons (desc/technique/livraison) | `description`, `dimension` + texte fixe | balise native **`<details>` = 0 JS** ; ⚠️ appliquer `\|nl2br` sur description/dimension (cf. A-TRAITER 8ter) |
+| Vous aimerez aussi (similaires) | voir ci-dessous | réutilise `_product_card` |
+
+**DÉCISION configurateur (30/07)** : niveau **à trancher une fois le squelette en place** (option « on voit plus tard »). 3 niveaux possibles : (a) affiché seul 0 JS + WhatsApp pré-rempli avec le nom ; (b) interactif = cliquer tissu/couleur enrichit le message WhatsApp (« Oslo, Bouclé, Ivoire ») + un peu de JS ; (c) décidé plus tard. → on reverra après avoir vu la fiche de base.
+
+**DÉCISION similaires (30/07, choix Serife)** : section « Vous aimerez aussi » = produits de la **même sous-catégorie OU de la même famille**, en **excluant le produit courant**. (Risque connu accepté : vide si le produit est seul dans sa sous-cat ET sa famille → repli « même catégorie » possible plus tard, pas pour le MVP.)
+
+**À construire** : `ProductRepository::findOneActiveBySlug()` + `findSimilar()` · filtre LiipImagine `galerie` · `CatalogController::product()` (slug → produit actif ou 404 → similaires → render) · `templates/front/product.html.twig` · **brancher le lien de `_product_card`** (aujourd'hui `front_home` provisoire) → `front_product` · SEO metaTitle/metaDescription avec fallback.
+
+**Ordre de construction (incrémental, testable à chaque étape)** :
+1. **Squelette** ✅ (31/07) : route `/produit/{slug}` + `CatalogController::product()` (`findOneBy(slug+isActive)` → 404) + `templates/front/product.html.twig` (fil d'Ariane 3 niveaux, titre, prix promo, photo). Lien `_product_card` branché sur `front_product` (avant : `front_home` provisoire). Rappel URL FR `/produit` (SEO/UX) vs code EN.
+2. **Galerie** ✅ (31/07) : filtre LiipImagine **`galerie`** (1600px, WebP q85, **auto_rotate**) créé. Galerie riche construite en 4 couches : (1) carrousel CSS `scroll-snap` (swipe, 0 JS) ; (2) miniatures cliquables `.gal-thumbs` (filtre vignette) + JS délégué (`scrollTo` offsetLeft) ; (3) flèches ‹ › `.gal-arrow` dans `.gal-stage` (position relative) + JS `scrollBy(clientWidth)` ; (4) synchro miniature active sur `scroll` du viewport (`Math.round(scrollLeft/clientWidth)`, listener direct car scroll ne bouille pas). ⚠️ getter photos = `product.media` (propriété `$media` SINGULIER, `getMedia()`), PAS `medias` (piège rencontré → 500). Piège auto_rotate : chaque filter_set a son PROPRE bloc `filters:` (galerie n'hérite pas de vignette).
+3. **Configurateur** (trancher le niveau ici — a/b) : swatches tissus/couleurs.
+4. **CTA WhatsApp pré-rempli** (cœur MVP).
+5. **Accordéons `<details>`** + savoir-faire statique.
+6. **Similaires + variantes famille** + branchement lien `_product_card`.
+
+**PROGRESS F4 (31/07)** : squelette ✅ · galerie ✅ · **configurateur AFFICHAGE ✅** (couche 1 : `.config` avec tissus `product.fabrics` en boutons + couleurs `product.colors` en pastilles `style="background: hex"`, rendu tolérant `hex starts with '#' ? hex : '#' ~ hex` car données parfois sans `#` → valider le hex sur Color = V2) · **CTA WhatsApp ✅** (`btn-devis`, `wa.me/{{ whatsapp_number }}?text={{ (…)|url_encode }}`, pré-rempli nom produit) · **accordéons ✅** (`<details>` natif 0 JS, description/dimension avec `|nl2br`, livraison statique) · **savoir-faire ✅** (statique) · **similaires EN COURS** (bloc 5). RESTE : similaires · **Phase B mise en page 2 colonnes** (`.product` grid, galerie gauche/infos droite en desktop, empilé mobile — content-first puis layout, choix Serife) · **Phase C interactivité** configurateur (sélection au clic → devis WhatsApp dynamique) · SEO metaTitle fallback. DÉCISIONS : pas de « variante montrée sur photo » (shownFabric/shownColor) → V2 (cf. A-TRAITER) ; configurateur = afficher toutes options, 1ʳᵉ pré-sélectionnée par défaut.
+
+### 🎤 ORAL — Doctrine QueryBuilder (méthode `ProductRepository::findSimilar`, à réviser fin de projet)
+Méthode : produits similaires = **même sous-catégorie OU même famille**, en s'excluant, actifs, max 4.
+- **`$qb`** = le **QueryBuilder**, objet renvoyé par `$this->createQueryBuilder('p')`, qu'on **assemble morceau par morceau** (`andWhere`, `leftJoin`, `setParameter`, `getQuery`). Gardé en **variable** parce qu'on ajoute des morceaux **conditionnellement** (dans des `if`) — même raison que le filtre sous-catégorie F3+.
+- **`$qb->expr()`** = le **constructeur d'expressions** (boîte à outils qui fabrique des **bouts de condition** sans écrire de chaîne : `orX`, `andX`, `in`, `eq`, `like`). Analogie : `$qb` = le chef qui assemble la requête ; `expr()` = son plan de travail qui fabrique des fragments qu'on réinjecte via `andWhere`.
+- **`orX()`** = groupe de conditions en **OU** → produit `AND ( … OR … )` (parenthèses importantes : le `AND` est prioritaire sur le `OR`, il faut grouper). `andX()` = groupe ET. On l'**alimente dynamiquement** (`->add(...)`) selon ce que le produit possède ; d'où le garde-fou `if ($ou->count() === 0) return []`.
+- **`leftJoin` vs `join` (LE point clé)** : `join` (INNER) = « garde SEULEMENT les produits qui ONT une sous-catégorie » → jetterait les produits similaires **par la famille seule** (sans sous-cat). `leftJoin` (LEFT) = « garde TOUT le monde » (sc = null si absent), et c'est le **OU** qui décide. **Règle** : dès qu'une branche du OU (la famille) n'a pas besoin de la jointure, la jointure ne doit pas être obligatoire → `leftJoin`. Contraste avec `findUsedInCategory` (puces F3+) qui utilise `join` INNER car là le lien à la sous-catégorie EST obligatoire.
+- **`sc.id IN (:sousCatIds)`** = « la sous-cat du candidat est parmi celles du produit courant » (ids extraits via `$product->getSubCategories()->map(fn($sc) => $sc->getId())->toArray()`). **`p != :current`** = exclure le produit de ses propres similaires.
 **Accueil = COMPLET** ✅ (hero, catégories, 3 sections produits, réassurance, expertise, showroom+maps+réseaux, FAQ, CTA WhatsApp, footer).
 **Vrais liens réseaux** : href="#" provisoires (WhatsApp OK via global) → Serife met ses URLs.
 **Note style** : Serife aime bien le rendu actuel ; option « plus Micadoni » (tuiles-photos catégories, photo de couverture Category) = évoquée, reportée.

@@ -97,6 +97,44 @@ Admin CRUD pour les deux. **V2 / fin de projet si le temps le permet.** En atten
 - **Sélection / mis en avant** : ajouter champ **`isFeatured`** (bool, défaut false) à `Product` (+ migration) + case dans `ProductType` (« Mettre en avant sur l'accueil ») + `findFeatured()` (`WHERE isFeatured = true`). L'admin choisit sa vitrine (façon « coups de cœur »). *(Vrais best-sellers calculés = V2, quand il y aura des commandes.)*
 - Reporté car aujourd'hui seulement 2 produits → sections vides. À faire quand le catalogue est fourni.
 
+### ⭐ Toolbar de filtres complète (prix / matière / couleur + tri) — APRÈS F4, quand le catalogue sera fourni
+La maquette `~/Downloads/files_maquettes/desktop/categorie.html` prévoit, en plus des puces « Par type » (**déjà faites** — filtres sous-catégorie, cf. AVANCEMENT « F3+ ») : une **toolbar** avec bouton **« Filtres »** (panneau prix/matière/couleur), bouton **« Tri : Pertinence »**, et un compteur « X produits ». Elle prévoit aussi un **affichage par blocs** (un bloc titré par sous-catégorie + « Voir tous ») au lieu de la grille unique paginée actuelle.
+- **Technique = EXACTEMENT celle du filtre sous-catégorie (F3+), répétée par critère** (un `andWhere` conditionnel de plus par filtre) :
+  | Filtre | Implémentation |
+  |---|---|
+  | Prix (min/max) | 2 `andWhere` : `p.actualPrice >= :min` / `<= :max` |
+  | Matière (tissu) | `join('p.fabrics','f')` + `andWhere` |
+  | Couleur | `join('p.colors','c')` + `andWhere` |
+  | Tri | `orderBy` variable (prix ASC/DESC, date, position) |
+- **Ce qui coûte** (pas la requête, mais l'UI/UX) : panneau « Filtres » (tiroir sur mobile), **combiner plusieurs filtres dans l'URL** (`?sous-categorie=…&prix_min=…&matiere=…&tri=…`) + les préserver dans la pagination, compteur de résultats.
+- **Pourquoi APRÈS F4 / plus tard** : (1) F4 (fiche produit) = cœur du parcours, prioritaire ; (2) un filtre prix/couleur ne se démontre pas sur 4 produits → attendre un catalogue fourni ; (3) le panneau multi-filtres = une vraie session. Beau point jury quand ce sera fait (« filtre à facettes multiples, généralisation du pattern `andWhere` conditionnel »).
+- **Affichage par blocs** (maquette) vs grille paginée (actuel) = choix de design à retrancher à ce moment-là (les deux se défendent).
+
+### Variante montrée sur la photo — `shownFabric` / `shownColor` (reporté le 31/07)
+- **Distinction repérée** (bonne idée modélisation) : la **variante exposée sur la photo** (1 tissu + 1 couleur précis) VS **toutes les options** commandables (les ManyToMany `fabrics`/`colors`). Aujourd'hui le modèle ne stocke que « toutes les options » ; rien n'indique « celle de la photo ».
+- **Solution propre (approche B)** : ajouter sur `Product` deux **ManyToOne** `shownFabric` + `shownColor` = la variante de la photo. Le configurateur la pré-sélectionne, les ManyToMany affichent toutes les options autour. Coût : 2 champs + migration + 2 champs `EntityType` dans `ProductType`.
+- **Pourquoi reporté** : jugé trop lourd pour le MVP (31/07). En attendant, le configurateur **pré-sélectionne juste la 1ʳᵉ option par défaut** (sans prétendre que c'est celle de la photo) → le devis WhatsApp n'est jamais vide.
+- **Aussi V2** : changer la **photo** selon la couleur cliquée = nécessite **une photo par couleur** (variante visuelle) → lourd, reporté. MVP = photo fixe, le clic alimente seulement le devis.
+- Bon point jury quand ce sera fait : « je distingue la variante exposée des options disponibles ».
+
+### ⭐ Section « Le produit chez vous » (photos d'ambiance / chez les clients) — si le temps (idée Serife 31/07)
+Sur la fiche produit, une section montrant le produit **installé chez de vrais clients** (preuve sociale, très vendeur pour du meuble), **en plus** de la galerie studio.
+- **Plan (réutilise le pipeline média existant Vich + LiipImagine)** :
+  1. Champ **`isAmbiance`** (bool, défaut false) sur `Media` + migration → distingue photo studio / photo d'ambiance.
+  2. Case à cocher dans le form média admin (« Photo d'ambiance / chez le client »).
+  3. **Filtrer la galerie** studio : `{% for media in product.media|filter(m => not m.isAmbiance) %}` (Twig 3 : `|filter`, pas `for...if` déprécié).
+  4. **Nouvelle section** « Le produit chez vous » : `product.media|filter(m => m.isAmbiance)`, masquée si vide.
+- **Coût** ~1 h, 90 % réutilise l'existant. **Pas MVP-critique** → fin de projet si le temps. Recommandée (la plus distinctive des idées « réseaux/photos »).
+
+### Réseaux sociaux — publier / partager (V2, avec réserves — discuté 31/07)
+- **Auto-post vers l'Insta/FB de l'entreprise depuis le site** : ❌ **déconseillé**. = intégration **Meta Graph API** (compte pro, OAuth, tokens qui expirent, **validation d'app par Meta = semaines**), lourd et fragile. L'admin poste en 2 min depuis son téléphone. Bon argument jury : « auto-post réseaux = intégration API tierce hors périmètre MVP ».
+- **Fil Instagram de la marque embarqué sur le site** (bloc « Suivez-nous ») : possible mais **script externe + RGPD** (cf. self-host FA/fonts) → **V2**.
+- **Boutons de partage visiteur** (FB/Pinterest/WhatsApp/X — ⚠️ **pas Instagram**, aucun lien de partage web) : peu coûteux (~20 min, liens de partage, 0 backend) mais faible priorité. Pinterest pertinent pour du meuble.
+
+### ❓ Limiter le nb de tissus/couleurs affichés sur la fiche + note « et bien plus en boutique » (décision en attente — 31/07)
+- Idée : sur la fiche produit, n'afficher que N tissus / N couleurs (`|slice(0, N)` + `{% set maxFabrics/maxColors %}`) et ajouter « et bien plus en boutique » si `length > N` (nudge showroom, cohérent maquette « nuancier complet en showroom »). Évite que la colonne droite s'allonge trop.
+- **Statut** : Serife n'a **pas encore décidé** (nombre à fixer). Reporté. En attendant : on affiche **toutes** les options. Ne se teste vraiment qu'avec un catalogue fourni (données actuelles : 1 tissu, 2 couleurs).
+
 ### 4. `createdAt` sur `AdminUser`
 - **Jugé important par Serife** (traçabilité : « ce compte a été créé le… »), mis de côté le 21/07.
 - Table quasi vide → migration sans risque, ~10 min.

@@ -1,6 +1,6 @@
 
 {# Carte produit réutilisable. Attend une variable "product". #}
-<a href="{{ path('front_home') }}" class="pcard">
+<a href="{{ path('front_product', { slug: product.slug }) }}" class="pcard">
     <div class="pcard-photo">
         {% set photo = product.mainMedia %}
         {% if photo %}

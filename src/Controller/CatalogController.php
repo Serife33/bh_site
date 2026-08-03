@@ -50,4 +50,22 @@ final class CatalogController extends AbstractController
             'pagination' => $pagination,
         ]);
     }
+
+    #[Route('/produit/{slug}', name: 'front_product', methods: ['GET'])]
+    public function product(string $slug, ProductRepository $productRepository): Response
+    {
+        // Retrouver le produit ACTIF par son slug (ou 404)
+        $product = $productRepository->findOneBy(['slug' => $slug, 'isActive' => true]);
+        if (!$product) {
+            throw $this->createNotFoundException('Ce produit n\'existe pas.');
+        }
+
+        $similar = $productRepository->findSimilar($product);
+
+        return $this->render('front/product.html.twig', [
+            'product' => $product,
+            'similar' => $similar,
+        ]);
+    }
+
 }
