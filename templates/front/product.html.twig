@@ -2,6 +2,29 @@
 
 {% block title %}{{ product.metaTitle ?? (product.name ~ ' — Brillance Home') }}{% endblock %}
 
+{% block meta_description %}{{ product.metaDescription ?: (product.name ~ ' — découvrez ce produit chez Brillance Home à Bordeaux. Devis gratuit sur WhatsApp.') }}{% endblock %}
+
+{% block json_ld %}
+    {% set data = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        'name': product.name,
+        'description': product.metaDescription ?: (product.description|striptags),
+        'brand': { '@type': 'Brand', 'name': 'Brillance Home' },
+        'offers': {
+            '@type': 'Offer',
+            'price': product.actualPrice,
+            'priceCurrency': 'EUR',
+            'availability': product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
+            'url': app.request.uri
+        }
+    } %}
+    {% if product.mainMedia %}
+        {% set data = data|merge({ 'image': app.request.schemeAndHttpHost ~ (vich_uploader_asset(product.mainMedia, 'imageFile')|imagine_filter('galerie')) }) %}
+    {% endif %}
+    <script type="application/ld+json">{{ data|json_encode|raw }}</script>
+{% endblock %}
+
 {% block body %}
 <section class="section">
     <div class="wrap">

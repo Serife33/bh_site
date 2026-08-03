@@ -114,4 +114,25 @@ class ProductRepository extends ServiceEntityRepository
         return $qb->andWhere($ou)->getQuery()->getResult();
     }
 
+    public function searchActiveQuery(string $q): Query
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.isActive = true')
+            ->andWhere('p.name LIKE :q OR p.description LIKE :q')
+            ->setParameter('q', '%' . $q . '%')
+            ->orderBy('p.position', 'ASC')
+            ->getQuery();   // non exécutée → le paginator ajoute le LIMIT
+    }
+
+
+    public function findActiveForSitemap(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('p.slug', 'p.updatedAt')   // projection : juste ce qu'il faut
+            ->andWhere('p.isActive = true')
+            ->orderBy('p.updatedAt', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 }

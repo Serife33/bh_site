@@ -68,4 +68,24 @@ final class CatalogController extends AbstractController
         ]);
     }
 
+    #[Route('/recherche', name: 'front_search', methods: ['GET'])]
+    public function search(Request $request, ProductRepository $productRepository, PaginatorInterface $paginator): Response
+    {
+        $q = trim($request->query->get('q', ''));
+
+        $pagination = null;
+        if ($q !== '') {
+            $pagination = $paginator->paginate(
+                $productRepository->searchActiveQuery($q),
+                $request->query->getInt('page', 1),
+                self::PRODUCTS_PER_PAGE
+            );
+        }
+
+        return $this->render('front/search.html.twig', [
+            'q' => $q,
+            'pagination' => $pagination,
+        ]);
+    }
+
 }

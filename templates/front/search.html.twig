@@ -1,0 +1,32 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Recherche{% if q %} : {{ q }}{% endif %} — Brillance Home{% endblock %}
+
+{% block body %}
+<section class="section">
+    <div class="wrap">
+        <h1>Recherche</h1>
+
+        <form action="{{ path('front_search') }}" method="get" class="search-form" role="search">
+            <input type="search" name="q" value="{{ q }}" placeholder="Rechercher un produit…" aria-label="Rechercher">
+            <button type="submit">Rechercher</button>
+        </form>
+
+        {% if q %}
+            {% if pagination.getTotalItemCount > 0 %}
+                <p class="search-count">{{ pagination.getTotalItemCount }} résultat(s) pour « {{ q }} »</p>
+                <div class="grid-produits">
+                    {% for product in pagination %}
+                        {{ include('front/_product_card.html.twig', { product: product }) }}
+                    {% endfor %}
+                </div>
+                <div class="pagination">{{ knp_pagination_render(pagination) }}</div>
+            {% else %}
+                <p class="empty">Aucun produit ne correspond à « {{ q }} ».</p>
+            {% endif %}
+        {% else %}
+            <p class="empty">Saisissez un mot-clé pour rechercher un produit.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

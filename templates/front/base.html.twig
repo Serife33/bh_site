@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Brillance Home{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Brillance Home — spécialiste de l'ameublement intérieur à Bordeaux : salon, salle à manger, chambre et literie.{% endblock %}">
 
     {# Polices Google : Playfair Display (titres) + Inter (texte) #}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +18,8 @@
     {% block javascripts %}
         {{ importmap('app') }}
     {% endblock %}
+
+    {% block json_ld %}{% endblock %}
 </head>
 
 
@@ -26,15 +29,20 @@
     <header class="hdr">
         <div class="hdr-in wrap">
             <a href="{{ path('front_home') }}" class="logo">Brillance Home</a>
-            <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="main-nav">
-            <span></span><span></span><span></span>
-            </button>
+
             <nav class="nav" id="main-nav">
                 <a href="{{ path('front_home') }}">Accueil</a>
                 {% for categorie in nav_categories() %}
                     <a href="{{ path('front_category', { slug: categorie.slug }) }}">{{ categorie.name }}</a>
                 {% endfor %}
             </nav>
+
+            <div class="hdr-actions">
+                <a href="{{ path('front_search') }}" class="hdr-search" aria-label="Rechercher"><i class="fa-solid fa-magnifying-glass"></i></a>
+                <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="main-nav">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -58,11 +66,17 @@
             </div>
             <div class="ft-col">
                 <h4>Aide</h4>
-                <a href="{{ path('front_home') }}">Contact</a>
+                <a href="{{ path('front_contact') }}">Contact</a>
                 <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener">WhatsApp</a>
             </div>
         </div>
-        <div class="ft-copy wrap">© Brillance Home 2026 · Spécialiste de l'ameublement intérieur · Bordeaux, France</div>
+        <div class="ft-copy wrap">
+            <span>© Brillance Home 2026 · Spécialiste de l'ameublement intérieur · Bordeaux, France</span>
+            <span class="ft-legal">
+                <a href="{{ path('front_mentions_legales') }}">Mentions légales</a>
+                <a href="{{ path('front_confidentialite') }}">Politique de confidentialité</a>
+            </span>
+        </div>
     </footer>
 
     {# Bouton WhatsApp flottant (présent sur toutes les pages) #}
@@ -75,5 +89,7 @@
             <path d="M12 0C5.37 0 0 5.37 0 12c0 2.13.55 4.12 1.52 5.85L0 24l6.28-1.5A11.93 11.93 0 0 0 12 24c6.63 0 12-5.37 12-12S18.63 0 12 0z"/>
         </svg>
     </a>
+    
+    {{ include('front/_cookie_banner.html.twig') }}
 </body>
 </html>

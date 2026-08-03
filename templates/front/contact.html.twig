@@ -1,0 +1,18 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Contact — Brillance Home{% endblock %}
+
+{% block body %}
+<section class="section">
+    <div class="wrap">
+        <h1>Contact</h1>
+        <p>Une question, un conseil, un devis ? Le plus simple : écrivez-nous sur WhatsApp, on vous répond vite.</p>
+        <a class="btn btn-wa" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> Nous écrire sur WhatsApp
+        </a>
+    </div>
+</section>
+
+{# Réutilise le showroom (adresse, horaires, réseaux, carte Maps) #}
+{{ include('front/_showroom.html.twig') }}
+{% endblock %}

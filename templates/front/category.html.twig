@@ -1,6 +1,7 @@
 {% extends 'front/base.html.twig' %}
 
 {% block title %}{{ category.metaTitle ?? (category.name ~ ' — Brillance Home') }}{% endblock %}
+{% block meta_description %}{{ category.metaDescription ?: (category.name ~ ' — Brillance Home, ameublement d\'intérieur à Bordeaux.') }}{% endblock %}
 
 {% block body %}
 <section class="section">

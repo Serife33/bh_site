@@ -135,6 +135,9 @@ Sur la fiche produit, une section montrant le produit **installé chez de vrais 
 - Idée : sur la fiche produit, n'afficher que N tissus / N couleurs (`|slice(0, N)` + `{% set maxFabrics/maxColors %}`) et ajouter « et bien plus en boutique » si `length > N` (nudge showroom, cohérent maquette « nuancier complet en showroom »). Évite que la colonne droite s'allonge trop.
 - **Statut** : Serife n'a **pas encore décidé** (nombre à fixer). Reporté. En attendant : on affiche **toutes** les options. Ne se teste vraiment qu'avec un catalogue fourni (données actuelles : 1 tissu, 2 couleurs).
 
+### 🎨 Bouton WhatsApp flottant → icône Font Awesome (passe design)
+- Le bouton `.wa-float` (dans `front/base.html.twig`) utilise actuellement un SVG inline. Le remplacer par l'icône **Font Awesome** `<i class="fa-brands fa-whatsapp"></i>` (FA déjà chargé pour les réseaux) → cohérence visuelle. À faire dans la **passe design CSS**.
+
 ### 4. `createdAt` sur `AdminUser`
 - **Jugé important par Serife** (traçabilité : « ce compte a été créé le… »), mis de côté le 21/07.
 - Table quasi vide → migration sans risque, ~10 min.
@@ -156,6 +159,7 @@ Sur la fiche produit, une section montrant le produit **installé chez de vrais 
 
 ### 8bis. Relire/adapter les textes SEO des catégories (F6)
 - Les metaTitle/metaDescription/seoText proposés le 24/07 mentionnent « fabriqué sur commande », « bois massif »… → **Serife doit vérifier/adapter à sa réalité commerciale** (ce qu'elle vend vraiment). À faire en phase SEO. Idem baseline et textes du front.
+- **Passe « contenu SEO » (à faire avec Serife, comme la session juriste)** : rédiger à la main les **meta descriptions** importantes (accueil, grandes catégories, produits phares), ~150-160 car., mots-clés + CTA. En F6 (31/07) on a posé la **STRUCTURE** (bloc `meta_description` + fallback avec `?:`) mais le **fallback par défaut est générique** (pas ciselé). Les vrais textes = passe contenu.
 
 ### 8ter. Sauts de ligne description/dimensions (à traiter en F4)
 - La saisie multi-lignes de `description`/`dimension` est bien enregistrée (avec ses `\n`), mais `{{ product.description }}` les affiche collés (le HTML écrase les retours à la ligne). Constaté le 30/07 sur `product/show` (admin).
@@ -175,6 +179,13 @@ Sur la fiche produit, une section montrant le produit **installé chez de vrais 
 - ⚠️ **PAGINATION + objet `Query` = PAS ENCORE DIGÉRÉ** (dit par Serife le 29/07, F3). Elle sait recopier le geste `$paginator->paginate($repo->findXxxQuery(), $request->query->getInt('page',1), N)` mais le **pourquoi** ne coule pas de source. → **La quizzer à l'oral** sur : (1) pourquoi `getQuery()` renvoie une **Query non exécutée** et pas un `getResult()` ? (2) qui ajoute le `LIMIT/OFFSET` et à quel moment ? (3) que se passerait-il si on paginait un `array` déjà chargé (charger toute la table en mémoire) ? (4) d'où vient le n° de page (`?page=` dans l'URL) ? (5) rôle du service `PaginatorInterface` injecté. Reprendre avec l'image « recette pas encore cuisinée ». → À traiter en prépa orale + lui reposer la question spontanément lors des prochaines pages paginées (catégorie F3, recherche F5).
 
 ## 🟢 Plus tard / V2
+
+### ⚖️ Pages légales + RGPD — STRUCTURE posée en F5, CONTENU à rédiger plus tard (cadrage 31/07)
+- **Décision** : on pose d'abord la **structure** (routes + templates vides + bandeau cookies simple), le **contenu juridique se rédige ensuite ensemble** — Claude en posture « juriste expérimenté » + **recherches web** sur les textes en vigueur (LCEN, CNIL/RGPD, service-public.fr). Objectif : « se mettre à l'abri au max ».
+- **Pages MVP** : **Mentions légales** (obligatoire LCEN : identité + SIRET + adresse + contact + hébergeur o2switch + directeur publication) · **Politique de confidentialité** (RGPD, car tiers : Google Maps, Font Awesome CDN, Google Fonts).
+- **CGV** = ❌ hors MVP (pas de vente en ligne / paiement) → **V2** avec l'e-commerce. **CGU** = facultatif. Bon point jury : « CGV encadrent la vente en ligne, hors périmètre vitrine ».
+- **Bandeau cookies** : version **simple posée dès le début** (bandeau + consentement accepter/refuser stocké). ⚠️ Conformité **totale** (bloquer réellement Maps/FA/fonts tant que pas de consentement) = plus lourd → lié au **self-host FA/fonts** (ci-dessous) et au chargement conditionnel de Maps → à finaliser avec la passe RGPD. Le contenu exact + le gating fin = session « juriste » à venir.
+- ⚠️ Rappel : Claude n'est pas juriste — valider les textes finaux (générateurs officiels service-public.fr / CNIL).
 
 ### Héberger Font Awesome + Google Fonts en local (RGPD/perf) — APRÈS l'examen (confirmé Serife 24/07 : pas le temps pour le MVP)
 - Icônes réseaux via **Font Awesome CDN cloudflare** (`<link>` dans `front/base.html.twig`) + **Montserrat via Google Fonts CDN**. → requêtes vers des tiers (RGPD) + poids. Pour la prod : **télécharger et servir en local** depuis `public/` (ou SVG officiels simple-icons pour les réseaux). À mentionner dans le bandeau cookies / politique de confidentialité. **Non bloquant pour le MVP/examen.**

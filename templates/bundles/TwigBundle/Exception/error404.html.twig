@@ -1,0 +1,14 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Page introuvable — Brillance Home{% endblock %}
+
+{% block body %}
+<section class="section">
+    <div class="wrap error-404">
+        <p class="eyebrow">Erreur 404</p>
+        <h1>Cette page n'existe pas</h1>
+        <p>Le lien est peut-être cassé, ou la page a été déplacée.</p>
+        <a class="btn btn-primary" href="{{ path('front_home') }}">Retour à l'accueil</a>
+    </div>
+</section>
+{% endblock %}

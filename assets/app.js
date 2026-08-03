@@ -97,3 +97,16 @@ document.addEventListener('click', (e) => {
 });
 
 updateDevis();   // au chargement : reflète la pré-sélection par défaut
+
+
+// Bandeau cookies : afficher si aucun choix mémorisé
+const cookieBanner = document.getElementById('cookie-banner');
+if (cookieBanner && !localStorage.getItem('cookie-consent')) {
+    cookieBanner.classList.add('show');
+}
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-cookie]');
+    if (!btn) return;
+    localStorage.setItem('cookie-consent', btn.dataset.cookie);   // mémorise le choix
+    document.getElementById('cookie-banner')?.classList.remove('show');
+});
