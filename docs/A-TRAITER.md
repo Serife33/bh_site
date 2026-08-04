@@ -138,6 +138,11 @@ Sur la fiche produit, une section montrant le produit **installé chez de vrais 
 ### 🎨 Bouton WhatsApp flottant → icône Font Awesome (passe design)
 - Le bouton `.wa-float` (dans `front/base.html.twig`) utilise actuellement un SVG inline. Le remplacer par l'icône **Font Awesome** `<i class="fa-brands fa-whatsapp"></i>` (FA déjà chargé pour les réseaux) → cohérence visuelle. À faire dans la **passe design CSS**.
 
+### ⭐ Favoris (mettre en favori) — reporté (demandé 4/8)
+- Bouton **cœur** « mettre en favori » sur la fiche produit + les cartes. **Sans compte client** : faisable en **`localStorage`** (comme le bandeau cookies) → toggle + persistance navigateur.
+- Page **« Mes favoris »** = lister les produits aimés (lire les ids du localStorage → afficher les cartes). Maquette déjà là : `~/Downloads/files_maquettes/desktop/favoris.html`.
+- Reporté pendant la passe design (4/8) : on fait d'abord la **mise en page** (buybox). Le bouton cœur + la page favoris = ensuite si le temps.
+
 ### 4. `createdAt` sur `AdminUser`
 - **Jugé important par Serife** (traçabilité : « ce compte a été créé le… »), mis de côté le 21/07.
 - Table quasi vide → migration sans risque, ~10 min.

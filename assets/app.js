@@ -70,10 +70,15 @@ document.querySelectorAll('.gal-viewport').forEach((viewport) => {
 // Configurateur : sélection tissu/couleur + mise à jour du devis WhatsApp
 function updateDevis() {
     const btn = document.querySelector('.btn-devis');
-    if (!btn) return;   // pas sur une fiche produit → on sort
+    if (!btn) return;
 
     const fabric = document.querySelector('.mat-opt.is-active')?.dataset.fabric;
     const color  = document.querySelector('.col-dot.is-active')?.dataset.color;
+
+    const fLabel = document.querySelector('.cfg-choice[data-choice="fabric"]');
+    const cLabel = document.querySelector('.cfg-choice[data-choice="color"]');
+    if (fLabel && fabric) fLabel.textContent = fabric;
+    if (cLabel && color)  cLabel.textContent = color;
 
     let msg = 'Bonjour, je suis intéressée par le ' + btn.dataset.product;
     if (fabric) msg += ', tissu ' + fabric;
@@ -81,9 +86,6 @@ function updateDevis() {
     msg += '. Pouvez-vous me faire un devis ?';
 
     btn.href = 'https://wa.me/' + btn.dataset.wa + '?text=' + encodeURIComponent(msg);
-
-    const sel = document.querySelector('.cfg-selection');
-    if (sel) sel.textContent = [fabric, color].filter(Boolean).join(' · ');
 }
 
 // Clic sur un tissu ou une couleur → sélection
@@ -109,4 +111,27 @@ document.addEventListener('click', (e) => {
     if (!btn) return;
     localStorage.setItem('cookie-consent', btn.dataset.cookie);   // mémorise le choix
     document.getElementById('cookie-banner')?.classList.remove('show');
+});
+
+// Variantes : changer de produit via le menu déroulant
+document.addEventListener('change', (e) => {
+    const sel = e.target.closest('.variant-select');
+    if (sel) window.location.href = sel.value;
+});
+
+// Devis sur-mesure : envoie les dimensions saisies vers WhatsApp
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-quote');
+    if (!btn) return;
+    const dims = btn.closest('.custom-quote').querySelector('.quote-dims')?.value.trim();
+    let msg = 'Bonjour, je souhaite un devis sur-mesure pour le ' + btn.dataset.product + '.';
+    if (dims) msg += ' Dimensions souhaitées : ' + dims;
+    window.open('https://wa.me/' + btn.dataset.wa + '?text=' + encodeURIComponent(msg), '_blank');
+});
+
+
+// Swatches : révéler les options supplémentaires (+N)
+document.addEventListener('click', (e) => {
+    const more = e.target.closest('.swatch-more');
+    if (more) more.closest('.swatch-group').classList.add('is-expanded');
 });
