@@ -199,6 +199,17 @@
                 <p>Réglez en 2, 3 ou 4 fois sans frais.</p>
             </div>
         </div>
+        
+        {% if similar %}
+        <section class="similar">
+            <h2>Vous aimerez aussi</h2>
+            <div class="grid-produits">
+                {% for p in similar %}
+                    {{ include('front/_product_card.html.twig', { product: p }) }}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

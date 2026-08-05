@@ -860,3 +860,6 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-radius: var(--r);
     cursor: pointer;
 }
+
+.similar { margin: 48px 0 24px; }
+.similar h2 { font-size: 22px; margin-bottom: 20px; }
