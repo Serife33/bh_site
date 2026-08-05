@@ -5,6 +5,8 @@
 {% block body %}
     <h1>Fabric index</h1>
 
+    <a class="btn" href="{{ path('app_fabric_new') }}">+ Nouveau tissu</a>
+
     <table class="table">
         <thead>
             <tr>
@@ -31,5 +33,4 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_fabric_new') }}">Create new</a>
 {% endblock %}

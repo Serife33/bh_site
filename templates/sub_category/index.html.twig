@@ -5,6 +5,8 @@
 {% block body %}
     <h1>SubCategory index</h1>
 
+    <a class="btn" href="{{ path('app_sub_category_new') }}">+ Nouvelle sous-catégorie</a>
+
     <table class="table">
         <thead>
             <tr>
@@ -33,5 +35,4 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_sub_category_new') }}">Create new</a>
 {% endblock %}
