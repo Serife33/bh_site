@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New FabricColor{% endblock %}
+
+{% block body %}
+    <h1>Create new FabricColor</h1>
+
+    {{ include('fabric_color/_form.html.twig') }}
+
+    <a href="{{ path('app_fabric_color_index') }}">back to list</a>
+{% endblock %}

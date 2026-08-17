@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Coloris — {{ fabric_color.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ fabric_color.fabric }} — {{ fabric_color.name }}</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Tissu</th>
+                <td>{{ fabric_color.fabric }}</td>
+            </tr>
+            <tr>
+                <th>Nom de la couleur</th>
+                <td>{{ fabric_color.name }}</td>
+            </tr>
+            <tr>
+                <th>Couleur</th>
+                <td>
+                    <span class="swatch" style="--swatch-color: {{ fabric_color.hex }}"></span>
+                    {{ fabric_color.hex }}
+                </td>
+            </tr>
+            <tr>
+                <th>Macro</th>
+                <td>
+                    {% if fabric_color.image %}
+                        <img class="macro-show" src="{{ vich_uploader_asset(fabric_color, 'imageFile') | imagine_filter('macro_tissu') }}" alt="Tissu {{ fabric_color.fabric }} coloris {{ fabric_color.name }}">
+                    {% else %}
+                        <span class="empty">pas de photo</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Ordre</th>
+                <td>{{ fabric_color.position }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_fabric_color_index') }}">Retour à la liste</a>
+    <a href="{{ path('app_fabric_color_edit', {'id': fabric_color.id}) }}">Modifier</a>
+
+    {{ include('fabric_color/_delete_form.html.twig') }}
+{% endblock %}

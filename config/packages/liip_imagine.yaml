@@ -25,3 +25,11 @@ liip_imagine:
                 thumbnail:
                     size: [1600, 1600]  # grand format fiche produit
                     mode: inset         # garde les proportions
+        macro_tissu:
+            format: webp
+            quality: 82
+            filters:
+                auto_rotate: ~
+                thumbnail:
+                    size: [600, 600]
+                    mode: outbound

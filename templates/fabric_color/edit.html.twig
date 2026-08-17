@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit FabricColor{% endblock %}
+
+{% block body %}
+    <h1>Edit FabricColor</h1>
+
+    {{ include('fabric_color/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_fabric_color_index') }}">back to list</a>
+
+    {{ include('fabric_color/_delete_form.html.twig') }}
+{% endblock %}

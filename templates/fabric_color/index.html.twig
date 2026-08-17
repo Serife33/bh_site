@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Coloris des tissus{% endblock %}
+
+{% block body %}
+    <h1>Coloris des tissus</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tissu</th>
+                <th>Nom de la couleur</th>
+                <th>Couleur</th>
+                <th>Macro</th>
+                <th>Ordre</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for fabric_color in fabric_colors %}
+            <tr>
+                <td>{{ fabric_color.fabric }}</td>
+                <td>{{ fabric_color.name }}</td>
+                <td>
+                    <span class="swatch" style="--swatch-color: {{ fabric_color.hex }}"></span>
+                    {{ fabric_color.hex }}
+                </td>
+                <td>
+                    {% if fabric_color.image %}
+                        <img class="macro-thumb" src="{{ vich_uploader_asset(fabric_color, 'imageFile') | imagine_filter('vignette') }}" alt="">
+                    {% else %}
+                        <span class="empty">pas de photo</span>
+                    {% endif %}
+                </td>
+                <td>{{ fabric_color.position }}</td>
+                <td>
+                    <a href="{{ path('app_fabric_color_show', {'id': fabric_color.id}) }}">Voir</a>
+                    <a href="{{ path('app_fabric_color_edit', {'id': fabric_color.id}) }}">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Aucun coloris enregistré.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_fabric_color_new') }}">Ajouter un coloris</a>
+{% endblock %}

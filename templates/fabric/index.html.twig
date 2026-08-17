@@ -1,33 +1,37 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Fabric index{% endblock %}
+{% block title %}Tissus{% endblock %}
 
 {% block body %}
-    <h1>Fabric index</h1>
+    <h1>Tissus</h1>
 
     <a class="btn" href="{{ path('app_fabric_new') }}">+ Nouveau tissu</a>
 
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>actions</th>
+                <th>Tissu</th>
+                <th>Référence</th>
+                <th>Fournisseur</th>
+                <th>Couleurs</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for fabric in fabrics %}
             <tr>
-                <td>{{ fabric.id }}</td>
                 <td>{{ fabric.name }}</td>
+                <td>{{ fabric.reference ?: '—' }}</td>
+                <td>{{ fabric.supplier ?: '—' }}</td>
+                <td>{{ fabric.fabricColors|length }}</td>
                 <td>
-                    <a href="{{ path('app_fabric_show', {'id': fabric.id}) }}">show</a>
-                    <a href="{{ path('app_fabric_edit', {'id': fabric.id}) }}">edit</a>
+                    <a href="{{ path('app_fabric_show', {'id': fabric.id}) }}">Voir</a>
+                    <a href="{{ path('app_fabric_edit', {'id': fabric.id}) }}">Modifier</a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="3">no records found</td>
+                <td colspan="5">Aucun tissu enregistré.</td>
             </tr>
         {% endfor %}
         </tbody>

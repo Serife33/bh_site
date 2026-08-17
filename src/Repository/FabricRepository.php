@@ -17,15 +17,16 @@ class FabricRepository extends ServiceEntityRepository
     }
 
     
-    // Liste pour l'index admin : uniquement les colonnes affichées, triées par nom.
-    // Projection → renvoie des tableaux (pas d'objets) : aucun lazy loading possible.
-    
+    // Liste pour l'index admin : objets complets + couleurs chargées en une seule requête.
+    // leftJoin  : un tissu sans couleur doit rester visible (un INNER le ferait disparaître).
+    // addSelect : sans lui la jointure ne rapatrie rien → N+1 au comptage des couleurs.
     public function findForIndex(): array
     {
         return $this->createQueryBuilder('f')
-            ->select('f.id', 'f.name')
+            ->leftJoin('f.fabricColors', 'fc')
+            ->addSelect('fc')
             ->orderBy('f.name', 'ASC')
             ->getQuery()
-            ->getArrayResult();
+            ->getResult();
     }
 }
