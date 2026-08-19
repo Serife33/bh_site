@@ -19,11 +19,6 @@ class FabricColorType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('fabric', EntityType::class, [
-                'class' => Fabric::class,
-                'label' => 'Tissu',
-                'placeholder' => 'Choisir un tissu',
-            ])
             ->add('name', TextType::class, [
                 'label' => 'Nom de la couleur',
                 'attr' => ['placeholder' => 'Moutarde'],
@@ -40,13 +35,20 @@ class FabricColorType extends AbstractType
                 'image_uri' => true,
                 'help' => 'Facultatif. Sans photo, la pastille de couleur est affichée.',
                 'constraints' => [
-                    new Assert\Image(
-                        maxSize: '8M',
-                        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-                        mimeTypesMessage: 'Formats acceptés : JPEG, PNG, WebP. Convertis ton HEIC en JPEG.',
+                    new Assert\File(
+                        maxSize: '50M',
+                        mimeTypes: [
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                            'image/heic',   // iPhone — converti en JPEG à l'upload
+                            'image/heif',
+                        ],
+                        mimeTypesMessage: 'Formats acceptés : JPEG, PNG, WebP, HEIC.',
                         maxSizeMessage: 'Image trop lourde ({{ size }} {{ suffix }}). Maximum : {{ limit }} {{ suffix }}.',
                     ),
                 ],
+                'delete_label' => 'Retirer la photo',
             ])
             ->add('position', IntegerType::class, [
                 'label' => "Ordre d'affichage",
@@ -57,13 +59,24 @@ class FabricColorType extends AbstractType
                     ),
                 ],
             ])
-        ;
+            ;
+        // Le tissu ne s'affiche que dans le formulaire autonome.
+        // Imbriqué dans la page d'un tissu, il est déjà connu.
+        if ($options['show_fabric']) {
+        $builder->add('fabric', EntityType::class, [
+            'class' => Fabric::class,
+            'label' => 'Tissu',
+            'placeholder' => 'Choisir un tissu',
+        ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => FabricColor::class,
+            'show_fabric' => true,   // true = formulaire autonome ; false = imbriqué dans le tissu
         ]);
+        $resolver->setAllowedTypes('show_fabric', 'bool');
     }
 }

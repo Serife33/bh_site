@@ -11,11 +11,19 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libwebp-dev \
     libfreetype6-dev \
+    libmagickwand-dev \
+    libmagickcore-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Installer les extensions PHP dont Symfony/Doctrine ont besoin
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install pdo_mysql intl zip gd opcache exif
+
+# 2bis. Imagick — gère les PROFILS COLORIMÉTRIQUES (ICC), ce que GD ne sait pas faire.
+# Nécessaire pour convertir automatiquement les photos Adobe RGB en sRGB à l'upload.
+# Déjà présent sur o2switch → on aligne le conteneur sur la production.
+RUN pecl install imagick \
+    && docker-php-ext-enable imagick
 
 # 3. Installer Composer (récupéré depuis l'image officielle Composer)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

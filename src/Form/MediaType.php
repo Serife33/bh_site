@@ -26,18 +26,29 @@ class MediaType extends AbstractType
                 'download_uri' => false, // pas de lien de téléchargement
                 'image_uri' => true,     // affiche un aperçu de l'image existante
                 'constraints' => [
-                    new Assert\Image(
-                        maxSize: '8M',
-                        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-                        mimeTypesMessage: 'Formats acceptés : JPEG, PNG, WebP. Convertis ton HEIC en JPEG.',
+                    new Assert\File(
+                        maxSize: '50M',
+                        mimeTypes: [
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                            'image/heic',   // iPhone — converti en JPEG à l'upload
+                            'image/heif',
+                        ],
+                        mimeTypesMessage: 'Formats acceptés : JPEG, PNG, WebP, HEIC.',
                         maxSizeMessage: 'Image trop lourde ({{ size }} {{ suffix }}). Maximum : {{ limit }} {{ suffix }}.',
                     ),
                 ],
             ])
             ->add('alt', TextType::class, [
                 'label' => 'Texte alternatif',
-                'required' => false,
+                'required' => true,
                 'help' => "Décrit l'image pour l'accessibilité et le référencement.",
+                'constraints' => [
+                    new Assert\NotBlank(
+                        message: "Le texte alternatif est obligatoire (accessibilité et référencement).",
+                    ),
+                ],
             ])
             ->add('isMain', CheckboxType::class, [
                 'label' => 'Photo principale du produit',

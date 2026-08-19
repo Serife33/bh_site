@@ -175,3 +175,66 @@
   height: auto;
   border-radius: 3px;
 }
+
+
+/* ===== NUANCIER — formulaire imbriqué ===== */
+
+.nuancier-ligne {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.6rem;
+  background: #FAF8F6;
+  border: 1px solid #E7E2DC;
+  border-radius: 4px;
+}
+
+/* Chaque champ devient une colonne */
+.nuancier-ligne > div {
+  margin: 0;
+}
+
+/* Libellés compacts au-dessus des champs */
+.nuancier-ligne label {
+  display: block;
+  font-size: 12px;
+  color: #6B645D;
+  margin-bottom: 0.2rem;
+}
+
+/* Largeurs : le nom prend la place, le reste est étroit */
+.nuancier-ligne input[type="text"] { width: 180px; }
+.nuancier-ligne input[type="color"] { width: 48px; height: 34px; padding: 2px; }
+.nuancier-ligne input[type="number"] { width: 70px; }
+
+/* On masque les textes d'aide, trop verbeux répétés 19 fois */
+.nuancier-ligne .help-text,
+.nuancier-ligne small {
+  display: none;
+}
+
+/* Le bouton Retirer, discret mais rattaché à sa ligne */
+.btn-supprimer-ligne {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #C9C3BC;
+  color: #8B3A3A;
+  padding: 0.35rem 0.7rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn-supprimer-ligne:hover {
+  background: #8B3A3A;
+  color: #fff;
+  border-color: #8B3A3A;
+}
+
+/* L'aperçu Vich dans le nuancier : une vignette, pas une photo pleine taille */
+.nuancier-ligne img {
+  max-width: 60px;
+  height: auto;
+  border-radius: 3px;
+}

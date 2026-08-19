@@ -1,4 +1,31 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+
+    <div class="form-fabric">
+        {{ form_row(form.name) }}
+        {{ form_row(form.reference) }}
+        {{ form_row(form.supplier) }}
+    </div>
+
+    <h2>Nuancier</h2>
+
+    <div id="nuancier"
+         data-prototype="{{ form_widget(form.fabricColors.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.fabricColors|length }}">
+
+        {% for colorForm in form.fabricColors %}
+            <div class="nuancier-ligne">
+                {{ form_row(colorForm.name) }}
+                {{ form_row(colorForm.hex) }}
+                {{ form_row(colorForm.position) }}
+                {{ form_row(colorForm.imageFile) }}
+                <button type="button" class="btn-supprimer-ligne">Retirer</button>
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <button type="button" id="ajouter-couleur" class="btn">+ Ajouter une couleur</button>
+
+    <p><button class="btn">{{ button_label|default('Enregistrer') }}</button></p>
+
 {{ form_end(form) }}
