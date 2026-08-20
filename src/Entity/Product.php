@@ -522,4 +522,11 @@ class Product
         return $this->media->first() ?: null;
     }
 
+    // Représentation texte de l'entité — utilisée dans les listes de choix
+    // (le champ « Modules » d'un ensemble modulable, notamment).
+    public function __toString(): string
+    {
+        return $this->name ?? '';
+    }
+
 }

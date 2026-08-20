@@ -238,3 +238,79 @@
   height: auto;
   border-radius: 3px;
 }
+
+
+
+
+/* ===== GROUPES DE CHOIX EN PASTILLES (tissus, couleurs, sous-catégories) ===== */
+
+/* Le conteneur : pastilles alignées, hauteur limitée, défilement au-delà */
+.admin-content [id$="_modules"],
+.admin-content [id$="_fabrics"],
+.admin-content [id$="_colors"],
+.admin-content [id$="_subCategories"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  max-height: 180px;        /* ~5 rangées visibles, puis on fait défiler */
+  overflow-y: auto;
+  padding: 0.7rem;
+  border: 1px solid #C9C2BA;
+  border-radius: 8px;
+  background: #FAF8F6;
+}
+
+/* La case elle-même disparaît de la vue — mais reste dans le document,
+   donc utilisable au clavier et lisible par un lecteur d'écran. */
+.admin-content [id$="_modules"] input[type=checkbox],
+.admin-content [id$="_fabrics"] input[type=checkbox],
+.admin-content [id$="_colors"] input[type=checkbox],
+.admin-content [id$="_subCategories"] input[type=checkbox] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Le libellé devient la pastille */
+.admin-content [id$="_modules"] label,
+.admin-content [id$="_fabrics"] label,
+.admin-content [id$="_colors"] label,
+.admin-content [id$="_subCategories"] label {
+  display: inline-block;
+  margin: 0;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #C9C2BA;
+  border-radius: 999px;      /* ← l'ovale */
+  background: #fff;
+  font-weight: 400;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+.admin-content [id$="_modules"] label:hover,
+.admin-content [id$="_fabrics"] label:hover,
+.admin-content [id$="_colors"] label:hover,
+.admin-content [id$="_subCategories"] label:hover {
+  border-color: #8B6F4E;
+}
+
+/* ⭐ SÉLECTIONNÉE → fond foncé */
+.admin-content [id$="_modules"] input:checked + label,
+.admin-content [id$="_fabrics"] input:checked + label,
+.admin-content [id$="_colors"] input:checked + label,
+.admin-content [id$="_subCategories"] input:checked + label {
+  background: #8B6F4E;
+  color: #fff;
+  border-color: #8B6F4E;
+}
+
+/* Contour visible quand on navigue au clavier (accessibilité) */
+.admin-content [id$="_modules"] input:focus-visible + label,
+.admin-content [id$="_fabrics"] input:focus-visible + label,
+.admin-content [id$="_colors"] input:focus-visible + label,
+.admin-content [id$="_subCategories"] input:focus-visible + label {
+  outline: 2px solid #8B6F4E;
+  outline-offset: 2px;
+}

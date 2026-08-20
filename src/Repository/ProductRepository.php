@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Category;
 use App\Entity\Product;
 use App\Entity\SubCategory;
+use App\Enum\ProductModular;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
@@ -35,6 +36,8 @@ class ProductRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('p')
             ->andWhere('p.isActive = true')   // seulement les produits publiés
+            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
+            ->setParameter('module', ProductModular::Module)
             ->orderBy('p.createdAt', 'DESC')   // les plus récents d'abord
             ->setMaxResults($limit)            // "limit" produits max
             ->getQuery()
@@ -47,6 +50,8 @@ class ProductRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('p')
             ->andWhere('p.isActive = true')
             ->andWhere('p.actualPrice < p.initialPrice')   // ← la promo
+            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
+            ->setParameter('module', ProductModular::Module)
             ->orderBy('p.updatedAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -59,6 +64,8 @@ class ProductRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('p')
             ->andWhere('p.isActive = true')
             ->andWhere('p.stock > 0')                       // ← en stock
+            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
+            ->setParameter('module', ProductModular::Module)
             ->orderBy('p.position', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -71,7 +78,9 @@ class ProductRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->andWhere('p.isActive = true')
             ->andWhere('p.category = :category')
+            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
             ->setParameter('category', $category)
+            ->setParameter('module', ProductModular::Module)
             ->orderBy('p.position', 'ASC');
 
         // Filtre optionnel : seulement si une sous-catégorie est choisie
@@ -90,6 +99,8 @@ class ProductRepository extends ServiceEntityRepository
             ->leftJoin('p.subCategories', 'sc')
             ->andWhere('p.isActive = true')
             ->andWhere('p != :current')          // exclure le produit lui-même
+            ->andWhere('p.isModular != :module')
+            ->setParameter('module', ProductModular::Module)
             ->setParameter('current', $product)
             ->setMaxResults($limit)
             ->distinct();

@@ -30,12 +30,6 @@ class ProductType extends AbstractType
         ->add('name',TextType::class, [
             'label' => 'Nom du produit',
         ])
-        ->add('slug', TextType::class, [
-            'label' => 'Adresse de la page',
-            'required' => false,
-            'empty_data' => '',
-            'help' => "Laisse vide pour la générer depuis le nom. Attention : la modifier change l'adresse publique du produit.",
-        ])
         ->add('description', TextareaType::class, [
             'label' => 'Description',
             'required' => false,
@@ -79,10 +73,6 @@ class ProductType extends AbstractType
                 ProductSide::Right => 'Droite',
             },
         ])
-        ->add('sideLr', EnumType::class, [
-            'label' => 'Côté (angle)',
-            'class' => ProductSide::class
-        ])
         ->add('leadMinWeeks', IntegerType::class, [
             'label' => 'Délai mini (semaines)',
             'required' => false // nullable en base 
@@ -117,50 +107,19 @@ class ProductType extends AbstractType
         ->add('fabrics', EntityType::class, [
             'label' => 'Tissus disponibles',
             'class' => Fabric::class,
-            'choice_label' => 'name',
             'multiple' => true,
             'expanded' => true,
-            'required' => false
+            'required' => false,
+            'help' => 'Pour les produits en tissu. Les coloris viennent du nuancier de chaque tissu.',
         ])
         ->add('colors', EntityType::class, [
-            'label' => 'Couleurs disponibles',
+            'label' => 'Finitions',
             'class' => Color::class,
             'choice_label' => 'name',
             'multiple' => true,
             'expanded' => true,
             'required' => false,
-        ])
-        ->add('modules', EntityType::class, [
-            'label' => 'Modules composant ce produit',
-            'class' => Product::class,
-            'choice_label' => 'name',
-            'multiple' => true,
-            'expanded' => false,
-            'required' => false,
-            'help' => "Uniquement pour un ensemble modulable. Seuls les modules de la même famille sont proposés.",
-            // Trois filtres : le type, la famille, et jamais le produit lui-même.
-            'query_builder' => function (ProductRepository $repo) use ($builder) {
-                $qb = $repo->createQueryBuilder('p')
-                    ->andWhere('p.isModular = :module')
-                    ->setParameter('module', ProductModular::Module)
-                    ->orderBy('p.name', 'ASC');
-
-                $produitCourant = $builder->getData();
-
-                // À la création, le produit n'existe pas encore : rien à exclure ni à filtrer.
-                if ($produitCourant !== null && $produitCourant->getId() !== null) {
-                    $qb->andWhere('p != :courant')
-                       ->setParameter('courant', $produitCourant);
-
-                    // Les modules Luma pour un Luma, pas ceux d'une autre collection.
-                    if ($produitCourant->getFamily() !== null) {
-                        $qb->andWhere('p.family = :famille')
-                           ->setParameter('famille', $produitCourant->getFamily());
-                    }
-                }
-
-                return $qb;
-            },
+            'help' => 'Pour les produits sans tissu : bois, laque, métal.',
         ])
         // Seo
         ->add('metaTitle', TextType::class, [
@@ -171,6 +130,12 @@ class ProductType extends AbstractType
             'label' => 'Meta description (SEO)',
             'required' => false
         ])
+        ->add('slug', TextType::class, [
+            'label' => 'Adresse de la page',
+            'required' => false,
+            'empty_data' => '',
+            'help' => "Laisse vide pour la générer depuis le nom. Attention : la modifier change l'adresse publique du produit.",
+        ])
         ->add('position', IntegerType::class, [
             'label' => 'Position (ordre d\'affichage)'
         ])
@@ -179,6 +144,36 @@ class ProductType extends AbstractType
             'required' => false
         ])
         ;
+
+        // Le champ Modules n'a de sens que pour un ENSEMBLE modulable.
+        // Un champ qu'on ne doit pas remplir ne s'affiche pas.
+        $produitCourant = $builder->getData();
+
+        if ($produitCourant !== null && $produitCourant->getIsModular() === ProductModular::Yes) {
+            $builder->add('modules', EntityType::class, [
+                'label' => 'Modules composant ce produit',
+                'class' => Product::class,
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+                'help' => "Seuls les modules de la même famille sont proposés.",
+                'query_builder' => function (ProductRepository $repo) use ($produitCourant) {
+                    $qb = $repo->createQueryBuilder('p')
+                        ->andWhere('p.isModular = :module')
+                        ->setParameter('module', ProductModular::Module)
+                        ->andWhere('p != :courant')
+                        ->setParameter('courant', $produitCourant)
+                        ->orderBy('p.name', 'ASC');
+
+                    if ($produitCourant->getFamily() !== null) {
+                        $qb->andWhere('p.family = :famille')
+                           ->setParameter('famille', $produitCourant->getFamily());
+                    }
+
+                    return $qb;
+                },
+            ]);
+        }   
     }
 
     // Relie ce formulaire à l'entité Product.
