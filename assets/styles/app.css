@@ -865,3 +865,12 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .similar h2 { font-size: 22px; margin-bottom: 20px; }
 
 
+/* ===== MODULES D'UN PRODUIT MODULABLE ===== */
+.modules-produit { margin: 48px 0 24px; }
+.modules-produit h2 { font-size: 22px; margin-bottom: 8px; }
+.modules-intro { color: var(--txt2); font-size: 15px; margin-bottom: 20px; }
+
+
+
+
+

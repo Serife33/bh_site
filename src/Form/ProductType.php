@@ -10,6 +10,7 @@ use App\Entity\Product;
 use App\Entity\SubCategory;
 use App\Enum\ProductModular;
 use App\Enum\ProductSide;
+use App\Repository\ProductRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -28,6 +29,12 @@ class ProductType extends AbstractType
         $builder
         ->add('name',TextType::class, [
             'label' => 'Nom du produit',
+        ])
+        ->add('slug', TextType::class, [
+            'label' => 'Adresse de la page',
+            'required' => false,
+            'empty_data' => '',
+            'help' => "Laisse vide pour la générer depuis le nom. Attention : la modifier change l'adresse publique du produit.",
         ])
         ->add('description', TextareaType::class, [
             'label' => 'Description',
@@ -54,8 +61,23 @@ class ProductType extends AbstractType
             'required' => false,
         ])
         ->add('isModular', EnumType::class, [
-            'label' => 'Modulable',
-            'class' => ProductModular::class // la class enum 
+            'label' => 'Type de produit',
+            'class' => ProductModular::class,
+            // L'énumération stocke 'no'/'yes'/'module' — on traduit pour l'affichage.
+            'choice_label' => fn (ProductModular $cas) => match ($cas) {
+                ProductModular::No     => 'Produit simple',
+                ProductModular::Yes    => 'Ensemble modulable (composé de modules)',
+                ProductModular::Module => 'Module (élément d\'un ensemble)',
+            },
+        ])
+        ->add('sideLr', EnumType::class, [
+            'label' => 'Côté (pour un angle)',
+            'class' => ProductSide::class,
+            'choice_label' => fn (ProductSide $cas) => match ($cas) {
+                ProductSide::None  => 'Sans objet',
+                ProductSide::Left  => 'Gauche',
+                ProductSide::Right => 'Droite',
+            },
         ])
         ->add('sideLr', EnumType::class, [
             'label' => 'Côté (angle)',
@@ -111,13 +133,35 @@ class ProductType extends AbstractType
         ->add('modules', EntityType::class, [
             'label' => 'Modules composant ce produit',
             'class' => Product::class,
-            'choice_label' => 'name', 
+            'choice_label' => 'name',
             'multiple' => true,
             'expanded' => false,
-            'required' => false
+            'required' => false,
+            'help' => "Uniquement pour un ensemble modulable. Seuls les modules de la même famille sont proposés.",
+            // Trois filtres : le type, la famille, et jamais le produit lui-même.
+            'query_builder' => function (ProductRepository $repo) use ($builder) {
+                $qb = $repo->createQueryBuilder('p')
+                    ->andWhere('p.isModular = :module')
+                    ->setParameter('module', ProductModular::Module)
+                    ->orderBy('p.name', 'ASC');
 
+                $produitCourant = $builder->getData();
+
+                // À la création, le produit n'existe pas encore : rien à exclure ni à filtrer.
+                if ($produitCourant !== null && $produitCourant->getId() !== null) {
+                    $qb->andWhere('p != :courant')
+                       ->setParameter('courant', $produitCourant);
+
+                    // Les modules Luma pour un Luma, pas ceux d'une autre collection.
+                    if ($produitCourant->getFamily() !== null) {
+                        $qb->andWhere('p.family = :famille')
+                           ->setParameter('famille', $produitCourant->getFamily());
+                    }
+                }
+
+                return $qb;
+            },
         ])
-
         // Seo
         ->add('metaTitle', TextType::class, [
             'label' => 'Meta title (SEO)',

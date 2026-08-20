@@ -138,12 +138,16 @@ class Product
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    // Génère le slug depuis le nom, juste avant le premier INSERT.
-    // Volontairement PAS sur PreUpdate : une URL ne doit pas changer quand on renomme un produit (les liens existants et le référencement casseraient).
+    // Génère le slug depuis le nom UNIQUEMENT s'il est vide.
+    // Rempli à la main → on respecte la saisie (comportement de WordPress ou Shopify).
+    // Vidé dans le formulaire → il se régénère depuis le nom.
     #[ORM\PrePersist]
-    public function generateSlug() : void
+    #[ORM\PreUpdate]
+    public function generateSlug(): void
     {
-        $this->slug = (new AsciiSlugger())->slug($this->name)->lower();
+        if ($this->slug === null || trim($this->slug) === '') {
+            $this->slug = (new AsciiSlugger())->slug($this->name ?? '')->lower();
+        }
     }
 
 

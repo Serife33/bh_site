@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /admin/
 
-Sitemap: https://www.TON-DOMAINE.fr/sitemap.xml
+Sitemap: https://brillancehome.fr/sitemap.xml

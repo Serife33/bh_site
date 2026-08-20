@@ -120,7 +120,7 @@
                 </div>
 
                 {# Variantes : menu déroulant #}
-                {% set variants = product.family ? product.family.products|filter(v => v.isActive) : [] %}
+                {% set variants = product.family ? product.family.products|filter(v => v.isActive and v.isModular.value != 'module') : [] %}
                 {% if variants|length > 1 %}
                     <div class="cfg-group">
                         <h3 class="cfg-title">Configuration</h3>
@@ -199,6 +199,20 @@
                 <p>Réglez en 2, 3 ou 4 fois sans frais.</p>
             </div>
         </div>
+
+        {% if product.modules|length %}
+        <section class="modules-produit">
+            <h2>Composez votre {{ product.family ? product.family.name : product.name }}</h2>
+            <p class="modules-intro">
+                Chaque module est disponible à l'unité. Cliquez pour découvrir ses dimensions et son prix.
+            </p>
+            <div class="grid-produits">
+                {% for module in product.modules %}
+                    {{ include('front/_product_card.html.twig', { product: module }) }}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
         
         {% if similar %}
         <section class="similar">

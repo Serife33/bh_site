@@ -135,3 +135,27 @@ document.addEventListener('click', (e) => {
     const more = e.target.closest('.swatch-more');
     if (more) more.closest('.swatch-group').classList.add('is-expanded');
 });
+
+
+// ===== NUANCIER : ajouter / retirer une couleur dans le formulaire tissu =====
+const nuancier = document.getElementById('nuancier');
+
+if (nuancier) {
+    // Ajouter une ligne : on clone le gabarit fourni par Symfony
+    document.getElementById('ajouter-couleur').addEventListener('click', () => {
+        const index = parseInt(nuancier.dataset.index, 10);
+        const ligne = document.createElement('div');
+        ligne.className = 'nuancier-ligne';
+        // __name__ est le marqueur laissé par Symfony : on le remplace par le numéro de ligne
+        ligne.innerHTML = nuancier.dataset.prototype.replace(/__name__/g, index)
+            + '<button type="button" class="btn-supprimer-ligne">Retirer</button>';
+        nuancier.appendChild(ligne);
+        nuancier.dataset.index = index + 1;
+    });
+
+    // Retirer une ligne : délégation d'événement (fonctionne aussi sur les lignes ajoutées)
+    nuancier.addEventListener('click', (e) => {
+        const bouton = e.target.closest('.btn-supprimer-ligne');
+        if (bouton) bouton.closest('.nuancier-ligne').remove();
+    });
+}
