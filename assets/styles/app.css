@@ -729,18 +729,18 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     color: #fff;
 }
 .col-dot {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
+    width: 64px;
+    height: 64px;
+    border-radius: 4px;              /* carré arrondi, pas rond */
+    border: 1px solid var(--border);
     padding: 0;
     cursor: pointer;
-    transition: transform .1s, border-color .15s;
+    transition: outline-color .15s;
 }
-.col-dot:hover { transform: scale(1.1); }
+.col-dot:hover { border-color: var(--accent); }
 .col-dot.is-active {
-    border-color: var(--txt);
-    box-shadow: inset 0 0 0 2px #fff;   /* liseré blanc = pastille choisie */
+    outline: 1px solid var(--txt);   /* liseré fin autour */
+    outline-offset: 3px;             /* ⭐ l'écart blanc entre la pastille et le liseré */
 }
 
 /* ===== NUANCIER PAR TISSU (cascade du configurateur) ===== */
@@ -912,16 +912,28 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .swatch-group.is-expanded .swatch-extra { display: inline-flex; }
 .swatch-group.is-expanded .swatch-more { display: none; }
 .swatch-more {
-    padding: 8px 14px;
-    border: 1px dashed var(--border);
-    border-radius: var(--r);
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
     background: none;
     color: var(--txt2);
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
-    transition: all .15s;
 }
 .swatch-more:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Sur petit écran, on réduit les échantillons pour qu'ils tiennent sur une ligne */
+@media (max-width: 480px) {
+  .col-dot, .swatch-more { width: 52px; height: 52px; }
+}
+/* Déplié : grille de 3 colonnes avec de grands échantillons */
+.swatch-group.is-expanded .col-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.swatch-group.is-expanded .col-dot { width: 100%; height: 110px; }
 
 .reassurance-grid {
     display: grid;

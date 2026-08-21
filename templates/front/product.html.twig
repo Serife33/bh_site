@@ -103,14 +103,18 @@
                         {# Un nuancier par tissu — seul celui du tissu actif est visible #}
                         {% for fabric in product.fabrics %}
                             {% if fabric.fabricColors|length %}
-                                <div class="cfg-group nuancier-group{{ loop.first ? ' is-visible' }}" data-nuancier="{{ fabric.id }}">
+                                {% set maxColors = 5 %}
+                                <div class="cfg-group swatch-group nuancier-group{{ loop.first ? ' is-visible' }}" data-nuancier="{{ fabric.id }}">
                                     <h3 class="cfg-title">Coloris : <span class="cfg-choice" data-choice="color">{{ fabric.fabricColors|first.name }}</span></h3>
                                     <div class="col-row">
                                         {% for fc in fabric.fabricColors %}
-                                            <button type="button" class="col-dot{{ loop.first ? ' is-active' }}"
+                                            <button type="button" class="col-dot{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxColors ? ' swatch-extra' }}"
                                                     data-color="{{ fc.name }}" aria-label="{{ fc.name }}" title="{{ fc.name }}"
                                                     {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></button>
                                         {% endfor %}
+                                        {% if fabric.fabricColors|length > maxColors %}
+                                            <button type="button" class="swatch-more">+{{ fabric.fabricColors|length - maxColors }}</button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             {% endif %}
