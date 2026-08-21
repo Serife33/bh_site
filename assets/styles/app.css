@@ -64,6 +64,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+.logo img { height: 44px; width: auto; display: block; mix-blend-mode: multiply; }
 .nav { display: flex; gap: 18px; font-size: 14px; font-weight: 500; }
 .nav a:hover { color: var(--accent); }
 
@@ -176,13 +177,25 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 .btn-primary:hover { background: var(--deep); }
 .btn-wa { background: var(--wa); color: #fff; border-color: var(--wa); }
+.btn-wa:hover { background: var(--wa-dark, #128C7E); border-color: var(--wa-dark, #128C7E); color: #fff; }
 
 /* ===== HERO ===== */
-.hero { background: linear-gradient(150deg, #EDE6DC 0%, #D8C7B2 100%); padding: 56px 0; }
+.hero {
+  background:
+    linear-gradient(90deg, rgba(26,26,24,.72) 0%, rgba(26,26,24,.45) 50%, rgba(26,26,24,.15) 100%),
+    url('/images/hero.jpg') center 60% / cover no-repeat;
+  padding: 96px 0;
+  color: #fff;
+  min-height: 620px;
+  display: flex;
+  align-items: center;
+}
 .hero-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
 .hero-title { font-size: 32px; line-height: 1.15; margin-bottom: 14px; }
 .hero-sub { font-size: 16px; color: var(--txt2); line-height: 1.5; margin-bottom: 22px; max-width: 480px; }
 .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+/* Texte en blanc par-dessus la photo (surcharge les couleurs définies plus haut) */
+.hero-eyebrow, .hero-title, .hero-sub { color: #fff; }
 @media (min-width: 768px) {
   .hero { padding: 80px 0; }
   .hero-title { font-size: 44px; }
@@ -197,17 +210,48 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 @media (min-width: 768px) { .section-head h2 { font-size: 32px; } }
 
 /* ===== RANGÉE CATÉGORIES ===== */
+/* MOBILE : carrousel horizontal façon "stories" — 0 JS */
 .cats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);   /* mobile : 3 par ligne */
+  display: flex;
   gap: 18px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;   /* s'arrête pile sur une catégorie */
+  scroll-behavior: smooth;
+  padding-bottom: 4px;
+  scrollbar-width: none;           /* masque la barre (Firefox) */
+}
+.cats::-webkit-scrollbar { display: none; }   /* masque la barre (Safari, Chrome) */
+
+.cat {
+  flex: 0 0 auto;                  /* ne rétrécit pas : c'est ce qui crée le débordement */
+  scroll-snap-align: start;
+  min-width: 96px;
+  text-align: center;
+}
+
+/* DESKTOP : retour à la grille, les 6 tiennent sur une ligne */
+@media (min-width: 768px) {
+  .cats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    overflow: visible;
+  }
+  .cat { min-width: 0; }
 }
 @media (min-width: 768px) { .cats { grid-template-columns: repeat(6, 1fr); } }  /* desktop : 6 */
 .cat { text-align: center; }
 .cat-ring {
-  width: 72px; height: 72px; border-radius: 50%;
+  width: 96px; height: 96px; border-radius: 50%;
   margin: 0 auto 10px;
-  background: linear-gradient(135deg, var(--accent2), var(--accent));
+    background: linear-gradient(135deg, #D8C7B2, #BFA98C);
+  overflow: hidden;
+}
+.cat-ring img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 8px;
+  box-sizing: border-box;
+  display: block;
 }
 .cat-name { font-size: 13px; font-weight: 600; }
 .cat:hover .cat-name { color: var(--accent); }
@@ -440,11 +484,45 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .nav a:hover { color: var(--accent); }
 .nav.open { display: flex; }   /* affiché quand la classe "open" est là */
 
+/* mobile : le burger affiche tout à plat, pas de déroulant */
+.nav-univers-menu { display: flex; flex-direction: column; }
+.nav-univers-menu a { padding-left: 16px; opacity: .85; font-size: 15px; }
+.nav-univers-btn i { display: none; }
+
 /* ===== DESKTOP : nav horizontal, burger caché ===== */
 @media (min-width: 768px) {
   .burger { display: none; }
-  .nav { display: flex; position: static; flex-direction: row; background: none; border: none; padding: 0; gap: 18px; }
+  .nav { display: flex; align-items: center; position: static; flex-direction: row; background: none; border: none; padding: 0; gap: 18px; }
   .nav a { padding: 6px 0; font-size: 14px; }
+
+/* ⬇️ Logo isolé à gauche, nav + recherche groupées à droite */
+  .hdr-in { justify-content: flex-start; }
+  .nav { margin-left: auto; }
+  .hdr-actions { margin-left: 28px; }
+
+  /* le menu déroulant « Nos univers » */
+  .nav-univers { position: relative; }
+  .nav-univers-btn i { display: inline; font-size: 10px; margin-left: 5px; }
+
+  .nav-univers-menu {
+    display: none;
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    min-width: 190px;
+    padding: 8px 0;
+    background: var(--bg);
+    border: 1px solid #E7E2DC;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.10);
+    flex-direction: column;
+  }
+
+  .nav-univers:hover .nav-univers-menu,
+  .nav-univers:focus-within .nav-univers-menu { display: flex; }
+
+  .nav-univers-menu a { padding: 9px 18px; font-size: 14px; }
+  .nav-univers-menu a:hover { background: var(--bg2); color: var(--accent); }
 }
 
 

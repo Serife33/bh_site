@@ -83,7 +83,7 @@ function updateDevis() {
     let msg = 'Bonjour, je suis intéressée par le ' + btn.dataset.product;
     if (fabric) msg += ', tissu ' + fabric;
     if (color)  msg += ', coloris ' + color;
-    msg += '. Pouvez-vous me faire un devis ?';
+    msg += '. Je souhaite le commander.';
 
     btn.href = 'https://wa.me/' + btn.dataset.wa + '?text=' + encodeURIComponent(msg);
 }

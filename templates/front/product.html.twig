@@ -2,7 +2,7 @@
 
 {% block title %}{{ product.metaTitle ?? (product.name ~ ' — Brillance Home') }}{% endblock %}
 
-{% block meta_description %}{{ product.metaDescription ?: (product.name ~ ' — découvrez ce produit chez Brillance Home à Bordeaux. Devis gratuit sur WhatsApp.') }}{% endblock %}
+{% block meta_description %}{{ product.metaDescription ?: (product.name ~ ' — découvrez ce produit chez Brillance Home à Bordeaux. Commande et conseil sur WhatsApp.') }}{% endblock %}
 
 {% block json_ld %}
     {% set data = {
@@ -141,9 +141,9 @@
                     {% endif %}
 
                     <a class="btn-devis" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}"
-                       href="https://wa.me/{{ whatsapp_number }}?text={{ ('Bonjour, je suis intéressée par le ' ~ product.name ~ '. Pouvez-vous me faire un devis ?')|url_encode }}"
+                       href="https://wa.me/{{ whatsapp_number }}?text={{ ('Bonjour, je suis intéressée par le ' ~ product.name ~ '. Je souhaite le commander.')|url_encode }}"
                        target="_blank" rel="noopener">
-                        <i class="fa-brands fa-whatsapp"></i> Demander un devis sur WhatsApp
+                       <i class="fa-brands fa-whatsapp"></i> Commander sur WhatsApp
                     </a>
                 </div>
 

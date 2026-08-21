@@ -26,7 +26,12 @@
             <div class="cats">
                 {% for categorie in categories %}
                     <a href="{{ path('front_category', { slug: categorie.slug }) }}" class="cat">
-                        <div class="cat-ring"></div>
+                        <div class="cat-ring">
+                            {% if categorie.image %}
+                                <img src="{{ vich_uploader_asset(categorie, 'imageFile') | imagine_filter('rond') }}"
+                                     alt="{{ categorie.name }}" loading="lazy">
+                            {% endif %}
+                        </div>
                         <span class="cat-name">{{ categorie.name }}</span>
                     </a>
                 {% endfor %}

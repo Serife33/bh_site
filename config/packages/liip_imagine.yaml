@@ -33,3 +33,11 @@ liip_imagine:
                 thumbnail:
                     size: [600, 600]
                     mode: outbound
+        rond:
+            format: webp
+            quality: 82
+            filters:
+                auto_rotate: ~
+                thumbnail:
+                    size: [300, 300]
+                    mode: inset      # l'image ENTIÈRE tient dans le carré

@@ -31,13 +31,23 @@
 
     <header class="hdr">
         <div class="hdr-in wrap">
-            <a href="{{ path('front_home') }}" class="logo">Brillance Home</a>
+            <a href="{{ path('front_home') }}" class="logo">
+                <img src="{{ asset('images/logo.jpg') }}" alt="Brillance Home">
+            </a>
 
             <nav class="nav" id="main-nav">
                 <a href="{{ path('front_home') }}">Accueil</a>
-                {% for categorie in nav_categories() %}
-                    <a href="{{ path('front_category', { slug: categorie.slug }) }}">{{ categorie.name }}</a>
-                {% endfor %}
+
+                <div class="nav-univers">
+                    <a href="#univers" class="nav-univers-btn">Nos univers <i class="fa-solid fa-chevron-down"></i></a>
+                    <div class="nav-univers-menu">
+                        {% for categorie in nav_categories() %}
+                            <a href="{{ path('front_category', { slug: categorie.slug }) }}">{{ categorie.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <a href="{{ path('front_contact') }}">Contact</a>
             </nav>
 
             <div class="hdr-actions">
@@ -83,11 +93,11 @@
     </footer>
 
     {# Bouton WhatsApp flottant (présent sur toutes les pages) #}
-    <a href="https://wa.me/{{ whatsapp_number }}"
+    <a href="https://wa.me/{{ whatsapp_number }}?text={{ 'Bonjour, je souhaite un renseignement.'|url_encode }}"
         class="wa-float"
         target="_blank"
         rel="noopener"
-        aria-label="Nous contacter sur WhatsApp">
+        aria-label="Poser une question sur WhatsApp">
         <svg viewBox="0 0 24 24" width="30" height="30" fill="#fff">
             <path d="M12 0C5.37 0 0 5.37 0 12c0 2.13.55 4.12 1.52 5.85L0 24l6.28-1.5A11.93 11.93 0 0 0 12 24c6.63 0 12-5.37 12-12S18.63 0 12 0z"/>
         </svg>
