@@ -33,11 +33,12 @@ class ProductType extends AbstractType
         ->add('description', TextareaType::class, [
             'label' => 'Description',
             'required' => false,
+            'attr' => ['rows' => 6],
         ])
         ->add('dimension', TextareaType::class, [
             'label' => 'Dimensions',
-            'required' => false
-
+            'required' => false,
+            'attr' => ['rows' => 4],
         ])
         ->add('initialPrice', MoneyType::class, [
             'label' => 'Prix initial',

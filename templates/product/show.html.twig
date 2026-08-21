@@ -8,8 +8,8 @@
 
     <table>
         <tr><th>Slug</th><td>{{ product.slug }}</td></tr>
-        <tr><th>Description</th><td>{{ product.description }}</td></tr>
-        <tr><th>Dimensions</th><td>{{ product.dimension }}</td></tr>
+        <tr><th>Description</th><td>{{ product.description|nl2br }}</td></tr>
+        <tr><th>Dimensions</th><td>{{ product.dimension|nl2br }}</td></tr>
         <tr><th>Prix initial</th><td>{{ product.initialPrice }} €</td></tr>
         <tr><th>Prix actuel</th><td>{{ product.actualPrice }} €</td></tr>
         <tr><th>Stock</th><td>{{ product.stock }}</td></tr>

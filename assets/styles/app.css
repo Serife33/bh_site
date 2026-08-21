@@ -84,6 +84,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   box-shadow: 0 6px 20px rgba(37, 211, 102, .4);
   z-index: 150;                  /* au-dessus de tout */
 }
+.wa-float i { font-size: 30px; color: #fff; line-height: 1; }
 
 
 /* ===== FOOTER ===== */
@@ -741,6 +742,20 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-color: var(--txt);
     box-shadow: inset 0 0 0 2px #fff;   /* liseré blanc = pastille choisie */
 }
+
+/* ===== NUANCIER PAR TISSU (cascade du configurateur) ===== */
+
+/* Un seul nuancier visible à la fois — celui du tissu sélectionné */
+.nuancier-group { display: none; }
+.nuancier-group.is-visible { display: block; }
+
+/* Les pastilles peuvent porter une macro de tissu en fond */
+.col-dot {
+  background-size: cover;
+  background-position: center;
+}
+
+
 .buybox { 
     display: flex; 
     flex-direction: column; 

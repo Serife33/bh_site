@@ -85,39 +85,51 @@
                 <p class="price-facilities">Paiement en 2, 3 ou 4 fois SANS FRAIS</p>
 
                 {# Configurateur : swatches avec révélation « +N » #}
-                <div class="config">
                     {% if product.fabrics|length %}
                         {% set maxFabrics = 4 %}
                         <div class="cfg-group swatch-group">
                             <h3 class="cfg-title">Tissu : <span class="cfg-choice" data-choice="fabric">{{ product.fabrics|first.name }}</span></h3>
                             <div class="mat-row">
                                 {% for fabric in product.fabrics %}
-                                    <button type="button" class="mat-opt{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxFabrics ? ' swatch-extra' }}" data-fabric="{{ fabric.name }}">{{ fabric.name }}</button>
+                                    <button type="button" class="mat-opt{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxFabrics ? ' swatch-extra' }}"
+                                            data-fabric="{{ fabric.name }}" data-fabric-id="{{ fabric.id }}">{{ fabric }}</button>
                                 {% endfor %}
                                 {% if product.fabrics|length > maxFabrics %}
                                     <button type="button" class="swatch-more">+{{ product.fabrics|length - maxFabrics }}</button>
                                 {% endif %}
                             </div>
                         </div>
+
+                        {# Un nuancier par tissu — seul celui du tissu actif est visible #}
+                        {% for fabric in product.fabrics %}
+                            {% if fabric.fabricColors|length %}
+                                <div class="cfg-group nuancier-group{{ loop.first ? ' is-visible' }}" data-nuancier="{{ fabric.id }}">
+                                    <h3 class="cfg-title">Coloris : <span class="cfg-choice" data-choice="color">{{ fabric.fabricColors|first.name }}</span></h3>
+                                    <div class="col-row">
+                                        {% for fc in fabric.fabricColors %}
+                                            <button type="button" class="col-dot{{ loop.first ? ' is-active' }}"
+                                                    data-color="{{ fc.name }}" aria-label="{{ fc.name }}" title="{{ fc.name }}"
+                                                    {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     {% endif %}
 
-                    {% if product.colors|length %}
-                        {% set maxColors = 6 %}
+                {# Finitions : uniquement pour les produits SANS tissu (bois, laque, métal) #}
+                    {% if product.colors|length and product.fabrics|length == 0 %}
                         <div class="cfg-group swatch-group">
-                            <h3 class="cfg-title">Coloris : <span class="cfg-choice" data-choice="color">{{ product.colors|first.name }}</span></h3>
+                            <h3 class="cfg-title">Finition : <span class="cfg-choice" data-choice="color">{{ product.colors|first.name }}</span></h3>
                             <div class="col-row">
                                 {% for color in product.colors %}
-                                    <button type="button" class="col-dot{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxColors ? ' swatch-extra' }}"
-                                            style="background: {{ color.hex starts with '#' ? color.hex : '#' ~ color.hex }}"
+                                    <button type="button" class="col-dot{{ loop.first ? ' is-active' }}"
+                                            style="background: {{ color.hex }}"
                                             data-color="{{ color.name }}" aria-label="{{ color.name }}" title="{{ color.name }}"></button>
                                 {% endfor %}
-                                {% if product.colors|length > maxColors %}
-                                    <button type="button" class="swatch-more">+{{ product.colors|length - maxColors }}</button>
-                                {% endif %}
                             </div>
                         </div>
                     {% endif %}
-                </div>
 
                 {# Variantes : menu déroulant #}
                 {% set variants = product.family ? product.family.products|filter(v => v.isActive and v.isModular.value != 'module') : [] %}
@@ -172,14 +184,16 @@
 
         </div>
 
-        {# Encadré devis sur-mesure #}
-        <div class="custom-quote">
-            <p><strong>Une taille non listée ?</strong> Indiquez vos dimensions, on vous envoie un devis sous 24h.</p>
-            <input type="text" class="quote-dims" placeholder="Ex. L 250 × P 100 × H 85 cm">
-            <button type="button" class="btn-quote" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}">
-                <i class="fa-brands fa-whatsapp"></i> Demander un devis
-            </button>
-        </div>
+        {# Encadré devis sur-mesure — pas pour un module : ses dimensions sont fixes #}
+        {% if product.isModular.value != 'module' %}
+            <div class="custom-quote">
+                <p><strong>Une taille non listée ?</strong> Indiquez vos dimensions, on vous envoie un devis sous 24h.</p>
+                <input type="text" class="quote-dims" placeholder="Ex. L 250 × P 100 × H 85 cm">
+                <button type="button" class="btn-quote" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}">
+                    <i class="fa-brands fa-whatsapp"></i> Demander un devis
+                </button>
+            </div>
+        {% endif %}
 
         {# Réassurance : 3 encadrés alignés #}
         <div class="reassurance-grid">

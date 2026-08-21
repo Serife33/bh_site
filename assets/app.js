@@ -73,7 +73,7 @@ function updateDevis() {
     if (!btn) return;
 
     const fabric = document.querySelector('.mat-opt.is-active')?.dataset.fabric;
-    const color  = document.querySelector('.col-dot.is-active')?.dataset.color;
+    const color = document.querySelector('.nuancier-group.is-visible .col-dot.is-active, .swatch-group .col-dot.is-active')?.dataset.color;
 
     const fLabel = document.querySelector('.cfg-choice[data-choice="fabric"]');
     const cLabel = document.querySelector('.cfg-choice[data-choice="color"]');
@@ -159,3 +159,17 @@ if (nuancier) {
         if (bouton) bouton.closest('.nuancier-ligne').remove();
     });
 }
+
+
+// ===== CONFIGURATEUR : clic sur un tissu → afficher SON nuancier =====
+document.addEventListener('click', (e) => {
+    const opt = e.target.closest('.mat-opt');
+    if (!opt) return;
+
+    const id = opt.dataset.fabricId;
+    document.querySelectorAll('[data-nuancier]').forEach((groupe) => {
+        groupe.classList.toggle('is-visible', groupe.dataset.nuancier === id);
+    });
+
+    updateDevis();   // le message WhatsApp doit refléter le nouveau coloris
+});
