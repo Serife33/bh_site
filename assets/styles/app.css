@@ -51,18 +51,32 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   border-bottom: .5px solid var(--border);
 }
 .hdr-in {
-  height: 64px;
+  height: 78px;
   display: flex;                  /* logo + menu sur une ligne */
   align-items: center;            /* centre verticalement */
   justify-content: space-between; /* logo à gauche, menu à droite */
   gap: 20px;
 }
 .logo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: .08em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo img { height: 54px; width: auto; display: block; mix-blend-mode: multiply; }
+.logo-text {
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  font-size: 18px;
+  letter-spacing: .28em;
+  margin-right: -.28em;   /* rattrape l'espace en trop après la dernière lettre */
   text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text);
+}
+@media (max-width: 560px) {
+    .hdr-in { height: 62px; }
+    .logo img { height: 42px; }
+    .logo-text { font-size: 12px; letter-spacing: .18em; }
 }
 .logo img { height: 44px; width: auto; display: block; mix-blend-mode: multiply; }
 .nav { display: flex; gap: 18px; font-size: 14px; font-weight: 500; }
