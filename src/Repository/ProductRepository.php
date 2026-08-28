@@ -8,6 +8,7 @@ use App\Entity\SubCategory;
 use App\Enum\ProductModular;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -76,6 +77,8 @@ class ProductRepository extends ServiceEntityRepository
     public function findActiveByCategoryQuery(Category $category, ?SubCategory $subCategory = null): Query
     {
         $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')
             ->andWhere('p.isActive = true')
             ->andWhere('p.category = :category')
             ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
@@ -128,6 +131,8 @@ class ProductRepository extends ServiceEntityRepository
     public function searchActiveQuery(string $q): Query
     {
         return $this->createQueryBuilder('p')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')
             ->andWhere('p.isActive = true')
             ->andWhere('p.name LIKE :q OR p.description LIKE :q')
             ->setParameter('q', '%' . $q . '%')
@@ -144,6 +149,27 @@ class ProductRepository extends ServiceEntityRepository
             ->orderBy('p.updatedAt', 'DESC')
             ->getQuery()
             ->getArrayResult();
+    }
+
+
+    // Les modules proposables dans le formulaire d'un ensemble modulable.
+    // Trois conditions : c'est un module, ce n'est pas le produit lui-même, c'est la même famille.
+    // Retourne un QueryBuilder et non une Query : EntityType a besoin de pouvoir le compléter.
+    public function createModulesQueryBuilder(Product $product): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->andWhere('p.isModular = :module')
+            ->setParameter('module', ProductModular::Module)
+            ->andWhere('p != :courant')
+            ->setParameter('courant', $product)
+            ->orderBy('p.name', 'ASC');
+
+        if ($product->getFamily() !== null) {
+            $qb->andWhere('p.family = :famille')
+               ->setParameter('famille', $product->getFamily());
+        }
+
+        return $qb;
     }
 
 }

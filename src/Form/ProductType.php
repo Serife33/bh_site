@@ -158,21 +158,7 @@ class ProductType extends AbstractType
                 'expanded' => true,
                 'required' => false,
                 'help' => "Seuls les modules de la même famille sont proposés.",
-                'query_builder' => function (ProductRepository $repo) use ($produitCourant) {
-                    $qb = $repo->createQueryBuilder('p')
-                        ->andWhere('p.isModular = :module')
-                        ->setParameter('module', ProductModular::Module)
-                        ->andWhere('p != :courant')
-                        ->setParameter('courant', $produitCourant)
-                        ->orderBy('p.name', 'ASC');
-
-                    if ($produitCourant->getFamily() !== null) {
-                        $qb->andWhere('p.family = :famille')
-                           ->setParameter('famille', $produitCourant->getFamily());
-                    }
-
-                    return $qb;
-                },
+                'query_builder' => fn (ProductRepository $repo) => $repo->createModulesQueryBuilder($produitCourant),
             ]);
         }   
     }
