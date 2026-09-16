@@ -5,27 +5,47 @@
 {% block meta_description %}{{ product.metaDescription ?: (product.name ~ ' — découvrez ce produit chez Brillance Home à Bordeaux. Commande et conseil sur WhatsApp.') }}{% endblock %}
 
 {% block og_type %}product{% endblock %}
-{% block og_image %}{% if product.mainMedia %}{{ vich_uploader_asset(product.mainMedia, 'imageFile')|imagine_filter('galerie') }}{% else %}{{ parent() }}{% endif %}{% endblock %}
+{% block og_image %}{% if product.mainMedia %}{{ absolute_url(vich_uploader_asset(product.mainMedia, 'imageFile')|imagine_filter('galerie')) }}{% else %}{{ parent() }}{% endif %}{% endblock %}
 
 {% block json_ld %}
-    {% set data = {
-        '@context': 'https://schema.org',
+    {# Toutes les photos, en adresses absolues — le slice renumérote la liste #}
+    {% set images = product.media
+        |map(m => absolute_url(vich_uploader_asset(m, 'imageFile')|imagine_filter('galerie')))
+        |slice(0, product.media|length) %}
+    {% set adresse = url('front_product', { slug: product.slug }) %}
+
+    {% set produit = {
         '@type': 'Product',
         'name': product.name,
         'description': product.metaDescription ?: (product.description|striptags),
+        'url': adresse,
+        'sku': product.slug,
+        'category': product.category.name,
         'brand': { '@type': 'Brand', 'name': 'Brillance Home' },
         'offers': {
             '@type': 'Offer',
             'price': product.actualPrice,
             'priceCurrency': 'EUR',
-            'availability': product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
-            'url': app.request.uri
+            'itemCondition': 'https://schema.org/NewCondition',
+            'availability': product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/MadeToOrder',
+            'url': adresse,
+            'seller': { '@id': 'https://brillancehome.fr/#magasin' }
         }
     } %}
-    {% if product.mainMedia %}
-        {% set data = data|merge({ 'image': app.request.schemeAndHttpHost ~ (vich_uploader_asset(product.mainMedia, 'imageFile')|imagine_filter('galerie')) }) %}
+    {% if images|length %}
+        {% set produit = produit|merge({ 'image': images }) %}
     {% endif %}
-    <script type="application/ld+json">{{ data|json_encode|raw }}</script>
+
+    {% set fil = {
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': 'Accueil', 'item': url('front_home') },
+            { '@type': 'ListItem', 'position': 2, 'name': product.category.name, 'item': url('front_category', { slug: product.category.slug }) },
+            { '@type': 'ListItem', 'position': 3, 'name': product.name, 'item': adresse }
+        ]
+    } %}
+
+    <script type="application/ld+json">{{ { '@context': 'https://schema.org', '@graph': [produit, fil] }|json_encode|raw }}</script>
 {% endblock %}
 
 {% block body %}

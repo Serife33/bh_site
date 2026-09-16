@@ -40,6 +40,70 @@
         {{ importmap('app') }}
     {% endblock %}
 
+    {# Données structurées du magasin — sur toutes les pages #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "FurnitureStore",
+          "@id": "https://brillancehome.fr/#magasin",
+          "name": "Brillance Home",
+          "url": "https://brillancehome.fr",
+          "logo": "{{ absolute_url(asset('images/logo.png')) }}",
+          "image": "{{ absolute_url(asset('images/partage.jpg')) }}",
+          "description": "Magasin de meubles à Bordeaux : canapés, lits coffres, matelas, tables et chaises. Tissu et coloris au choix sans supplément, fabrication sur commande.",
+          "telephone": "+33781071071",
+          "priceRange": "€€",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "12 bis rue Suffren",
+            "postalCode": "33300",
+            "addressLocality": "Bordeaux",
+            "addressRegion": "Nouvelle-Aquitaine",
+            "addressCountry": "FR"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 44.875289,
+            "longitude": -0.557280
+          },
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+              "opens": "11:00",
+              "closes": "18:00"
+            },
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": "Sunday",
+              "opens": "14:00",
+              "closes": "17:00"
+            }
+          ],
+          "areaServed": [
+            { "@type": "City", "name": "Bordeaux" },
+            { "@type": "AdministrativeArea", "name": "Gironde" },
+            { "@type": "Country", "name": "France" }
+          ],
+          "sameAs": [
+            "https://www.instagram.com/brillancehome",
+            "https://www.tiktok.com/@brillancehome"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://brillancehome.fr/#site",
+          "name": "Brillance Home",
+          "url": "https://brillancehome.fr",
+          "inLanguage": "fr-FR",
+          "publisher": { "@id": "https://brillancehome.fr/#magasin" }
+        }
+      ]
+    }
+    </script>
+
     {% block json_ld %}{% endblock %}
 </head>
 
