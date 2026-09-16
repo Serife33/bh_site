@@ -1,6 +1,6 @@
 {% extends 'front/base.html.twig' %}
 
-{% block canonical %}{{ url('front_category', { slug: category.slug }) }}{% endblock %}
+{% block canonical %}{{ url('front_category', { slug: category.slug }) }}{% if app.request.query.getInt('page', 1) > 1 %}?page={{ app.request.query.getInt('page') }}{% endif %}{% endblock %}
 
 {% block title %}{{ category.metaTitle ?? (category.name ~ ' — Brillance Home') }}{% endblock %}
 {% block meta_description %}{{ category.metaDescription ?: (category.name ~ ' — Brillance Home, ameublement d\'intérieur à Bordeaux.') }}{% endblock %}

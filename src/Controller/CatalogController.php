@@ -35,12 +35,24 @@ final class CatalogController extends AbstractController
             $currentSubCategory = $subCategoryRepository->findOneBy(['slug' => $slugSubCategory]);
         }
 
+        // ?page= dans l'URL, 1 par défaut
+        $page = $request->query->getInt('page', 1);
+        if ($page < 1) {
+            throw $this->createNotFoundException('Cette page n\'existe pas.');
+        }
+
         // Paginer ses produits actifs (Query non exécutée → le paginator ajoute le LIMIT)
         $pagination = $paginator->paginate(
             $productRepository->findActiveByCategoryQuery($category, $currentSubCategory),
-            $request->query->getInt('page', 1),   // ?page=2 dans l'URL, défaut 1
+            $page,
             self::PRODUCTS_PER_PAGE
         );
+
+        // Au-delà de la dernière page il n'y a rien : 404 plutôt qu'une grille vide
+        $lastPage = max(1, (int) ceil($pagination->getTotalItemCount() / self::PRODUCTS_PER_PAGE));
+        if ($page > $lastPage) {
+            throw $this->createNotFoundException('Cette page n\'existe pas.');
+        }
 
         // 3. Envoyer à la vue
         return $this->render('front/category.html.twig', [

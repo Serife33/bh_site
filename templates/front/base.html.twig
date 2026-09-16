@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Brillance Home{% endblock %}</title>
     {# Adresse de référence de la page — évite que les variantes filtrées ou paginées se concurrencent #}
-    <link rel="canonical" href="{% block canonical %}{{ app.request.uri }}{% endblock %}">
-    {% block robots %}{% endblock %}
+    <link rel="canonical" href="{% block canonical %}{{ app.request.schemeAndHttpHost ~ app.request.pathInfo }}{% endblock %}">
     <meta name="description" content="{% block meta_description %}Brillance Home — spécialiste de l'ameublement intérieur à Bordeaux : salon, salle à manger, chambre et literie.{% endblock %}">
 
     {# Aperçu des liens partagés #}
