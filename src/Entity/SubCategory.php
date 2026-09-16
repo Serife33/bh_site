@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\SubCategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 
@@ -22,6 +23,15 @@ class SubCategory
 
     #[ORM\Column(length: 140)]
     private ?string $slug = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    private ?string $metaTitle = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $metaDescription = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $seoText = null;
 
     /**
      * @var Collection<int, Product>
@@ -72,6 +82,43 @@ class SubCategory
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+
+    public function getMetaTitle(): ?string
+    {
+        return $this->metaTitle;
+    }
+
+    public function setMetaTitle(?string $metaTitle): static
+    {
+        $this->metaTitle = $metaTitle;
+
+        return $this;
+    }
+
+    public function getMetaDescription(): ?string
+    {
+        return $this->metaDescription;
+    }
+
+    public function setMetaDescription(?string $metaDescription): static
+    {
+        $this->metaDescription = $metaDescription;
+
+        return $this;
+    }
+
+    public function getSeoText(): ?string
+    {
+        return $this->seoText;
+    }
+
+    public function setSeoText(?string $seoText): static
+    {
+        $this->seoText = $seoText;
 
         return $this;
     }

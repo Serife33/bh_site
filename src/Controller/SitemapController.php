@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
+use App\Repository\SubCategoryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -12,7 +13,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final class SitemapController extends AbstractController
 {
     #[Route('/sitemap.xml', name: 'front_sitemap', methods: ['GET'])]
-    public function sitemap(CategoryRepository $categoryRepository, ProductRepository $productRepository): Response
+    public function sitemap(CategoryRepository $categoryRepository, ProductRepository $productRepository, SubCategoryRepository $subCategoryRepository): Response
     {
         $abs = UrlGeneratorInterface::ABSOLUTE_URL;   // URL complète (http://…)
         $urls = [];
@@ -25,6 +26,14 @@ final class SitemapController extends AbstractController
         // Catégories
         foreach ($categoryRepository->findForIndex() as $cat) {
             $urls[] = ['loc' => $this->generateUrl('front_category', ['slug' => $cat['slug']], $abs)];
+        }
+
+        // Sous-catégories qui ont au moins un produit publié
+        foreach ($subCategoryRepository->findIndexablePairs() as $pair) {
+            $urls[] = ['loc' => $this->generateUrl('front_subcategory', [
+                'slug' => $pair['categorySlug'],
+                'sousCategorie' => $pair['subCategorySlug'],
+            ], $abs)];
         }
 
         // Produits actifs

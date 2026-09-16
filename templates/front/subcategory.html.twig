@@ -1,10 +1,9 @@
 {% extends 'front/base.html.twig' %}
 
-{% block canonical %}{{ url('front_category', { slug: category.slug }) }}{% if app.request.query.getInt('page', 1) > 1 %}?page={{ app.request.query.getInt('page') }}{% endif %}{% endblock %}
+{% block canonical %}{{ url('front_subcategory', { slug: category.slug, sousCategorie: subCategory.slug }) }}{% if app.request.query.getInt('page', 1) > 1 %}?page={{ app.request.query.getInt('page') }}{% endif %}{% endblock %}
 
-{% block title %}{{ category.metaTitle ?? (category.name ~ ' — Brillance Home') }}{% endblock %}
-{% block meta_description %}{{ category.metaDescription ?: (category.name ~ ' — Brillance Home, ameublement d\'intérieur à Bordeaux.') }}{% endblock %}
-
+{% block title %}{{ subCategory.metaTitle ?? (subCategory.name ~ ' à Bordeaux | Brillance Home') }}{% endblock %}
+{% block meta_description %}{{ subCategory.metaDescription ?: (subCategory.name ~ ' à Bordeaux — showroom rue Suffren. Tissu et coloris au choix, fabrication sur commande.') }}{% endblock %}
 
 {% block json_ld %}
     {% set breadcrumb = {
@@ -12,7 +11,8 @@
         '@type': 'BreadcrumbList',
         'itemListElement': [
             { '@type': 'ListItem', 'position': 1, 'name': 'Accueil', 'item': url('front_home') },
-            { '@type': 'ListItem', 'position': 2, 'name': category.name, 'item': url('front_category', { slug: category.slug }) }
+            { '@type': 'ListItem', 'position': 2, 'name': category.name, 'item': url('front_category', { slug: category.slug }) },
+            { '@type': 'ListItem', 'position': 3, 'name': subCategory.name, 'item': url('front_subcategory', { slug: category.slug, sousCategorie: subCategory.slug }) }
         ]
     } %}
     <script type="application/ld+json">{{ breadcrumb|json_encode|raw }}</script>
@@ -26,44 +26,43 @@
         <nav class="breadcrumb" aria-label="Fil d'Ariane">
             <a href="{{ path('front_home') }}">Accueil</a>
             <span aria-hidden="true">›</span>
-            <span>{{ category.name }}</span>
+            <a href="{{ path('front_category', { slug: category.slug }) }}">{{ category.name }}</a>
+            <span aria-hidden="true">›</span>
+            <span>{{ subCategory.name }}</span>
         </nav>
 
-        {# --- Titre + intro de la catégorie --- #}
-        {% set paragraphes = (category.seoText ?? '')|replace({"\r\n": "\n"})|split("\n\n")|filter(p => p|trim) %}
+        {# --- Titre + intro --- #}
+        {% set paragraphes = (subCategory.seoText ?? '')|replace({"\r\n": "\n"})|split("\n\n")|filter(p => p|trim) %}
         <div class="section-head">
-            <h1>{{ category.name }}</h1>
+            <h1>{{ subCategory.name }} à Bordeaux</h1>
             {% if paragraphes|length %}
                 <p>{{ paragraphes|first|trim|nl2br }}</p>
             {% endif %}
         </div>
 
-        {# --- Filtres sous-catégorie --- #}
+        {# --- Puces : retour à la catégorie entière + autres sous-catégories --- #}
         {% if subCategories %}
             <nav class="subcats" aria-label="Filtrer par type">
-                <a href="{{ path('front_category', { slug: category.slug }) }}" class="chip is-active">Tous</a>
+                <a href="{{ path('front_category', { slug: category.slug }) }}" class="chip">Tous</a>
                 {% for sc in subCategories %}
                     <a href="{{ path('front_subcategory', { slug: category.slug, sousCategorie: sc.slug }) }}"
-                       class="chip">{{ sc.name }}</a>
+                       class="chip {{ sc.id == subCategory.id ? 'is-active' }}">{{ sc.name }}</a>
                 {% endfor %}
             </nav>
         {% endif %}
 
-        {# --- Grille produits (pagination = SEULEMENT les 12 de la page) --- #}
+        {# --- Grille produits --- #}
         <div class="grid-produits">
             {% for product in pagination %}
                 {{ include('front/_product_card.html.twig', { product: product }) }}
-            {% else %}
-                <p class="empty">Aucun produit dans cette catégorie pour le moment.</p>
             {% endfor %}
         </div>
 
-        {# --- Liens « ‹ 1 2 3 › » générés par KnpPaginator --- #}
         <div class="pagination">
             {{ knp_pagination_render(pagination) }}
         </div>
 
-        {# --- Suite du texte de catégorie --- #}
+        {# --- Suite du texte --- #}
         {% if paragraphes|length > 1 %}
             <div class="category-seo">
                 {% for p in paragraphes|slice(1) %}

@@ -42,4 +42,19 @@ class SubCategoryRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    // Couples catégorie / sous-catégorie ayant au moins un produit publié → pour le sitemap
+    public function findIndexablePairs(): array
+    {
+        return $this->createQueryBuilder('sc')
+            ->select('c.slug AS categorySlug', 'sc.slug AS subCategorySlug')
+            ->join('sc.products', 'p')
+            ->join('p.category', 'c')
+            ->andWhere('p.isActive = true')
+            ->distinct()
+            ->orderBy('c.slug', 'ASC')
+            ->addOrderBy('sc.slug', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 }

@@ -28,12 +28,18 @@ final class CatalogController extends AbstractController
         // Les sous-catégories utiles de cette catégorie (pour les puces de filtre)
         $subCategories = $subCategoryRepository->findUsedInCategory($category);
 
-        // Filtre éventuel : lire ?sous-categorie=slug dans l'URL et retrouver la sous-catégorie
-        $currentSubCategory = null;
+        // L'ancienne adresse ?sous-categorie=… a sa propre page maintenant : redirection définitive
         $slugSubCategory = $request->query->get('sous-categorie');
         if ($slugSubCategory) {
-            $currentSubCategory = $subCategoryRepository->findOneBy(['slug' => $slugSubCategory]);
+            $ancienne = $subCategoryRepository->findOneBy(['slug' => $slugSubCategory]);
+            if ($ancienne) {
+                return $this->redirectToRoute('front_subcategory', [
+                    'slug' => $category->getSlug(),
+                    'sousCategorie' => $ancienne->getSlug(),
+                ], 301);
+            }
         }
+        $currentSubCategory = null;
 
         // ?page= dans l'URL, 1 par défaut
         $page = $request->query->getInt('page', 1);
@@ -59,6 +65,55 @@ final class CatalogController extends AbstractController
             'category' => $category,
             'subCategories' => $subCategories,
             'currentSubCategory' => $currentSubCategory,
+            'pagination' => $pagination,
+        ]);
+    }
+
+    #[Route('/categorie/{slug}/{sousCategorie}', name: 'front_subcategory', methods: ['GET'])]
+    public function subCategory(
+        string $slug,
+        string $sousCategorie,
+        Request $request,
+        CategoryRepository $categoryRepository,
+        ProductRepository $productRepository,
+        SubCategoryRepository $subCategoryRepository,
+        PaginatorInterface $paginator
+    ): Response {
+        $category = $categoryRepository->findOneBy(['slug' => $slug]);
+        if (!$category) {
+            throw $this->createNotFoundException('Cette catégorie n\'existe pas.');
+        }
+
+        $subCategory = $subCategoryRepository->findOneBy(['slug' => $sousCategorie]);
+        if (!$subCategory) {
+            throw $this->createNotFoundException('Cette sous-catégorie n\'existe pas.');
+        }
+
+        $page = $request->query->getInt('page', 1);
+        if ($page < 1) {
+            throw $this->createNotFoundException('Cette page n\'existe pas.');
+        }
+
+        $pagination = $paginator->paginate(
+            $productRepository->findActiveByCategoryQuery($category, $subCategory),
+            $page,
+            self::PRODUCTS_PER_PAGE
+        );
+
+        // Une sous-catégorie sans produit dans cette catégorie n'a pas de page
+        if ($pagination->getTotalItemCount() === 0) {
+            throw $this->createNotFoundException('Cette page n\'existe pas.');
+        }
+
+        $lastPage = max(1, (int) ceil($pagination->getTotalItemCount() / self::PRODUCTS_PER_PAGE));
+        if ($page > $lastPage) {
+            throw $this->createNotFoundException('Cette page n\'existe pas.');
+        }
+
+        return $this->render('front/subcategory.html.twig', [
+            'category' => $category,
+            'subCategory' => $subCategory,
+            'subCategories' => $subCategoryRepository->findUsedInCategory($category),
             'pagination' => $pagination,
         ]);
     }
