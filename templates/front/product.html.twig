@@ -4,6 +4,9 @@
 
 {% block meta_description %}{{ product.metaDescription ?: (product.name ~ ' — découvrez ce produit chez Brillance Home à Bordeaux. Commande et conseil sur WhatsApp.') }}{% endblock %}
 
+{% block og_type %}product{% endblock %}
+{% block og_image %}{% if product.mainMedia %}{{ vich_uploader_asset(product.mainMedia, 'imageFile')|imagine_filter('galerie') }}{% else %}{{ parent() }}{% endif %}{% endblock %}
+
 {% block json_ld %}
     {% set data = {
         '@context': 'https://schema.org',
@@ -179,8 +182,8 @@
                         </details>
                     {% endif %}
                     <details class="accord">
-                        <summary>Livraison &amp; entretien</summary>
-                        <p>Fabrication sur commande, puis livraison. Montage compris en Gironde. Entretien : brossage doux, nettoyage délicat.</p>
+                        <summary>Livraison</summary>
+                        <p>Fabrication sur commande, puis livraison et installation partout en France. Le tarif dépend du volume et de la destination : il vous est communiqué avec votre devis.</p>
                     </details>
                 </div>
 
@@ -214,7 +217,7 @@
             <div class="reassurance-card">
                 <i class="fa-solid fa-credit-card"></i>
                 <h3>Paiement facilité</h3>
-                <p>Réglez en 2, 3 ou 4 fois sans frais.</p>
+                <p>Réglez en 2, 3 ou 4 fois SANS FRAIS.</p>
             </div>
         </div>
 

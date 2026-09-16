@@ -10,6 +10,24 @@
     {% block robots %}{% endblock %}
     <meta name="description" content="{% block meta_description %}Brillance Home — spécialiste de l'ameublement intérieur à Bordeaux : salon, salle à manger, chambre et literie.{% endblock %}">
 
+    {# Aperçu des liens partagés #}
+    <meta property="og:site_name" content="Brillance Home">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{{ block('title') }}">
+    <meta property="og:description" content="{{ block('meta_description') }}">
+    <meta property="og:url" content="{{ block('canonical') }}">
+    <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('images/partage.jpg')) }}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+
+    {# Favicon #}
+    <link rel="icon" type="image/png" href="{{ asset('favicon-96x96.png') }}" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <meta name="robots" content="max-image-preview:large">
+
     {# Polices Google : Jost (logo) + Montserrat (interface et texte) #}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,6 +93,8 @@
                 <h4>Showroom</h4>
                 <p>12 bis rue Suffren</p>
                 <p>33300 Bordeaux</p>
+                <p><a href="tel:+33781071071">07 81 07 10 71</a></p>
+                <p><a href="tel:+33695324151">06 95 32 41 51</a></p>
                 <p>Lun–Sam · 11h–18h</p>
                 <p>Dimanche · 14h–17h</p>
             </div>
