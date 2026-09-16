@@ -29,11 +29,12 @@
             <span>{{ category.name }}</span>
         </nav>
 
-        {# --- Titre + texte SEO de la catégorie --- #}
+        {# --- Titre + intro de la catégorie --- #}
+        {% set paragraphes = (category.seoText ?? '')|replace({"\r\n": "\n"})|split("\n\n")|filter(p => p|trim) %}
         <div class="section-head">
             <h1>{{ category.name }}</h1>
-            {% if category.seoText %}
-                <p>{{ category.seoText }}</p>
+            {% if paragraphes|length %}
+                <p>{{ paragraphes|first|trim|nl2br }}</p>
             {% endif %}
         </div>
 
@@ -62,6 +63,15 @@
         <div class="pagination">
             {{ knp_pagination_render(pagination) }}
         </div>
+
+        {# --- Suite du texte de catégorie --- #}
+        {% if paragraphes|length > 1 %}
+            <div class="category-seo">
+                {% for p in paragraphes|slice(1) %}
+                    <p>{{ p|trim|nl2br }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
 
     </div>
 </section>
