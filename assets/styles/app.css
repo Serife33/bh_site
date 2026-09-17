@@ -756,6 +756,34 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     outline: 1px solid var(--txt);   /* liseré fin autour */
     outline-offset: 3px;             /* ⭐ l'écart blanc entre la pastille et le liseré */
 }
+/* --- Touches de variantes (configurations, dimensions) --- */
+.variant-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.variant-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 94px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    color: var(--txt);
+    text-decoration: none;
+    transition: all .15s;
+}
+.variant-chip:hover { border-color: var(--accent); }
+.variant-chip .variant-dim { font-size: 14px; font-weight: 600; }
+.variant-chip .variant-price { font-size: 12px; color: var(--txt2); }
+.variant-chip.is-active {
+    border-color: var(--txt);
+    background: var(--txt);
+    color: #fff;
+}
+.variant-chip.is-active .variant-price { color: rgba(255, 255, 255, .7); }
 
 /* ===== NUANCIER PAR TISSU (cascade du configurateur) ===== */
 
@@ -970,18 +998,6 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .reassurance-card i { font-size: 24px; color: var(--accent); }
 .reassurance-card h3 { font-size: 16px; margin: 12px 0 6px; }
 .reassurance-card p { font-size: 14px; color: var(--txt2); line-height: 1.5; }
-
-.variant-select {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 13px;
-    font-family: inherit;
-    color: var(--txt);
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    cursor: pointer;
-}
 
 .similar { margin: 48px 0 24px; }
 .similar h2 { font-size: 22px; margin-bottom: 20px; }

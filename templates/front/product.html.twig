@@ -158,16 +158,26 @@
                         </div>
                     {% endif %}
 
-                {# Variantes : menu déroulant #}
-                {% set variants = product.family ? product.family.products|filter(v => v.isActive and v.isModular.value != 'module') : [] %}
+                {# Variantes : une touche par configuration, chacune menant à sa fiche #}
+                {% set variants = product.family
+                    ? product.family.products|filter(v => v.isActive and v.isModular.value != 'module')|sort((a, b) => a.position - b.position)
+                    : [] %}
                 {% if variants|length > 1 %}
+                    {% set famille = product.family.name %}
+                    {% set labelActuel = product.name|replace({ (famille): '' })|trim %}
                     <div class="cfg-group">
-                        <h3 class="cfg-title">Configuration</h3>
-                        <select class="variant-select" aria-label="Choisir une configuration">
+                        <h3 class="cfg-title">Configuration : <span class="cfg-choice">{{ labelActuel ?: product.name }}</span></h3>
+                        <div class="variant-row">
                             {% for v in variants %}
-                                <option value="{{ path('front_product', { slug: v.slug }) }}" {{ v.id == product.id ? 'selected' }}>{{ v.name }}</option>
+                                {% set label = v.name|replace({ (famille): '' })|trim %}
+                                <a href="{{ path('front_product', { slug: v.slug }) }}"
+                                   class="variant-chip{{ v.id == product.id ? ' is-active' }}"
+                                   {{ v.id == product.id ? 'aria-current="page"' }}>
+                                    <span class="variant-dim">{{ label ?: v.name }}</span>
+                                    <span class="variant-price">{{ v.actualPrice|number_format(0, ',', ' ') }} €</span>
+                                </a>
                             {% endfor %}
-                        </select>
+                        </div>
                     </div>
                 {% endif %}
 
@@ -190,7 +200,7 @@
                 {# Accordéons #}
                 <div class="accordions">
                     {% if product.description %}
-                        <details class="accord" open>
+                        <details class="accord">
                             <summary>Description</summary>
                             <p>{{ product.description|nl2br }}</p>
                         </details>
