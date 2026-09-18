@@ -805,6 +805,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 }
 .variant-chip.is-active .variant-price { color: rgba(255, 255, 255, .7); }
 
+
 /* Le « +N » prend la forme d'une touche, pas celle d'un échantillon carré */
 .variant-row .swatch-more {
     width: auto;
@@ -813,6 +814,19 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-radius: var(--r);
     font-size: 14px;
     font-weight: 600;
+}
+/* Le « +N » des tissus prend la forme d'un bouton tissu, pas d'un échantillon carré */
+.mat-row .swatch-more {
+    width: auto;
+    height: auto;
+    padding: 8px 16px;
+    border-radius: var(--r);
+    font-size: 14px;
+}
+/* Chaque ligne de tissus occupe toute la largeur : les boutons se partagent l'espace libre */
+.mat-row .mat-opt {
+    flex: 1 1 auto;
+    max-width: none;
 }
 
 /* ===== NUANCIER PAR TISSU (cascade du configurateur) ===== */

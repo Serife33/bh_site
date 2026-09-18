@@ -109,7 +109,7 @@
 
                 {# Configurateur : swatches avec révélation « +N » #}
                     {% if product.fabrics|length %}
-                        {% set maxFabrics = 4 %}
+                        {% set maxFabrics = 3 %}
                         <div class="cfg-group swatch-group">
                             <h3 class="cfg-title">Tissu : <span class="cfg-choice" data-choice="fabric">{{ product.fabrics|first.name }}</span></h3>
                             <div class="mat-row">
@@ -200,7 +200,7 @@
 
                 {# Finitions : uniquement pour les produits SANS tissu (bois, laque, métal) #}
                     {% if product.colors|length and product.fabrics|length == 0 %}
-                        <div class="cfg-group swatch-group">
+                        <div class="cfg-group swatch-group nuancier-group is-visible">
                             <h3 class="cfg-title">Finition : <span class="cfg-choice" data-choice="color">{{ product.colors|first.name }}</span></h3>
                             <div class="col-row">
                                 {% for color in product.colors %}
