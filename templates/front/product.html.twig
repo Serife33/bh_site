@@ -118,11 +118,35 @@
                                             data-fabric="{{ fabric.name }}" data-fabric-id="{{ fabric.id }}">{{ fabric }}</button>
                                 {% endfor %}
                                 {% if product.fabrics|length > maxFabrics %}
-                                    <button type="button" class="swatch-more">+{{ product.fabrics|length - maxFabrics }}</button>
+                                    <button type="button" class="swatch-more" data-panneau="tissus-{{ product.id }}">+{{ product.fabrics|length - maxFabrics }}</button>
                                 {% endif %}
                             </div>
-                        </div>
 
+                            {# Panneau : tous les tissus du produit #}
+                            <dialog class="nuancier-panneau" id="tissus-{{ product.id }}">
+                                <div class="panneau-in">
+                                    <div class="panneau-head">
+                                        <div>
+                                            <h2>Choisir un tissu</h2>
+                                            <p>{{ product.fabrics|length }} tissus disponibles</p>
+                                        </div>
+                                        <button type="button" class="panneau-close" aria-label="Fermer">✕</button>
+                                    </div>
+                                    <div class="panneau-body">
+                                        <div class="panneau-liste">
+                                            {% for fabric in product.fabrics %}
+                                                <button type="button" class="panneau-ligne{{ loop.first ? ' is-active' }}" data-fabric-id="{{ fabric.id }}">
+                                                    <span class="ligne-nom">{{ fabric.name }}</span>
+                                                    {% if fabric.fabricColors|length %}
+                                                        <span class="ligne-info">{{ fabric.fabricColors|length }} coloris</span>
+                                                    {% endif %}
+                                                </button>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </dialog>
+                        </div>
                         {# Un nuancier par tissu — seul celui du tissu actif est visible #}
                         {% for fabric in product.fabrics %}
                             {% if fabric.fabricColors|length %}
@@ -132,13 +156,43 @@
                                     <div class="col-row">
                                         {% for fc in fabric.fabricColors %}
                                             <button type="button" class="col-dot{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxColors ? ' swatch-extra' }}"
-                                                    data-color="{{ fc.name }}" aria-label="{{ fc.name }}" title="{{ fc.name }}"
+                                                    data-color="{{ fc.name }}" data-index="{{ loop.index0 }}"
+                                                    aria-label="{{ fc.name }}" title="{{ fc.name }}"
                                                     {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></button>
                                         {% endfor %}
                                         {% if fabric.fabricColors|length > maxColors %}
-                                            <button type="button" class="swatch-more">+{{ fabric.fabricColors|length - maxColors }}</button>
+                                            <button type="button" class="swatch-more" data-panneau="nuancier-{{ fabric.id }}">+{{ fabric.fabricColors|length - maxColors }}</button>
                                         {% endif %}
                                     </div>
+
+                                    {# Panneau : tous les coloris du tissu, en grand #}
+                                    <dialog class="nuancier-panneau" id="nuancier-{{ fabric.id }}">
+                                        <div class="panneau-in">
+                                            <div class="panneau-head">
+                                                <div>
+                                                    <h2>Choisir un coloris</h2>
+                                                    <p>{{ fabric.name }} · {{ fabric.fabricColors|length }} coloris</p>
+                                                </div>
+                                                <button type="button" class="panneau-close" aria-label="Fermer">✕</button>
+                                            </div>
+                                            <div class="panneau-body">
+                                                <div class="panneau-grid">
+                                                    {% for fc in fabric.fabricColors %}
+                                                        <button type="button" class="panneau-opt{{ loop.first ? ' is-active' }}"
+                                                                data-color="{{ fc.name }}" data-index="{{ loop.index0 }}">
+                                                            <span class="echantillon"
+                                                                  {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></span>
+                                                            <span class="echantillon-nom">{{ fc.name }}</span>
+                                                        </button>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <div class="panneau-foot">
+                                                <span class="panneau-courant">Sélectionné : <strong>{{ fabric.fabricColors|first.name }}</strong></span>
+                                                <button type="button" class="btn-valider">Valider</button>
+                                            </div>
+                                        </div>
+                                    </dialog>
                                 </div>
                             {% endif %}
                         {% endfor %}
@@ -163,20 +217,29 @@
                     ? product.family.products|filter(v => v.isActive and v.isModular.value != 'module')|sort((a, b) => a.position - b.position)
                     : [] %}
                 {% if variants|length > 1 %}
-                    {% set famille = product.family.name %}
-                    {% set labelActuel = product.name|replace({ (famille): '' })|trim %}
-                    <div class="cfg-group">
-                        <h3 class="cfg-title">Configuration : <span class="cfg-choice">{{ labelActuel ?: product.name }}</span></h3>
+                    {# Libellé des touches : si le nom contient une dimension (140x200, 160*200, 180×200),
+                       on n'affiche qu'elle. Sinon — canapés, modules — on garde le nom complet. #}
+                    {% set motif = '/^\\d{2,3}[x×*]\\d{2,3}$/ui' %}
+                    {% set dimActuelle = product.name|split(' ')|filter(m => m matches motif) %}
+                    {% set maxVariants = 4 %}
+                    {# Si la configuration affichée est au-delà des 4 premières, on ouvre d'emblée :
+                       sinon sa touche serait masquée et rien ne paraîtrait sélectionné. #}
+                    {% set deplie = product.id not in variants|slice(0, maxVariants)|map(v => v.id) %}
+                    <div class="cfg-group swatch-group{{ deplie ? ' is-expanded' }}">
+                        <h3 class="cfg-title">Configuration : <span class="cfg-choice">{{ dimActuelle|length ? dimActuelle|first : product.name }}</span></h3>
                         <div class="variant-row">
                             {% for v in variants %}
-                                {% set label = v.name|replace({ (famille): '' })|trim %}
+                                {% set dim = v.name|split(' ')|filter(m => m matches motif) %}
                                 <a href="{{ path('front_product', { slug: v.slug }) }}"
-                                   class="variant-chip{{ v.id == product.id ? ' is-active' }}"
+                                   class="variant-chip{{ v.id == product.id ? ' is-active' }}{{ loop.index0 >= maxVariants ? ' swatch-extra' }}"
                                    {{ v.id == product.id ? 'aria-current="page"' }}>
-                                    <span class="variant-dim">{{ label ?: v.name }}</span>
+                                    <span class="variant-dim">{{ dim|length ? dim|first : v.name }}</span>
                                     <span class="variant-price">{{ v.actualPrice|number_format(0, ',', ' ') }} €</span>
                                 </a>
                             {% endfor %}
+                            {% if variants|length > maxVariants %}
+                                <button type="button" class="swatch-more">+{{ variants|length - maxVariants }}</button>
+                            {% endif %}
                         </div>
                     </div>
                 {% endif %}

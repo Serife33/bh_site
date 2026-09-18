@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\HasLifecycleCallbacks]   // dit à Doctrine : "cette entité a des callbacks, va les chercher"
@@ -21,9 +22,15 @@ class Product
     private ?int $id = null;
 
     #[ORM\Column(length: 160)]
+    #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
+    #[Assert\Length(max: 160, maxMessage: 'Le nom ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $name = null;
 
     #[ORM\Column(length: 180)]
+    #[Assert\Regex(
+        pattern: '/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+        message: "L'adresse ne doit contenir que des minuscules, des chiffres et des tirets — ni accents, ni espaces, ni majuscules."
+    )]
     private ?string $slug = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -33,12 +40,24 @@ class Product
     private ?string $dimension = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Assert\NotNull(message: 'Le prix initial est obligatoire.')]
+    #[Assert\Positive(message: 'Le prix doit être supérieur à 0.')]
+    #[Assert\LessThanOrEqual(value: 50000, message: 'Le prix ne peut pas dépasser {{ compared_value }} €.')]
     private ?string $initialPrice = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Assert\NotNull(message: 'Le prix actuel est obligatoire.')]
+    #[Assert\Positive(message: 'Le prix doit être supérieur à 0.')]
+    #[Assert\LessThanOrEqual(
+        propertyPath: 'initialPrice',
+        message: 'Le prix actuel ne peut pas dépasser le prix initial.'
+    )]
     private ?string $actualPrice = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: 'Le stock est obligatoire (0 = sur commande).')]
+    #[Assert\PositiveOrZero(message: 'Le stock ne peut pas être négatif.')]
+    #[Assert\LessThanOrEqual(value: 9999, message: 'Stock invraisemblable : {{ compared_value }} maximum.')]
     private ?int $stock = null;
 
     #[ORM\Column]
@@ -51,18 +70,30 @@ class Product
     private ?ProductSide $sideLr = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'Le délai doit être un nombre de semaines positif.')]
+    #[Assert\LessThanOrEqual(value: 104, message: 'Deux ans maximum ({{ compared_value }} semaines).')]
     private ?int $leadMinWeeks = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'Le délai doit être un nombre de semaines positif.')]
+    #[Assert\LessThanOrEqual(value: 104, message: 'Deux ans maximum ({{ compared_value }} semaines).')]
+    #[Assert\GreaterThanOrEqual(
+        propertyPath: 'leadMinWeeks',
+        message: 'Le délai maxi doit être supérieur ou égal au délai mini.'
+    )]
     private ?int $leadMaxWeeks = null;
 
     #[ORM\Column(length: 180, nullable: true)]
+    #[Assert\Length(max: 70, maxMessage: 'Google coupe vers 60 caractères. Maximum {{ limit }}.')]
     private ?string $metaTitle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 165, maxMessage: 'Google coupe vers 160 caractères. Maximum {{ limit }}.')]
     private ?string $metaDescription = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "L'ordre d'affichage est obligatoire.")]
+    #[Assert\Positive(message: "L'ordre d'affichage doit être un nombre positif.")]
     private ?int $position = null;
 
     #[ORM\Column]

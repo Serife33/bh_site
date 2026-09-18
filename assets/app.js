@@ -26,44 +26,61 @@ document.addEventListener('click', (e) => {
 });
 
 
-// Galerie fiche produit : clic sur une miniature → défile le carrousel
-document.addEventListener('click', (e) => {
-    const thumb = e.target.closest('.gal-thumb');
-    if (!thumb) return;
-
-    const gallery = thumb.closest('.gallery');
+// ===== Galerie fiche produit =====
+document.querySelectorAll('.gallery').forEach((gallery) => {
     const viewport = gallery.querySelector('.gal-viewport');
-    const index = Number(thumb.dataset.index);
+    if (!viewport) return;
 
-    // fait défiler le carrousel jusqu'à la photo choisie
-    viewport.scrollTo({ left: viewport.children[index].offsetLeft, behavior: 'smooth' });
+    const slides = [...viewport.children];
+    const thumbs = [...gallery.querySelectorAll('.gal-thumb')];
+    const bande  = gallery.querySelector('.gal-thumbs');
+    if (!slides.length) return;
 
-    // met à jour la miniature active
-    gallery.querySelectorAll('.gal-thumb').forEach(t => t.classList.remove('is-active'));
-    thumb.classList.add('is-active');
-});
-
-
-// Galerie fiche produit : flèches précédent / suivant
-document.addEventListener('click', (e) => {
-    const arrow = e.target.closest('.gal-prev, .gal-next');
-    if (!arrow) return;
-
-    const viewport = arrow.closest('.gallery').querySelector('.gal-viewport');
-    const step = arrow.classList.contains('gal-next') ? viewport.clientWidth : -viewport.clientWidth;
-    viewport.scrollBy({ left: step, behavior: 'smooth' });
-});
-
-
-// Galerie : garder la miniature active synchronisée avec la photo visible
-document.querySelectorAll('.gal-viewport').forEach((viewport) => {
-    viewport.addEventListener('scroll', () => {
-        const index = Math.round(viewport.scrollLeft / viewport.clientWidth);
-        const gallery = viewport.closest('.gallery');
-        gallery.querySelectorAll('.gal-thumb').forEach((thumb, i) => {
-            thumb.classList.toggle('is-active', i === index);
+    // Photo actuellement affichée : celle dont le bord gauche est
+    // le plus proche du bord du cadre. On lit les positions réelles,
+    // donc le gap et les arrondis ne faussent plus rien.
+    const indexCourant = () => {
+        let best = 0, ecart = Infinity;
+        slides.forEach((slide, i) => {
+            const d = Math.abs(slide.offsetLeft - viewport.scrollLeft);
+            if (d < ecart) { ecart = d; best = i; }
         });
+        return best;
+    };
+
+    // Met le contour sur la bonne miniature et la ramène dans le champ
+    const marquer = (i) => {
+        thumbs.forEach((t, k) => t.classList.toggle('is-active', k === i));
+        if (bande && thumbs[i]) {
+            const t = thumbs[i];
+            bande.scrollTo({
+                left: t.offsetLeft - (bande.clientWidth - t.clientWidth) / 2,
+                behavior: 'smooth',
+            });
+        }
+    };
+
+    // Le modulo fait la boucle : après la dernière photo on revient à la première
+    const allerA = (i) => {
+        const n = slides.length;
+        const cible = ((i % n) + n) % n;
+        viewport.scrollTo({ left: slides[cible].offsetLeft, behavior: 'smooth' });
+        marquer(cible);
+    };
+
+    thumbs.forEach((thumb, i) => thumb.addEventListener('click', () => allerA(i)));
+
+    gallery.querySelector('.gal-prev')?.addEventListener('click', () => allerA(indexCourant() - 1));
+    gallery.querySelector('.gal-next')?.addEventListener('click', () => allerA(indexCourant() + 1));
+
+    // Défilement au doigt ou à la molette : on resynchronise une fois posé
+    let attente;
+    viewport.addEventListener('scroll', () => {
+        clearTimeout(attente);
+        attente = setTimeout(() => marquer(indexCourant()), 150);
     });
+
+    marquer(0);
 });
 
 
@@ -73,10 +90,12 @@ function updateDevis() {
     if (!btn) return;
 
     const fabric = document.querySelector('.mat-opt.is-active')?.dataset.fabric;
-    const color = document.querySelector('.nuancier-group.is-visible .col-dot.is-active, .swatch-group .col-dot.is-active')?.dataset.color;
+    const color = (document.querySelector('.nuancier-group.is-visible .col-dot.is-active')
+                || document.querySelector('.swatch-group .col-dot.is-active'))?.dataset.color;
 
     const fLabel = document.querySelector('.cfg-choice[data-choice="fabric"]');
-    const cLabel = document.querySelector('.cfg-choice[data-choice="color"]');
+    const cLabel = document.querySelector('.nuancier-group.is-visible .cfg-choice[data-choice="color"]')
+                || document.querySelector('.swatch-group .cfg-choice[data-choice="color"]');
     if (fLabel && fabric) fLabel.textContent = fabric;
     if (cLabel && color)  cLabel.textContent = color;
 
@@ -130,10 +149,61 @@ document.addEventListener('click', (e) => {
 });
 
 
-// Swatches : révéler les options supplémentaires (+N)
+// Swatches : le « +N » ouvre son panneau s'il en a un, sinon déplie sur place
 document.addEventListener('click', (e) => {
     const more = e.target.closest('.swatch-more');
-    if (more) more.closest('.swatch-group').classList.add('is-expanded');
+    if (!more) return;
+    const panneau = more.dataset.panneau ? document.getElementById(more.dataset.panneau) : null;
+    if (panneau) panneau.showModal();
+    else more.closest('.swatch-group')?.classList.add('is-expanded');
+});
+
+// Panneau nuancier : choisir un coloris, puis fermer
+document.addEventListener('click', (e) => {
+    const panneau = e.target.closest('.nuancier-panneau');
+    if (!panneau) return;
+
+    // croix, bouton Valider, ou clic sur le fond sombre
+    if (e.target.closest('.panneau-close, .btn-valider') || e.target === panneau) {
+        panneau.close();
+        return;
+    }
+
+    const opt = e.target.closest('.panneau-opt');
+    if (!opt) return;
+
+    panneau.querySelectorAll('.panneau-opt.is-active').forEach(o => o.classList.remove('is-active'));
+    opt.classList.add('is-active');
+    panneau.querySelector('.panneau-courant strong').textContent = opt.dataset.color;
+
+    // on reporte le choix sur la ligne d'aperçu de la fiche
+    const groupe = panneau.closest('.nuancier-group');
+    const dot = groupe?.querySelector('.col-dot[data-index="' + opt.dataset.index + '"]');
+    if (dot) {
+        groupe.querySelectorAll('.col-dot.is-active').forEach(d => d.classList.remove('is-active'));
+        groupe.querySelectorAll('.col-dot.swatch-shown').forEach(d => d.classList.remove('swatch-shown'));
+        dot.classList.add('is-active');
+        if (dot.classList.contains('swatch-extra')) dot.classList.add('swatch-shown');
+    }
+    updateDevis();
+});
+
+// Panneau tissus : choisir un tissu, puis fermer
+document.addEventListener('click', (e) => {
+    const ligne = e.target.closest('.panneau-ligne');
+    if (!ligne) return;
+
+    const bouton = document.querySelector('.mat-opt[data-fabric-id="' + ligne.dataset.fabricId + '"]');
+    if (bouton) {
+        // si ce tissu fait partie des masqués, on le rend visible sur la fiche
+        if (bouton.classList.contains('swatch-extra')) {
+            document.querySelectorAll('.mat-opt.swatch-shown').forEach(b => b.classList.remove('swatch-shown'));
+            bouton.classList.add('swatch-shown');
+        }
+        bouton.click();   // réutilise la logique existante : nuancier, libellé, message WhatsApp
+    }
+
+    ligne.closest('.nuancier-panneau')?.close();
 });
 
 

@@ -42,14 +42,22 @@ class ProductType extends AbstractType
         ])
         ->add('initialPrice', MoneyType::class, [
             'label' => 'Prix initial',
-            'currency' => 'EUR',  // affiche le symbole € 
+            'currency' => 'EUR',
+            'scale' => 2,
+            'html5' => true,
+            'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01'],
         ])
         ->add('actualPrice', MoneyType::class, [
             'label' => 'Prix actuel (promo si < prix initial)',
             'currency' => 'EUR',
+            'scale' => 2,
+            'html5' => true,
+            'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01'],
+            'help' => "Recopie le prix initial s'il n'y a pas de promotion.",
         ])
         ->add('stock', IntegerType::class, [
             'label' => 'Stock (0 = sur commande)',
+            'attr' => ['min' => 0, 'max' => 9999],
         ])
         ->add('isCustomMade', CheckboxType::class, [
             'label' => 'Fabrication sur mesure',
@@ -76,11 +84,13 @@ class ProductType extends AbstractType
         ])
         ->add('leadMinWeeks', IntegerType::class, [
             'label' => 'Délai mini (semaines)',
-            'required' => false // nullable en base 
+            'required' => false,
+            'attr' => ['min' => 1, 'max' => 104],
         ])
         ->add('leadMaxWeeks', IntegerType::class, [
             'label' => 'Délai maxi (semaines)',
-            'required' => false
+            'required' => false,
+            'attr' => ['min' => 1, 'max' => 104],
         ])
 
         // Relations 
@@ -108,6 +118,7 @@ class ProductType extends AbstractType
         ->add('fabrics', EntityType::class, [
             'label' => 'Tissus disponibles',
             'class' => Fabric::class,
+            'choice_label' => 'name',
             'multiple' => true,
             'expanded' => true,
             'required' => false,
@@ -124,21 +135,27 @@ class ProductType extends AbstractType
         ])
         // Seo
         ->add('metaTitle', TextType::class, [
-            'label' => 'Meta title (SEO)',
-            'required' => false
+            'label' => 'Titre pour Google',
+            'required' => false,
+            'attr' => ['maxlength' => 70],
+            'help' => "Vide = le nom du produit suivi de « — Brillance Home ». 60 caractères idéalement.",
         ])
         ->add('metaDescription', TextareaType::class, [
-            'label' => 'Meta description (SEO)',
-            'required' => false
+            'label' => 'Description pour Google',
+            'required' => false,
+            'attr' => ['maxlength' => 165, 'rows' => 3],
+            'help' => "Le texte sous le titre dans les résultats. 150 à 160 caractères.",
         ])
         ->add('slug', TextType::class, [
             'label' => 'Adresse de la page',
             'required' => false,
             'empty_data' => '',
-            'help' => "Laisse vide pour la générer depuis le nom. Attention : la modifier change l'adresse publique du produit.",
+            'help' => "Laisse vide pour la générer depuis le nom. Minuscules, chiffres et tirets uniquement. Attention : la modifier change l'adresse publique du produit.",
         ])
         ->add('position', IntegerType::class, [
-            'label' => 'Position (ordre d\'affichage)'
+            'label' => "Position (ordre d'affichage)",
+            'attr' => ['min' => 1],
+            'help' => "1 = en tête de sa catégorie.",
         ])
         ->add('isActive', CheckboxType::class, [
             'label' => 'Produit visible sur le site',

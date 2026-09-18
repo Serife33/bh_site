@@ -636,30 +636,38 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     max-width: 640px;   /* borne la largeur (fini le "trop grand") */
 }
 .gal-viewport {
+    position: relative;
     display: flex;
-    gap: 8px;
-    overflow-x: auto;                 /* défilement horizontal */
+    gap: 0;                           /* aucun écart : une photo = tout le cadre */
+    overflow-x: auto;
     scroll-snap-type: x mandatory;    /* s'arrête pile sur une photo */
     scroll-behavior: smooth;
     border-radius: var(--r);
 }
 .gal-viewport img {
-    flex: 0 0 100%;                   /* 1 photo = toute la largeur du cadre */
-    scroll-snap-align: center;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
     width: 100%;
-    aspect-ratio: 4 / 3;             /* le cadre régulier */
-    object-fit: cover;               /* remplit sans déformer */
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
     border-radius: var(--r);
-}
-
-.gal-viewport {
-    position: relative;   /* ← AJOUT (repère pour le défilement JS) */
 }
 .gal-thumbs {
     display: flex;
     gap: 8px;
     margin-top: 8px;
-    overflow-x: auto;     /* la bande défile si beaucoup de photos */
+    overflow-x: auto;                 /* la bande défile si beaucoup de photos */
+    scroll-behavior: smooth;
+}
+/* Barres de défilement masquées : on navigue aux flèches et aux miniatures */
+.gal-viewport,
+.gal-thumbs {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.gal-viewport::-webkit-scrollbar,
+.gal-thumbs::-webkit-scrollbar {
+    display: none;
 }
 .gal-thumb {
     flex: 0 0 72px;
@@ -677,7 +685,11 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     display: block;
 }
 .gal-thumb.is-active {
-    border-color: var(--accent);   /* la miniative active s'entoure */
+    border-color: var(--accent);   /* la miniature active s'entoure */
+}
+@media (max-width: 480px) {
+    .gal-thumb { flex: 0 0 56px; }
+    .gal-thumb img { width: 56px; height: 56px; }
 }
 
 
@@ -758,17 +770,18 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 }
 /* --- Touches de variantes (configurations, dimensions) --- */
 .variant-row {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
     gap: 10px;
 }
 .variant-chip {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 2px;
-    min-width: 94px;
-    padding: 8px 16px;
+    min-width: 0;
+    padding: 10px 12px;
     border: 1px solid var(--border);
     border-radius: var(--r);
     color: var(--txt);
@@ -776,7 +789,14 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     transition: all .15s;
 }
 .variant-chip:hover { border-color: var(--accent); }
-.variant-chip .variant-dim { font-size: 14px; font-weight: 600; }
+.variant-chip .variant-dim {
+    font-size: 14px;
+    font-weight: 600;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .variant-chip .variant-price { font-size: 12px; color: var(--txt2); }
 .variant-chip.is-active {
     border-color: var(--txt);
@@ -784,6 +804,16 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     color: #fff;
 }
 .variant-chip.is-active .variant-price { color: rgba(255, 255, 255, .7); }
+
+/* Le « +N » prend la forme d'une touche, pas celle d'un échantillon carré */
+.variant-row .swatch-more {
+    width: auto;
+    height: auto;
+    padding: 10px 12px;
+    border-radius: var(--r);
+    font-size: 14px;
+    font-weight: 600;
+}
 
 /* ===== NUANCIER PAR TISSU (cascade du configurateur) ===== */
 
@@ -968,9 +998,20 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 }
 .swatch-more:hover { border-color: var(--accent); color: var(--accent); }
 
-/* Sur petit écran, on réduit les échantillons pour qu'ils tiennent sur une ligne */
+/* Sur petit écran, les échantillons se partagent la largeur pour tenir sur une seule ligne */
 @media (max-width: 480px) {
-  .col-dot, .swatch-more { width: 52px; height: 52px; }
+  .col-row {
+      flex-wrap: nowrap;
+  }
+  .col-row .col-dot,
+  .col-row .swatch-more {
+      flex: 1 1 0;
+      min-width: 0;
+      width: auto;
+      height: auto;
+      max-width: 64px;
+      aspect-ratio: 1 / 1;
+  }
 }
 /* Déplié : grille de 3 colonnes avec de grands échantillons */
 .swatch-group.is-expanded .col-row {
@@ -979,6 +1020,146 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     gap: 10px;
 }
 .swatch-group.is-expanded .col-dot { width: 100%; height: 110px; }
+
+/* --- Panneau nuancier --- */
+.nuancier-panneau {
+    border: none;
+    padding: 0;
+    border-radius: 16px;
+    width: min(560px, calc(100vw - 32px));
+    max-height: min(720px, calc(100vh - 48px));
+    background: #fff;
+    color: var(--txt);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+    overflow: hidden;
+}
+.nuancier-panneau::backdrop { background: rgba(26, 26, 24, .45); }
+.panneau-in { display: flex; flex-direction: column; max-height: inherit; }
+
+.panneau-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+}
+.panneau-head h2 { font-size: 17px; font-weight: 600; margin: 0; }
+.panneau-head p { font-size: 13px; color: var(--txt2); margin: 2px 0 0; }
+.panneau-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg2);
+    color: var(--txt);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-family: inherit;
+}
+.panneau-close:hover { background: var(--border); }
+
+.panneau-body { overflow-y: auto; padding: 22px; }
+.panneau-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 18px 14px;
+}
+.panneau-opt {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+.panneau-opt .echantillon {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background-size: cover;
+    background-position: center;
+}
+.panneau-opt:hover .echantillon { border-color: var(--accent); }
+.panneau-opt.is-active .echantillon { outline: 2px solid var(--txt); outline-offset: 2px; }
+.panneau-opt .echantillon-nom { font-size: 12px; color: var(--txt2); text-align: center; }
+.panneau-opt.is-active .echantillon-nom { color: var(--txt); font-weight: 600; }
+
+.panneau-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 22px;
+    border-top: 1px solid var(--border);
+    flex: 0 0 auto;
+}
+.panneau-courant { font-size: 13px; color: var(--txt2); }
+.panneau-courant strong { color: var(--txt); font-weight: 600; }
+.btn-valider {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 999px;
+    background: var(--txt);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* Une option choisie dans un panneau reste visible sur la fiche */
+.swatch-extra.swatch-shown { display: inline-block; }
+
+/* Liste verticale du panneau tissus */
+.panneau-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.panneau-ligne {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 16px;
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    background: none;
+    color: var(--txt);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+}
+.panneau-ligne:hover { border-color: var(--accent); }
+.panneau-ligne.is-active {
+    border-color: var(--txt);
+    background: var(--txt);
+    color: #fff;
+}
+.ligne-nom { font-size: 14px; font-weight: 600; }
+.ligne-info { font-size: 12px; color: var(--txt2); }
+.panneau-ligne.is-active .ligne-info { color: rgba(255, 255, 255, .7); }
+
+/* Un nom de tissu très long ne doit pas occuper toute la ligne */
+.mat-opt {
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .panneau-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+}
 
 .reassurance-grid {
     display: grid;
