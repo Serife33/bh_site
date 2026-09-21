@@ -213,7 +213,7 @@
                     {% endif %}
 
                 {# Variantes : une touche par configuration, chacune menant à sa fiche #}
-                {% set variants = product.family
+                {% set variants = product.family and product.isModular.value != 'module'
                     ? product.family.products|filter(v => v.isActive and v.isModular.value != 'module')|sort((a, b) => a.position - b.position)
                     : [] %}
                 {% if variants|length > 1 %}
@@ -314,21 +314,54 @@
             </div>
         </div>
 
-        {% if product.modules|length %}
+        {# Fiche d'un canapé modulable : ses modules visibles, dans l'ordre du glisser-déposer #}
+        {% set modulesVisibles = product.modules|filter(m => m.isActive)|sort((a, b) => (a.position - b.position) ?: (a.id - b.id)) %}
+        {% if modulesVisibles|length %}
         <section class="modules-produit">
             <h2>Composez votre {{ product.family ? product.family.name : product.name }}</h2>
             <p class="modules-intro">
                 Chaque module est disponible à l'unité. Cliquez pour découvrir ses dimensions et son prix.
             </p>
             <div class="grid-produits">
-                {% for module in product.modules %}
+                {% for module in modulesVisibles %}
                     {{ include('front/_product_card.html.twig', { product: module }) }}
                 {% endfor %}
             </div>
         </section>
         {% endif %}
+
+        {# Fiche d'un module : on mène vers les canapés de la gamme et vers les autres modules #}
+        {% if product.isModular.value == 'module' and product.family %}
+            {% set gamme = product.family.products|filter(p => p.isActive)|sort((a, b) => (a.position - b.position) ?: (a.id - b.id)) %}
+            {% set canapesGamme = gamme|filter(p => p.isModular.value != 'module') %}
+            {% set autresModules = gamme|filter(p => p.isModular.value == 'module' and p.id != product.id) %}
+
+            {% if canapesGamme|length %}
+            <section class="modules-produit">
+                <h2>Les canapés {{ product.family.name }}</h2>
+                <p class="modules-intro">Les compositions de la gamme, prêtes à commander.</p>
+                <div class="grid-produits">
+                    {% for canape in canapesGamme %}
+                        {{ include('front/_product_card.html.twig', { product: canape }) }}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if autresModules|length %}
+            <section class="modules-produit">
+                <h2>Les autres modules {{ product.family.name }}</h2>
+                <p class="modules-intro">Chaque module est disponible à l'unité.</p>
+                <div class="grid-produits">
+                    {% for module in autresModules %}
+                        {{ include('front/_product_card.html.twig', { product: module }) }}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        {% endif %}
         
-        {% if similar %}
+        {% if similar and product.isModular.value != 'module' %}
         <section class="similar">
             <h2>Vous aimerez aussi</h2>
             <div class="grid-produits">
