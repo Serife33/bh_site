@@ -31,6 +31,58 @@ class ProductRepository extends ServiceEntityRepository
         ;
     }
 
+    // Page « Ordre d'affichage » : tous les produits d'une catégorie, dans l'ordre du site.
+    // Modules et produits masqués compris : chacun garde une vraie place.
+    // Projection → des tableaux, pas des objets : seulement ce que la liste affiche.
+    public function findForOrdering(Category $category): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('p.id', 'p.name', 'p.isActive', 'p.isModular')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $category)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC') // départage : deux positions égales sortent toujours dans le même ordre
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+
+    // Enregistre un nouvel ordre : le 1er identifiant reçoit la position 1, le 2e la position 2…
+    // UPDATE direct : seule la colonne position change, updatedAt ne bouge pas
+    // (le lastmod du sitemap et le tri des promos restent justes).
+    // Tout ou rien : si une requête échoue, aucune position n'est modifiée.
+    public function updatePositions(array $ids): void
+    {
+        $requete = $this->createQueryBuilder('p')
+            ->update()
+            ->set('p.position', ':position')
+            ->where('p.id = :id')
+            ->getQuery();
+
+        $this->getEntityManager()->wrapInTransaction(function () use ($requete, $ids) {
+            foreach (array_values($ids) as $rang => $id) {
+                $requete->setParameter('position', $rang + 1)
+                        ->setParameter('id', $id)
+                        ->execute();
+            }
+        });
+    }
+
+    // Accueil : tous les produits visibles hors modules, avec leurs photos (pour les cartes).
+    // Le service HomeSectionsBuilder applique ensuite les règles des trois sections.
+    public function findActiveForHome(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')    // les photos arrivent avec les produits : pas une requête par carte
+            ->andWhere('p.isActive = true')
+            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble.
+            ->setParameter('module', ProductModular::Module)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
     // Les derniers produits actifs (pour la grille "Nouveautés" de l'accueil).
     public function findLatestActive(int $limit = 8): array

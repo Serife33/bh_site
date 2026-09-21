@@ -8,9 +8,11 @@ use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Repository\CategoryRepository;
 
 #[Route('/admin/product')]
 final class ProductController extends AbstractController
@@ -32,6 +34,49 @@ final class ProductController extends AbstractController
         return $this->render('product/index.html.twig', [
             'pagination' => $pagination,
         ]);
+    }
+
+
+    // Page « Ordre d'affichage » : ranger les produits d'une catégorie à la souris.
+    #[Route('/ordre', name: 'app_product_order', methods: ['GET'])]
+    public function order(
+        Request $request,
+        CategoryRepository $categoryRepository,
+        ProductRepository $productRepository
+    ): Response {
+        $categories = $categoryRepository->findBy([], ['name' => 'ASC']);
+
+        // Catégorie choisie dans le menu déroulant ; la première de la liste par défaut
+        $id = $request->query->getInt('categorie');
+        $category = $id ? $categoryRepository->find($id) : ($categories[0] ?? null);
+
+        if ($id && !$category) {
+            throw $this->createNotFoundException("Cette catégorie n'existe pas.");
+        }
+
+        return $this->render('product/order.html.twig', [
+            'categories' => $categories,
+            'category'   => $category,
+            'products'   => $category ? $productRepository->findForOrdering($category) : [],
+        ]);
+    }
+
+    // Enregistre le nouvel ordre envoyé par la page : renumérotation 1, 2, 3…
+    #[Route('/ordre', name: 'app_product_order_save', methods: ['POST'])]
+    public function orderSave(Request $request, ProductRepository $productRepository): JsonResponse
+    {
+        $payload = $request->getPayload();
+
+        if (!$this->isCsrfTokenValid('ordre', $payload->getString('_token'))) {
+            return new JsonResponse(['ok' => false, 'message' => 'Jeton invalide.'], 403);
+        }
+
+        // Les identifiants dans leur nouvel ordre, nettoyés
+        $ids = array_values(array_filter(array_map('intval', $payload->all('ids'))));
+
+        $productRepository->updatePositions($ids);
+
+        return new JsonResponse(['ok' => true, 'total' => count($ids)]);
     }
 
     // Créer un produit — GET affiche le formulaire, POST le traite

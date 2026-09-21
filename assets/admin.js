@@ -1,4 +1,5 @@
 import './stimulus_bootstrap.js';
+import Sortable from 'sortablejs';
 
 // ===== Nuancier d'un tissu : ajouter ou retirer une ligne de coloris =====
 document.addEventListener('click', (e) => {
@@ -19,3 +20,66 @@ document.addEventListener('click', (e) => {
     const retirer = e.target.closest('.btn-supprimer-ligne');
     if (retirer) retirer.closest('.nuancier-ligne').remove();
 });
+
+
+
+// ===== Page « Ordre d'affichage » : ranger les produits à la souris =====
+
+// Le menu déroulant des catégories recharge la page tout seul.
+document.addEventListener('change', (e) => {
+    if (e.target.id === 'choix-categorie') {
+        e.target.form.requestSubmit();
+    }
+});
+
+function activerGlisser() {
+    const liste = document.getElementById('liste-ordre');
+    // Pas sur cette page, ou déjà branché : on ne fait rien.
+    if (!liste || Sortable.get(liste)) return;
+
+    Sortable.create(liste, {
+        animation: 150,
+        handle: '.ordre-poignee',   // on ne tire que la poignée
+        ghostClass: 'ordre-fantome',
+        onEnd: () => enregistrerOrdre(liste),
+    });
+}
+
+async function enregistrerOrdre(liste) {
+    const lignes = [...liste.querySelectorAll('li')];
+    const message = document.getElementById('ordre-message');
+
+    // Renumérotation à l'écran : 1, 2, 3…
+    lignes.forEach((ligne, i) => {
+        const rang = ligne.querySelector('.ordre-rang');
+        if (rang) rang.textContent = i + 1;
+    });
+
+    if (message) message.textContent = 'Enregistrement…';
+
+    try {
+        const reponse = await fetch(liste.dataset.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ids: lignes.map((ligne) => ligne.dataset.id),
+                _token: liste.dataset.token,
+            }),
+        });
+
+        const donnees = await reponse.json();
+
+        if (message) {
+            message.textContent = donnees.ok
+                ? 'Ordre enregistré.'
+                : (donnees.message ?? "L'enregistrement a échoué.");
+        }
+    } catch (erreur) {
+        if (message) message.textContent = "L'enregistrement a échoué : rechargez la page.";
+    }
+}
+
+// Turbo remplace le <body> sans relancer le script : on rebranche à chaque navigation.
+document.addEventListener('turbo:load', activerGlisser);
+// Filet de sécurité si Turbo est coupé un jour.
+document.addEventListener('DOMContentLoaded', activerGlisser);

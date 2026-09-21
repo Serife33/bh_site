@@ -314,3 +314,73 @@
   outline: 2px solid #8B6F4E;
   outline-offset: 2px;
 }
+
+
+/* ===== PAGE « ORDRE D'AFFICHAGE » ===== */
+.ordre-choix {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: 1rem 0 1.5rem;
+}
+
+#liste-ordre {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 660px;
+}
+
+.ordre-ligne {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  background: #fff;
+  border: 1px solid #E5E0D8;
+  border-radius: 10px;
+  padding: .7rem .9rem;
+  margin-bottom: .5rem;
+}
+
+/* Seule la poignée déclenche le déplacement : le lien Modifier reste cliquable */
+.ordre-poignee {
+  cursor: grab;
+  color: #8B6F4E;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.ordre-rang {
+  min-width: 1.6rem;
+  text-align: center;
+  font-weight: 700;
+  color: #8B6F4E;
+}
+
+.ordre-nom { flex: 1; }
+
+.ordre-etiquette {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: #F1EDE6;
+  color: #6B6B63;
+  border-radius: 999px;
+  padding: .15rem .55rem;
+}
+
+/* Produit masqué sur le site : ligne atténuée, mais elle garde sa place */
+.ordre-ligne.est-masque { opacity: .55; }
+
+/* Emplacement d'arrivée pendant le déplacement */
+.ordre-fantome {
+  opacity: .4;
+  background: #F1EDE6;
+  border-style: dashed;
+}
+
+.ordre-message {
+  min-height: 1.4em;
+  font-size: 14px;
+  color: #6B6B63;
+}

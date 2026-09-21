@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ordre d'affichage{% endblock %}
+
+{% block body %}
+    <h1>Ordre d'affichage</h1>
+    <p>Faites glisser les produits par leur poignée pour changer leur ordre sur le site.
+       L'enregistrement est automatique.</p>
+
+    {# Choix de la catégorie : simple formulaire en GET, il recharge la page #}
+    <form method="get" action="{{ path('app_product_order') }}" class="ordre-choix">
+        <label for="choix-categorie">Catégorie</label>
+        <select id="choix-categorie" name="categorie">
+            {% for c in categories %}
+                <option value="{{ c.id }}" {% if category and c.id == category.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Afficher</button>
+    </form>
+
+    {% if products|length %}
+        {# data-url et data-token : tout ce dont le JavaScript a besoin pour enregistrer #}
+        <ul id="liste-ordre"
+            data-url="{{ path('app_product_order_save') }}"
+            data-token="{{ csrf_token('ordre') }}">
+            {% for p in products %}
+                <li class="ordre-ligne{% if not p.isActive %} est-masque{% endif %}" data-id="{{ p.id }}">
+                    <span class="ordre-poignee" aria-hidden="true">⠿</span>
+                    <span class="ordre-rang">{{ loop.index }}</span>
+                    <span class="ordre-nom">{{ p.name }}</span>
+                    {% if not p.isActive %}<span class="ordre-etiquette">masqué</span>{% endif %}
+                    {% if p.isModular.value == 'module' %}<span class="ordre-etiquette">module</span>{% endif %}
+                    <a href="{{ path('app_product_edit', {id: p.id}) }}">Modifier</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <p id="ordre-message" role="status" aria-live="polite" class="ordre-message"></p>
+    {% else %}
+        <p>Aucun produit dans cette catégorie.</p>
+    {% endif %}
+{% endblock %}
