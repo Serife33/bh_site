@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\CategoryRepository;
+use App\Service\ProductDuplicator;
 
 #[Route('/admin/product')]
 final class ProductController extends AbstractController
@@ -130,6 +131,30 @@ final class ProductController extends AbstractController
         return $this->render('product/edit.html.twig', [
             'product' => $product,
             'form' => $form
+        ]);
+    }
+
+
+    // Dupliquer un produit — GET : formulaire pré-rempli, POST : crée la copie avec ses photos
+    #[Route('/{id}/duplicate', name: 'app_product_duplicate', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function duplicate(Request $request, Product $product, EntityManagerInterface $em, ProductDuplicator $duplicator): Response
+    {
+        $copy = $duplicator->prepareCopy($product);
+        $form = $this->createForm(ProductType::class, $copy);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($copy);
+            $duplicator->copyPhotos($product, $copy);
+            $em->flush();
+
+            $this->addFlash('success', 'Copie créée, avec ses photos.');
+
+            return $this->redirectToRoute('app_product_show', ['id' => $copy->getId()]);
+        }
+
+        return $this->render('product/new.html.twig', [
+            'form' => $form,
         ]);
     }
 

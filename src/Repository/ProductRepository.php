@@ -212,9 +212,14 @@ class ProductRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->andWhere('p.isModular = :module')
             ->setParameter('module', ProductModular::Module)
-            ->andWhere('p != :courant')
-            ->setParameter('courant', $product)
             ->orderBy('p.name', 'ASC');
+
+        // Exclure le produit lui-même, seulement s'il existe déjà en base
+        // (une copie en cours de création n'a pas encore d'identifiant)
+        if ($product->getId() !== null) {
+            $qb->andWhere('p != :courant')
+               ->setParameter('courant', $product);
+        }
 
         if ($product->getFamily() !== null) {
             $qb->andWhere('p.family = :famille')

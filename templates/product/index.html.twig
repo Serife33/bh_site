@@ -26,6 +26,7 @@
                 <td>
                     <a href="{{ path('app_product_show', {id: product.id}) }}">Voir</a>
                     <a href="{{ path('app_product_edit', {id: product.id}) }}">Modifier</a>
+                    <a href="{{ path('app_product_duplicate', {id: product.id}) }}">Dupliquer</a>
                 </td>
             </tr>
         {% else %}
