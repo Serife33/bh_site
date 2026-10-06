@@ -22,14 +22,49 @@ class ProductRepository extends ServiceEntityRepository
     }
 
 
-    public function findAllOrderedQuery(): Query
-    {
-        return $this->createQueryBuilder('p') // 'p' = alias du produit dans la requete
-            ->select('p.id', 'p.name', 'p.actualPrice', 'p.stock') // ← projection : que les colonnes de la liste
-            ->orderBy('p.position', 'ASC')
-            ->addOrderBy('p.id', 'ASC') // départage : cette liste mélange les catégories, les ex æquo y sont inévitables et la pagination en oublierait
-            ->getQuery() // Query pas getResult(), la query n'est pas executée 
-        ;
+    // Liste du back-office : tous les produits, modules et masqués compris,
+    // filtrés par la barre de recherche. Chaque critère est optionnel : null = pas de filtre.
+    // Projection → des tableaux, pas des objets : seulement les colonnes affichées.
+    public function findForAdminQuery(
+        ?string $search = null,
+        ?Category $category = null,
+        ?SubCategory $subCategory = null,
+        ?bool $inStock = null,
+        ?bool $visible = null,
+    ): Query {
+        $qb = $this->createQueryBuilder('p')
+            ->select('p.id', 'p.name', 'p.actualPrice', 'p.stock', 'p.position', 'p.isActive', 'c.name AS categoryName')
+            ->leftJoin('p.category', 'c')
+            ->orderBy('c.name', 'ASC')      // les produits d'une même catégorie restent groupés
+            ->addOrderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC');    // départage : sans clé finale unique, la pagination oublie des lignes
+
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('p.name LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        if ($category !== null) {
+            $qb->andWhere('p.category = :category')
+               ->setParameter('category', $category);
+        }
+
+        if ($subCategory !== null) {
+            $qb->join('p.subCategories', 'sc')
+               ->andWhere('sc = :subCategory')
+               ->setParameter('subCategory', $subCategory);
+        }
+
+        if ($inStock !== null) {
+            $qb->andWhere($inStock ? 'p.stock > 0' : 'p.stock = 0');
+        }
+
+        if ($visible !== null) {
+            $qb->andWhere('p.isActive = :visible')
+               ->setParameter('visible', $visible);
+        }
+
+        return $qb->getQuery();   // non exécutée : le paginator ajoutera le LIMIT
     }
 
     // Page « Ordre d'affichage » : tous les produits d'une catégorie, dans l'ordre du site.

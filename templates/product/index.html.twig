@@ -7,22 +7,65 @@
 
     <a href="{{ path('app_product_new') }}">+ Nouveau produit</a>
 
+    {# Formulaire en GET : les filtres restent dans l'adresse, donc dans les liens de pagination #}
+    <form method="get" class="filtres">
+        <input type="search" name="q" value="{{ filtres.q }}" placeholder="Rechercher un produit…" class="filtre-recherche">
+
+        <select name="categorie" id="filtre-categorie" class="filtre-auto">
+            <option value="">Toutes les catégories</option>
+            {% for categorie in categories %}
+                <option value="{{ categorie.id }}"{{ filtres.categorie == categorie.id ? ' selected' : '' }}>{{ categorie.name }}</option>
+            {% endfor %}
+        </select>
+
+        {# N'apparaît qu'une fois une catégorie choisie : la page se recharge au changement #}
+        {% if sousCategories %}
+            <select name="sousCategorie" id="filtre-sous-categorie" class="filtre-auto">
+                <option value="">Toutes les sous-catégories</option>
+                {% for sousCategorie in sousCategories %}
+                    <option value="{{ sousCategorie.id }}"{{ filtres.sousCategorie == sousCategorie.id ? ' selected' : '' }}>{{ sousCategorie.name }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+
+        <select name="stock" class="filtre-auto">
+            <option value="">Stock : tous</option>
+            <option value="oui"{{ filtres.stock == 'oui' ? ' selected' : '' }}>En stock</option>
+            <option value="non"{{ filtres.stock == 'non' ? ' selected' : '' }}>En rupture</option>
+        </select>
+
+        <select name="visible" class="filtre-auto">
+            <option value="">Visibilité : tous</option>
+            <option value="oui"{{ filtres.visible == 'oui' ? ' selected' : '' }}>Visibles</option>
+            <option value="non"{{ filtres.visible == 'non' ? ' selected' : '' }}>Masqués</option>
+        </select>
+
+        <button type="submit">Filtrer</button>
+        <a href="{{ path('app_product_index') }}" class="filtre-reset">Réinitialiser</a>
+    </form>
+
     <table>
         <thead>
             <tr>
                 <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Position</th>
                 <th>Prix</th>
                 <th>Stock</th>
+                <th>Visible</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {# On boucle sur la pagination : elle ne contient QUE les 20 produits de la page #}
         {% for product in pagination %}
-            <tr>
+            <tr{{ product.isActive ? '' : ' class="est-masque"' }}>
                 <td>{{ product.name }}</td>
+                <td>{{ product.categoryName }}</td>
+                <td>{{ product.position }}</td>
                 <td>{{ product.actualPrice }} €</td>
                 <td>{{ product.stock }}</td>
+                <td>{{ product.isActive ? 'Oui' : 'Non' }}</td>
                 <td>
                     <a href="{{ path('app_product_show', {id: product.id}) }}">Voir</a>
                     <a href="{{ path('app_product_edit', {id: product.id}) }}">Modifier</a>
@@ -30,8 +73,8 @@
                 </td>
             </tr>
         {% else %}
-            {# Ce bloc s'affiche si la boucle est vide (aucun produit) #}
-            <tr><td colspan="4">Aucun produit pour l'instant.</td></tr>
+            {# Ce bloc s'affiche si la boucle est vide #}
+            <tr><td colspan="7">Aucun produit ne correspond à ces critères.</td></tr>
         {% endfor %}
         </tbody>
     </table>

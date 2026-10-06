@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
+use App\Repository\SubCategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,15 +26,45 @@ final class ProductController extends AbstractController
     public function index(
         Request $request,
         ProductRepository $productRepository,
-        PaginatorInterface $paginator  // le service de pagination 
+        CategoryRepository $categoryRepository,
+        SubCategoryRepository $subCategoryRepository,
+        PaginatorInterface $paginator  // le service de pagination
     ): Response {
+        // Les filtres sont lus dans l'adresse : ils survivent à la pagination,
+        // et une recherche peut être mise en favori.
+        $search = trim($request->query->getString('q'));
+
+        $categoryId = (int) $request->query->getString('categorie');
+        $category = $categoryId ? $categoryRepository->find($categoryId) : null;
+
+        $subCategoryId = (int) $request->query->getString('sousCategorie');
+        $subCategory = $subCategoryId ? $subCategoryRepository->find($subCategoryId) : null;
+
+        // Trois états : « oui », « non », ou rien du tout — d'où le null plutôt qu'un booléen.
+        $stock = $request->query->getString('stock');
+        $inStock = $stock === '' ? null : $stock === 'oui';
+
+        $visibility = $request->query->getString('visible');
+        $visible = $visibility === '' ? null : $visibility === 'oui';
+
         $pagination = $paginator->paginate(
-            $productRepository->findAllOrderedQuery(), // Query non executée
+            $productRepository->findForAdminQuery($search, $category, $subCategory, $inStock, $visible),
             $request->query->getInt('page', 1), // numéro de page lu dans l'URL (?page=2), défaut 1
-            self::PRODUCTS_PER_PAGE,  // nombre de produits max par page 
+            self::PRODUCTS_PER_PAGE,
         );
+
         return $this->render('product/index.html.twig', [
-            'pagination' => $pagination,
+            'pagination'     => $pagination,
+            'categories'     => $categoryRepository->findBy([], ['name' => 'ASC']),
+            // Les sous-catégories n'ont de sens qu'une fois la catégorie choisie
+            'sousCategories' => $category ? $subCategoryRepository->findInCategoryForAdmin($category) : [],
+            'filtres'        => [
+                'q'             => $search,
+                'categorie'     => $category?->getId(),
+                'sousCategorie' => $subCategory?->getId(),
+                'stock'         => $stock,
+                'visible'       => $visibility,
+            ],
         ]);
     }
 

@@ -42,6 +42,21 @@ class SubCategoryRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+
+    // Variante admin de findUsedInCategory() : sans le filtre isActive.
+    // Le back-office doit pouvoir filtrer sur des produits masqués.
+    public function findInCategoryForAdmin(Category $category): array
+    {
+        return $this->createQueryBuilder('sc')
+            ->join('sc.products', 'p')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $category)
+            ->distinct()
+            ->orderBy('sc.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // Couples catégorie / sous-catégorie ayant au moins un produit publié → pour le sitemap
     public function findIndexablePairs(): array
     {

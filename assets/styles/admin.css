@@ -384,3 +384,32 @@
   font-size: 14px;
   color: #6B6B63;
 }
+
+
+/* ===== Barre de filtres de la liste Produits ===== */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.filtres input,
+.filtres select {
+  padding: 6px 10px;
+  border: 1px solid #D8D2C7;
+  border-radius: 4px;
+  font: inherit;
+  background: #fff;
+}
+
+.filtre-recherche { min-width: 220px; }
+
+.filtre-reset {
+  font-size: 14px;
+  color: #6B6B63;
+}
+
+/* Produit masqué sur le site : ligne atténuée */
+tr.est-masque { opacity: .55; }

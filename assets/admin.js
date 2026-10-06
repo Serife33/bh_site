@@ -32,6 +32,21 @@ document.addEventListener('change', (e) => {
     }
 });
 
+// ===== Barre de filtres de la liste Produits : les menus rechargent la page =====
+document.addEventListener('change', (e) => {
+    const champ = e.target.closest('.filtre-auto');
+    if (!champ) return;
+
+    // Changer de catégorie vide la sous-catégorie : l'ancienne n'existe sans doute
+    // pas dans la nouvelle, et le navigateur enverrait quand même sa valeur.
+    if (champ.id === 'filtre-categorie') {
+        const sousCategorie = document.getElementById('filtre-sous-categorie');
+        if (sousCategorie) sousCategorie.value = '';
+    }
+
+    champ.form.requestSubmit();
+});
+
 function activerGlisser() {
     const liste = document.getElementById('liste-ordre');
     // Pas sur cette page, ou déjà branché : on ne fait rien.
