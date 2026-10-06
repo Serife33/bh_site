@@ -82,13 +82,16 @@ final class ProductController extends AbstractController
 
     // Créer un produit — GET affiche le formulaire, POST le traite
     #[Route('/new', name: 'app_product_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request, EntityManagerInterface $em, ProductRepository $productRepository): Response
     {
         $product = new Product();
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
+            // La position n'est pas saisie : le produit se range à la fin de sa catégorie.
+            $product->setPosition($productRepository->nextPosition($product->getCategory()));
+
             $em->persist($product);
             $em->flush();
 
@@ -137,13 +140,17 @@ final class ProductController extends AbstractController
 
     // Dupliquer un produit — GET : formulaire pré-rempli, POST : crée la copie avec ses photos
     #[Route('/{id}/duplicate', name: 'app_product_duplicate', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function duplicate(Request $request, Product $product, EntityManagerInterface $em, ProductDuplicator $duplicator): Response
+    public function duplicate(Request $request, Product $product, EntityManagerInterface $em, ProductDuplicator $duplicator, ProductRepository $productRepository): Response
     {
         $copy = $duplicator->prepareCopy($product);
         $form = $this->createForm(ProductType::class, $copy);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Comme à la création : la copie va à la fin de sa catégorie,
+            // calculée sur la catégorie soumise et non sur celle de l'original.
+            $copy->setPosition($productRepository->nextPosition($copy->getCategory()));
+
             $em->persist($copy);
             $duplicator->copyPhotos($product, $copy);
             $em->flush();

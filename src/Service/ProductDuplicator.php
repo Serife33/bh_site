@@ -23,7 +23,8 @@ final class ProductDuplicator
 
     /**
      * Copie en mémoire, pas encore enregistrée : tout le contenu de l'original,
-     * sauf l'adresse (régénérée depuis le nouveau nom), le référencement et les photos.
+     * sauf l'adresse (régénérée depuis le nouveau nom), la position (attribuée à la fin
+     * de sa catégorie par le contrôleur) et les photos (recopiées par copyPhotos).
      */
     public function prepareCopy(Product $original): Product
     {
@@ -31,6 +32,8 @@ final class ProductDuplicator
             ->setName($original->getName() . ' (copie)')
             ->setSlug('') // vide : Product::generateSlug() la recrée depuis le nom à l'enregistrement
             ->setDescription($original->getDescription())
+            ->setMetaTitle($original->getMetaTitle())
+            ->setMetaDescription($original->getMetaDescription())
             ->setDimension($original->getDimension())
             ->setInitialPrice($original->getInitialPrice())
             ->setActualPrice($original->getActualPrice())
@@ -40,7 +43,6 @@ final class ProductDuplicator
             ->setSideLr($original->getSideLr())
             ->setLeadMinWeeks($original->getLeadMinWeeks())
             ->setLeadMaxWeeks($original->getLeadMaxWeeks())
-            ->setPosition($original->getPosition())
             ->setIsActive($original->isActive())
             ->setCategory($original->getCategory())
             ->setFamily($original->getFamily());

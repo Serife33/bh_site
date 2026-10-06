@@ -92,7 +92,6 @@ class Product
     private ?string $metaDescription = null;
 
     #[ORM\Column]
-    #[Assert\NotNull(message: "L'ordre d'affichage est obligatoire.")]
     #[Assert\Positive(message: "L'ordre d'affichage doit être un nombre positif.")]
     private ?int $position = null;
 

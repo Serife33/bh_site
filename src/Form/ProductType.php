@@ -152,11 +152,6 @@ class ProductType extends AbstractType
             'empty_data' => '',
             'help' => "Laisse vide pour la générer depuis le nom. Minuscules, chiffres et tirets uniquement. Attention : la modifier change l'adresse publique du produit.",
         ])
-        ->add('position', IntegerType::class, [
-            'label' => "Position (ordre d'affichage)",
-            'attr' => ['min' => 1],
-            'help' => "1 = en tête de sa catégorie.",
-        ])
         ->add('isActive', CheckboxType::class, [
             'label' => 'Produit visible sur le site',
             'required' => false

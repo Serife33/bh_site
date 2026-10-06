@@ -26,7 +26,8 @@ class ProductRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('p') // 'p' = alias du produit dans la requete
             ->select('p.id', 'p.name', 'p.actualPrice', 'p.stock') // ← projection : que les colonnes de la liste
-            ->orderBy('p.position', 'ASC') // tri par posititon (ordre d'affichage) croissant 
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC') // départage : cette liste mélange les catégories, les ex æquo y sont inévitables et la pagination en oublierait
             ->getQuery() // Query pas getResult(), la query n'est pas executée 
         ;
     }
@@ -66,6 +67,25 @@ class ProductRepository extends ServiceEntityRepository
                         ->execute();
             }
         });
+    }
+
+
+    // La première place libre dans une catégorie : un produit neuf — ou une copie —
+    // se range à la fin, il ne vient jamais s'asseoir sur la place d'un autre.
+    public function nextPosition(?Category $category): int
+    {
+        if ($category === null) {
+            return 1;
+        }
+
+        $max = $this->createQueryBuilder('p')
+            ->select('MAX(p.position)')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $category)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $max + 1;   // catégorie vide : MAX vaut null, la première place est 1
     }
 
     // Accueil : tous les produits visibles hors modules, avec leurs photos (pour les cartes).
@@ -136,7 +156,8 @@ class ProductRepository extends ServiceEntityRepository
             ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
             ->setParameter('category', $category)
             ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.position', 'ASC');
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC');
 
         // Filtre optionnel : seulement si une sous-catégorie est choisie
         if ($subCategory !== null) {
@@ -189,6 +210,7 @@ class ProductRepository extends ServiceEntityRepository
             ->andWhere('p.name LIKE :q OR p.description LIKE :q')
             ->setParameter('q', '%' . $q . '%')
             ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC')
             ->getQuery();   // non exécutée → le paginator ajoute le LIMIT
     }
 
