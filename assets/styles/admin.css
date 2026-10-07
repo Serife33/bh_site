@@ -503,3 +503,5 @@ tr.est-masque { opacity: .55; }
 }
 
 .photo-boutons form { margin: 0; }
+
+.photo-survol { background: #E3EAE2; color: #3E5B45; }

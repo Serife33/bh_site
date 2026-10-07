@@ -90,7 +90,6 @@ final class ProductDuplicator
                 ->setUrl($newName)
                 ->setAlt($media->getAlt())
                 ->setType($media->getType())
-                ->setIsMain($media->isMain())
                 ->setPosition($media->getPosition());
 
             $copy->addMedium($photo);

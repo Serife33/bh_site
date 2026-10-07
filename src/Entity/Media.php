@@ -36,9 +36,6 @@ class Media
     private ?string $type = 'photo';
 
     #[ORM\Column]
-    private ?bool $isMain = false;
-
-    #[ORM\Column]
     private ?int $position = 1;
 
     #[ORM\ManyToOne(inversedBy: 'media')]
@@ -82,18 +79,6 @@ class Media
     public function setType(string $type): static
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    public function isMain(): ?bool
-    {
-        return $this->isMain;
-    }
-
-    public function setIsMain(bool $isMain): static
-    {
-        $this->isMain = $isMain;
 
         return $this;
     }

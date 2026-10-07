@@ -3,9 +3,16 @@
 <a href="{{ path('front_product', { slug: product.slug }) }}" class="pcard">
     <div class="pcard-photo">
         {% set photo = product.mainMedia %}
+        {% set survol = product.hoverMedia %}
         {% if photo %}
             <img src="{{ vich_uploader_asset(photo, 'imageFile') | imagine_filter('vignette') }}"
                  alt="{{ photo.alt ?? product.name }}" loading="lazy">
+            {% if survol %}
+                {# Décorative : la première image porte déjà la description du produit #}
+                <img class="pcard-survol"
+                     src="{{ vich_uploader_asset(survol, 'imageFile') | imagine_filter('vignette') }}"
+                     alt="" aria-hidden="true" loading="lazy">
+            {% endif %}
         {% else %}
             <div class="pcard-noimg"></div>
         {% endif %}

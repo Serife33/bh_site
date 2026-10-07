@@ -287,6 +287,11 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .pcard:hover { box-shadow: 0 12px 30px rgba(26,26,24,.08); transform: translateY(-2px); }
 .pcard-photo { position: relative; aspect-ratio: 4/3; background: var(--bg2); }
 .pcard-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Seconde photo, révélée au survol de la carte */
+.pcard-survol { position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease; }
+.pcard:hover .pcard-survol { opacity: 1; }
+/* Écrans tactiles : pas de survol, donc pas d'image à charger */
+@media (hover: none) { .pcard-survol { display: none; } }
 .pcard-noimg { width: 100%; height: 100%; background: var(--bg2); }
 .pcard-badge { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; color: #fff; text-transform: uppercase; letter-spacing: .03em; }
 .pcard-badge.promo { background: var(--promo); }

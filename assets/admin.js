@@ -48,6 +48,32 @@ document.addEventListener('change', (e) => {
 });
 
 
+// « Vignette catalogue » sur la 1re photo, « Au survol » sur la 2e.
+// Twig les a posées au rendu : après un glisser, c'est à nous de les déplacer,
+// sinon elles restent en place jusqu'au rechargement de la page.
+function moveLabels(items) {
+    const labels = [
+        { className: 'photo-principale', text: 'Vignette catalogue' },
+        { className: 'photo-survol', text: 'Au survol' },
+    ];
+
+    // On retire les anciennes, où qu'elles soient.
+    items.forEach((item) => {
+        labels.forEach(({ className }) => item.querySelector('.' + className)?.remove());
+    });
+
+    // On les repose sur les deux premières cartes.
+    labels.forEach(({ className, text }, i) => {
+        const infos = items[i]?.querySelector('.photo-infos');
+        if (!infos) return;   // page « Ordre d'affichage » : rien à poser
+
+        const label = document.createElement('span');
+        label.className = 'photo-etiquette ' + className;
+        label.textContent = text;
+        infos.prepend(label);
+    });
+}
+
 async function enregistrerOrdre(liste) {
     const lignes = [...liste.querySelectorAll('li')];
     const message = document.getElementById('ordre-message');
@@ -57,6 +83,8 @@ async function enregistrerOrdre(liste) {
         const rang = ligne.querySelector('.ordre-rang');
         if (rang) rang.textContent = i + 1;
     });
+
+    moveLabels(lignes);
 
     if (message) message.textContent = 'Enregistrement…';
 

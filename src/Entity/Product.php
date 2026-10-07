@@ -540,16 +540,17 @@ class Product
     }
 
     
-    // Retourne la photo principale du produit (isMain) ou la première photo si aucune n'est marquée principale, ou null.
+    // La photo qui représente le produit partout ailleurs que dans sa galerie : vignette du catalogue, de l'accueil, et image de partage. C'est la première, donc c'est le glisser-déposer de la fiche produit qui la décide.
     public function getMainMedia(): ?Media
     {
-        foreach ($this->media as $medium) {
-            if ($medium->isMain()) {
-                return $medium;
-            }
-        }
-
         return $this->media->first() ?: null;
+    }
+
+    // Celle qui apparaît au survol de la carte : la deuxième de la galerie.
+    public function getHoverMedia(): ?Media
+    {
+        // slice() conserve les clés d'origine : la 2e photo revient sous la clé 1, pas 0. On remet à plat avant de la prendre.
+        return array_values($this->media->slice(1, 1))[0] ?? null;
     }
 
     // Représentation texte de l'entité — utilisée dans les listes de choix

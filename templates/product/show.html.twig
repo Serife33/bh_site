@@ -47,7 +47,8 @@
                     <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('vignette') }}" alt="{{ media.alt }}">
 
                     <div class="photo-infos">
-                        {% if media.isMain %}<span class="photo-etiquette photo-principale">Principale</span>{% endif %}
+                        {% if loop.first %}<span class="photo-etiquette photo-principale">Vignette catalogue</span>{% endif %}
+                        {% if loop.index == 2 %}<span class="photo-etiquette photo-survol">Au survol</span>{% endif %}
                         {% if media.alt is empty %}<span class="photo-etiquette photo-alerte">Alt manquant</span>{% endif %}
                         <span class="photo-alt">{{ media.alt }}</span>
                     </div>
