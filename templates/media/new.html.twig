@@ -1,12 +1,25 @@
-
 {% extends 'base.html.twig' %}
 
-{% block title %}Ajouter une photo{% endblock %}
+{% block title %}Ajouter des photos{% endblock %}
 
 {% block body %}
-    <h1>Ajouter une photo — {{ product.name }}</h1>
+    <h1>Ajouter des photos — {{ product.name }}</h1>
 
-    {{ include('media/_form.html.twig', {button_label: 'Enregistrer la photo'}) }}
+    <p class="photos-aide">
+        Tu peux sélectionner plusieurs fichiers d'un coup. Le texte alternatif est facultatif :
+        laissé vide, le site affiche le nom du produit.
+    </p>
+
+    {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+        {{ form_errors(form) }}
+
+        {{ form_row(form.images) }}
+
+        {# Conteneur de la collection : le JS y pose une vignette et un champ alt par fichier choisi #}
+        {{ form_widget(form.alts, {'attr': {'id': 'apercu-photos', 'class': 'apercu-photos'}}) }}
+
+        <button type="submit">Enregistrer les photos</button>
+    {{ form_end(form) }}
 
     <a href="{{ path('app_product_show', {id: product.id}) }}">← Retour au produit</a>
 {% endblock %}

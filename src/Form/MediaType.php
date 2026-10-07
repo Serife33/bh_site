@@ -38,13 +38,9 @@ class MediaType extends AbstractType
             ])
             ->add('alt', TextType::class, [
                 'label' => 'Texte alternatif',
-                'required' => true,
-                'help' => "Décrit l'image pour l'accessibilité et le référencement.",
-                'constraints' => [
-                    new Assert\NotBlank(
-                        message: "Le texte alternatif est obligatoire (accessibilité et référencement).",
-                    ),
-                ],
+                'required' => false,
+                'empty_data' => null,   // vide → null : sans ça, une chaîne vide donnerait alt="" sur le site
+                'help' => "Facultatif. Laissé vide, le site affiche le nom du produit.",
             ]);
     }
 

@@ -129,3 +129,116 @@ function activerGlisser() {
 document.addEventListener('turbo:load', activerGlisser);
 // Filet de sécurité si Turbo est coupé un jour.
 document.addEventListener('DOMContentLoaded', activerGlisser);
+
+
+// ===== Page « Ajouter des photos » : une vignette et un champ alt par fichier choisi =====
+// Les fichiers sont lus dans le navigateur, rien n'est envoyé avant la validation du
+// formulaire. Les champs alt sont créés ici ; le contrôleur les apparie aux fichiers par index,
+// d'où les noms photo_batch[alts][0], [1], [2]… que Symfony attend.
+function buildPhotoPreview(input) {
+    const container = document.getElementById('apercu-photos');
+    if (!container) return;
+
+    const prefix = container.getAttribute('name') || 'photo_batch[alts]';
+    container.replaceChildren();   // une nouvelle sélection remplace l'ancienne
+
+    [...input.files].forEach((file, index) => {
+        const row = document.createElement('div');
+        row.className = 'apercu-ligne';
+
+        const thumb = document.createElement('img');
+        thumb.src = URL.createObjectURL(file);
+        thumb.alt = '';
+        thumb.onload = () => URL.revokeObjectURL(thumb.src);   // la mémoire est rendue après l'affichage
+
+        const field = document.createElement('label');
+        field.className = 'apercu-champ';
+        field.textContent = file.name;
+
+        const alt = document.createElement('input');
+        alt.type = 'text';
+        alt.name = `${prefix}[${index}]`;
+        alt.maxLength = 180;   // longueur de la colonne alt
+        alt.placeholder = 'Texte alternatif (facultatif)';
+
+        field.appendChild(alt);
+        row.append(thumb, field);
+        container.appendChild(row);
+    });
+}
+
+// Délégation sur document : Turbo remplace le <body> sans relancer le script.
+document.addEventListener('change', (e) => {
+    if (e.target.matches('#photo_batch_images')) buildPhotoPreview(e.target);
+});
+
+
+// ===== Grille de photos : le texte alternatif s'enregistre en quittant le champ =====
+// Même principe que le glisser-déposer : pas de bouton, rien à oublier de cliquer,
+// et la ligne d'état « ordre-message » sert de confirmation.
+async function saveAltText(field) {
+    const grid = field.closest('#grille-photos');
+    const card = field.closest('.photo-carte');
+    const message = document.getElementById('ordre-message');
+
+    if (!grid || !card) return;
+    if (field.value === field.dataset.saved) return;   // rien n'a changé
+
+    if (message) message.textContent = 'Enregistrement…';
+
+    try {
+        const response = await fetch(grid.dataset.altUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: card.dataset.id,
+                alt: field.value,
+                _token: grid.dataset.altToken,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+            if (message) message.textContent = data.message ?? "L'enregistrement a échoué.";
+            return;
+        }
+
+        field.dataset.saved = field.value;
+        toggleMissingAltBadge(card, data.empty);
+        if (message) message.textContent = 'Texte alternatif enregistré.';
+    } catch (erreur) {
+        if (message) message.textContent = "L'enregistrement a échoué : rechargez la page.";
+    }
+}
+
+// L'étiquette rouge « Alt manquant » suit la saisie, sans rechargement.
+function toggleMissingAltBadge(card, isEmpty) {
+    const infos = card.querySelector('.photo-infos');
+    const existing = card.querySelector('.photo-alerte');
+
+    if (!isEmpty) {
+        existing?.remove();
+        return;
+    }
+
+    if (existing || !infos) return;
+
+    const badge = document.createElement('span');
+    badge.className = 'photo-etiquette photo-alerte';
+    badge.textContent = 'Alt manquant';
+    infos.insertBefore(badge, infos.querySelector('textarea.photo-alt'));
+}
+
+// focusout et non blur : blur ne remonte pas jusqu'à document, la délégation ne marcherait pas.
+document.addEventListener('focusout', (e) => {
+    if (e.target.matches('textarea.photo-alt')) saveAltText(e.target);
+});
+
+// Entrée enregistre au lieu d'insérer un retour à la ligne.
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('textarea.photo-alt')) {
+        e.preventDefault();
+        e.target.blur();
+    }
+});

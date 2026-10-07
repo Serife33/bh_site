@@ -33,12 +33,14 @@
     </p>
 
     {% if product.media|length %}
-        <p class="photos-aide">Tire une vignette par sa poignée ⠿ pour changer l'ordre sur le site. L'enregistrement est immédiat.</p>
+        <p class="photos-aide">Tire une vignette par sa poignée ⠿ pour changer l'ordre sur le site. Le texte alternatif s'enregistre dès que tu quittes le champ. Les deux sont immédiats.</p>
 
         <ul id="grille-photos"
             class="grille-photos"
             data-url="{{ path('app_media_order_save') }}"
-            data-token="{{ csrf_token('ordre-photos') }}">
+            data-token="{{ csrf_token('ordre-photos') }}"
+            data-alt-url="{{ path('app_media_alt_save') }}"
+            data-alt-token="{{ csrf_token('alt-photos') }}">
             {% for media in product.media %}
                 <li class="photo-carte" data-id="{{ media.id }}">
                     <span class="ordre-poignee" aria-hidden="true">⠿</span>
@@ -50,7 +52,12 @@
                         {% if loop.first %}<span class="photo-etiquette photo-principale">Vignette catalogue</span>{% endif %}
                         {% if loop.index == 2 %}<span class="photo-etiquette photo-survol">Au survol</span>{% endif %}
                         {% if media.alt is empty %}<span class="photo-etiquette photo-alerte">Alt manquant</span>{% endif %}
-                        <span class="photo-alt">{{ media.alt }}</span>
+                        <textarea class="photo-alt"
+                                  rows="2"
+                                  maxlength="180"
+                                  placeholder="Texte alternatif"
+                                  data-saved="{{ media.alt }}"
+                                  aria-label="Texte alternatif de la photo {{ loop.index }}">{{ media.alt }}</textarea>
                     </div>
 
                     <div class="photo-boutons">
