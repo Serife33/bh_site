@@ -413,3 +413,93 @@
 
 /* Produit masqué sur le site : ligne atténuée */
 tr.est-masque { opacity: .55; }
+
+
+
+/* ===== Grille des photos d'un produit ===== */
+.photos-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.photos-aide {
+  margin: 4px 0 16px;
+  font-size: 14px;
+  color: #6B6B63;
+}
+
+.grille-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.photo-carte {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #E5E0D8;
+  border-radius: 6px;
+}
+
+.photo-carte img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #FAF8F5;
+  border-radius: 4px;
+}
+
+.photo-carte .ordre-poignee,
+.photo-carte .ordre-rang {
+  position: absolute;
+  top: 8px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, .92);
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6B6B63;
+}
+
+.photo-carte .ordre-poignee { left: 8px; cursor: grab; font-size: 18px; }
+.photo-carte .ordre-rang    { right: 8px; font-weight: 600; }
+
+.photo-infos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.photo-alt {
+  color: #6B6B63;
+  overflow-wrap: anywhere;
+}
+
+.photo-etiquette {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.photo-principale { background: #EDE7DC; color: #6B5B3E; }
+.photo-alerte     { background: #F6DEDE; color: #8C2F2F; }
+
+.photo-boutons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.photo-boutons form { margin: 0; }

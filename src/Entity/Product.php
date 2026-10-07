@@ -133,7 +133,7 @@ class Product
      * @var Collection<int, Media>
      */
     #[ORM\OneToMany(targetEntity: Media::class, mappedBy: 'product', orphanRemoval: true)]
-    #[ORM\OrderBy(['position' => 'ASC'])] 
+    #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
     private Collection $media;
 
     #[ORM\Column]

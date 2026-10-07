@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Repository\MediaRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/admin')]
 final class MediaController extends AbstractController
@@ -33,7 +35,7 @@ final class MediaController extends AbstractController
 
 
     #[Route('/product/{id}/media/new', name: 'app_media_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function new (Request $request, Product $product, EntityManagerInterface $em): Response
+    public function new (Request $request, Product $product, EntityManagerInterface $em, MediaRepository $mediaRepository): Response
     {
         $media = new Media();
         $media->setProduct($product);
@@ -43,6 +45,9 @@ final class MediaController extends AbstractController
         $form->handleRequest($request); 
         
         if ($form->isSubmitted() && $form->isValid()) {
+            // La position n'est plus saisie : la photo se range à la fin de la galerie.
+            $media->setPosition($mediaRepository->nextPosition($product));
+
             $this->ensureSingleMainPhoto($media);
             $em->persist($media);
             $em->flush();
@@ -58,6 +63,24 @@ final class MediaController extends AbstractController
             'form' => $form,
             'product' => $product
         ]);
+    }
+
+    // Enregistre l'ordre envoyé par la grille de photos : renumérotation 1, 2, 3…
+    #[Route('/media/ordre', name: 'app_media_order_save', methods: ['POST'])]
+    public function orderSave(Request $request, MediaRepository $mediaRepository): JsonResponse
+    {
+        $payload = $request->getPayload();
+
+        if (!$this->isCsrfTokenValid('ordre-photos', $payload->getString('_token'))) {
+            return new JsonResponse(['ok' => false, 'message' => 'Jeton invalide.'], 403);
+        }
+
+        // Les identifiants dans leur nouvel ordre, nettoyés
+        $ids = array_values(array_filter(array_map('intval', $payload->all('ids'))));
+
+        $mediaRepository->updatePositions($ids);
+
+        return new JsonResponse(['ok' => true, 'total' => count($ids)]);
     }
 
     #[Route('/media/{id}/edit', name:'app_media_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]

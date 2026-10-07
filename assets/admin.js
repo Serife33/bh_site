@@ -47,18 +47,6 @@ document.addEventListener('change', (e) => {
     champ.form.requestSubmit();
 });
 
-function activerGlisser() {
-    const liste = document.getElementById('liste-ordre');
-    // Pas sur cette page, ou déjà branché : on ne fait rien.
-    if (!liste || Sortable.get(liste)) return;
-
-    Sortable.create(liste, {
-        animation: 150,
-        handle: '.ordre-poignee',   // on ne tire que la poignée
-        ghostClass: 'ordre-fantome',
-        onEnd: () => enregistrerOrdre(liste),
-    });
-}
 
 async function enregistrerOrdre(liste) {
     const lignes = [...liste.querySelectorAll('li')];
@@ -92,6 +80,21 @@ async function enregistrerOrdre(liste) {
     } catch (erreur) {
         if (message) message.textContent = "L'enregistrement a échoué : rechargez la page.";
     }
+}
+
+// Deux listes glissables dans le back-office : l'ordre des produits et la grille de photos.
+// Même code pour les deux : chacune porte son adresse d'enregistrement et son jeton.
+function activerGlisser() {
+    document.querySelectorAll('#liste-ordre, #grille-photos').forEach((liste) => {
+        if (Sortable.get(liste)) return;   // déjà branchée
+
+        Sortable.create(liste, {
+            animation: 150,
+            handle: '.ordre-poignee',   // on ne tire que la poignée
+            ghostClass: 'ordre-fantome',
+            onEnd: () => enregistrerOrdre(liste),
+        });
+    });
 }
 
 // Turbo remplace le <body> sans relancer le script : on rebranche à chaque navigation.

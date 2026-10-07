@@ -4,15 +4,12 @@ namespace App\Form;
 use App\Entity\Media;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 use Symfony\Component\Validator\Constraints as Assert;
 
-
-use function PHPUnit\Framework\isTrue;
 
 class MediaType extends AbstractType
 {
@@ -53,17 +50,7 @@ class MediaType extends AbstractType
             ->add('isMain', CheckboxType::class, [
                 'label' => 'Photo principale du produit',
                 'required' => false, // case à cocher = jamais required
-            ])
-            ->add('position', IntegerType::class, [
-                'label' => "Ordre d'affichage",
-                'attr' => ['min' => 1],
-                'constraints' => [
-                    new Assert\Positive(
-                        message: " L'ordre doit être un nombre positif."
-                    ),
-                ],
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
