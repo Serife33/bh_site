@@ -103,6 +103,7 @@
 .flash { margin: 0 0 1rem; padding: 0.8rem 1rem; border-radius: 6px; font-size: 14px; }
 .flash-success { background: #E4F1E4; color: #1E5B2A; border: 1px solid #B6D9B6; }
 .flash-error   { background: #F7E1E1; color: #8A2020; border: 1px solid #E2B4B4; }
+.flash-warning { background: #FBF0D9; color: #7A5A12; border: 1px solid #E8D5A3; }
 
 
 
@@ -564,3 +565,5 @@ tr.est-masque { opacity: .55; }
 }
 
 .apercu-champ input[type=text] { max-width: none; }
+
+.photo-video  { background: #E2E6F0; color: #3A4466; }

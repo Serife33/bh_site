@@ -12,6 +12,11 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
 #[Vich\Uploadable] 
 class Media
 {
+    // Le type d'un média. 'photo' = un fichier sur le serveur ; 'youtube' = une vidéo
+    // sur la chaîne, dont on ne garde ici que la couverture et l'identifiant.
+    public const TYPE_PHOTO = 'photo';
+    public const TYPE_YOUTUBE = 'youtube';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -33,7 +38,13 @@ class Media
     private ?string $alt = null;
 
     #[ORM\Column(length: 10)]
-    private ?string $type = 'photo';
+    private ?string $type = self::TYPE_PHOTO;
+
+    // L'identifiant YouTube, par exemple « t5GWoMfNZO0 ». Vide pour une photo.
+    // On stocke l'identifiant et pas l'URL : l'URL change selon le contexte
+    // (watch?v=, embed/, youtu.be/), l'identifiant jamais.
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $videoId = null;
 
     #[ORM\Column]
     private ?int $position = 1;
@@ -124,5 +135,30 @@ class Media
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;             
+    }
+
+
+    public function getVideoId(): ?string
+    {
+        return $this->videoId;
+    }
+
+    public function setVideoId(?string $videoId): static
+    {
+        $this->videoId = $videoId;
+
+        return $this;
+    }
+
+    // Testé en négatif : les 100 lignes déjà en base, et tout type inattendu,
+    // restent traités comme des photos.
+    public function isPhoto(): bool
+    {
+        return $this->type !== self::TYPE_YOUTUBE;
+    }
+
+    public function isVideo(): bool
+    {
+        return $this->type === self::TYPE_YOUTUBE;
     }
 }

@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter une vidéo{% endblock %}
+
+{% block body %}
+    <h1>Ajouter une vidéo — {{ product.name }}</h1>
+
+    <p class="photos-aide">
+        La vidéo part sur la chaîne YouTube Brillance Home, l'image de couverture reste sur le site :
+        c'est elle qu'on affiche avec un bouton Lecture, et rien n'est chargé depuis YouTube avant le clic.
+        Le titre et la description sont préremplis depuis le produit — relis-les, ce sont eux que Google indexe.
+    </p>
+
+    {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+        {{ form_errors(form) }}
+
+        {{ form_row(form.video) }}
+        {{ form_row(form.cover) }}
+        {{ form_row(form.title) }}
+        {{ form_row(form.description) }}
+
+        <button type="submit">Envoyer sur YouTube</button>
+    {{ form_end(form) }}
+
+    <p class="photos-aide">L'envoi peut durer une à deux minutes. Ne quitte pas la page.</p>
+
+    <a href="{{ path('app_product_show', {id: product.id}) }}">← Retour au produit</a>
+{% endblock %}

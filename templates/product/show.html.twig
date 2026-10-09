@@ -28,7 +28,8 @@
     <h2>Photos</h2>
 
     <p class="photos-actions">
-        <a href="{{ path('app_media_new', {id: product.id}) }}">+ Ajouter une photo</a>
+        <a href="{{ path('app_media_new', {id: product.id}) }}">+ Ajouter des photos</a>
+        <a href="{{ path('app_media_video_new', {id: product.id}) }}">+ Ajouter une vidéo</a>
         <span id="ordre-message" class="ordre-message" role="status" aria-live="polite"></span>
     </p>
 
@@ -49,8 +50,9 @@
                     <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('vignette') }}" alt="{{ media.alt }}">
 
                     <div class="photo-infos">
-                        {% if loop.first %}<span class="photo-etiquette photo-principale">Vignette catalogue</span>{% endif %}
-                        {% if loop.index == 2 %}<span class="photo-etiquette photo-survol">Au survol</span>{% endif %}
+                        {% if media.video %}<span class="photo-etiquette photo-video">Vidéo</span>{% endif %}
+                        {% if product.mainMedia and media.id == product.mainMedia.id %}<span class="photo-etiquette photo-principale">Vignette catalogue</span>{% endif %}
+                        {% if product.hoverMedia and media.id == product.hoverMedia.id %}<span class="photo-etiquette photo-survol">Au survol</span>{% endif %}
                         {% if media.alt is empty %}<span class="photo-etiquette photo-alerte">Alt manquant</span>{% endif %}
                         <textarea class="photo-alt"
                                   rows="2"

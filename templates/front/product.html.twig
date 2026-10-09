@@ -71,8 +71,18 @@
                         <div class="gal-stage">
                             <div class="gal-viewport">
                                 {% for media in product.media %}
-                                    <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
-                                         alt="{{ media.alt ?? product.name }}">
+                                    {% if media.video %}
+                                        {# Façade : la couverture et un bouton. L'iframe YouTube n'est construite qu'au clic. #}
+                                        <div class="gal-video" data-video-id="{{ media.videoId }}">
+                                            <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
+                                                 alt="{{ media.alt ?? product.name }}">
+                                            <button type="button" class="gal-play" aria-label="Lire la vidéo">▶</button>
+                                            <p class="gal-video-note">En lançant la lecture, la vidéo est chargée depuis YouTube, qui peut déposer des traceurs.</p>
+                                        </div>
+                                    {% else %}
+                                        <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
+                                             alt="{{ media.alt ?? product.name }}">
+                                    {% endif %}
                                 {% endfor %}
                             </div>
                             {% if product.media|length > 1 %}
@@ -85,6 +95,7 @@
                                 <button type="button" class="gal-thumb{{ loop.first ? ' is-active' }}" data-index="{{ loop.index0 }}">
                                     <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('vignette') }}"
                                          alt="{{ media.alt ?? product.name }}">
+                                    {% if media.video %}<span class="gal-thumb-play" aria-hidden="true">▶</span>{% endif %}
                                 </button>
                             {% endfor %}
                         </div>

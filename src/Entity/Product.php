@@ -543,14 +543,26 @@ class Product
     // La photo qui représente le produit partout ailleurs que dans sa galerie : vignette du catalogue, de l'accueil, et image de partage. C'est la première, donc c'est le glisser-déposer de la fiche produit qui la décide.
     public function getMainMedia(): ?Media
     {
-        return $this->media->first() ?: null;
+        return $this->getPhotos()[0] ?? null;
     }
 
     // Celle qui apparaît au survol de la carte : la deuxième de la galerie.
     public function getHoverMedia(): ?Media
     {
-        // slice() conserve les clés d'origine : la 2e photo revient sous la clé 1, pas 0. On remet à plat avant de la prendre.
-        return array_values($this->media->slice(1, 1))[0] ?? null;
+        return $this->getPhotos()[1] ?? null;
+    }
+
+    /**
+     * Les photos seules, dans l'ordre de la galerie. Les vidéos en sont exclues :
+     * une vidéo glissée en tête ne doit pas devenir la vignette du catalogue.
+     *
+     * @return list<Media>
+     */
+    private function getPhotos(): array
+    {
+        return array_values(
+            $this->media->filter(static fn (Media $media) => $media->isPhoto())->toArray(),
+        );
     }
 
     // Représentation texte de l'entité — utilisée dans les listes de choix

@@ -108,6 +108,26 @@ document.addEventListener('scroll', (e) => {
     }, 120));
 }, true);
 
+// ===== Vidéo : façade YouTube =====
+// Rien n'est chargé depuis Google tant que personne ne clique. Le clic construit
+// le lecteur, et vaut consentement éclairé puisque la phrase d'information est visible.
+document.addEventListener('click', (e) => {
+    const button = e.target.closest('.gal-play');
+    if (!button) return;
+
+    const block = button.closest('.gal-video');
+    const videoId = block?.dataset.videoId;
+    if (!videoId) return;
+
+    const player = document.createElement('iframe');
+    player.className = 'gal-iframe';
+    player.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+    player.title = 'Vidéo du produit';
+    player.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    player.allowFullscreen = true;
+    block.classList.add('is-playing');
+    block.replaceChildren(player);
+});
 
 // ===== Configurateur : tissu, coloris, message WhatsApp =====
 
