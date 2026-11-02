@@ -655,9 +655,12 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     scroll-behavior: smooth;
     border-radius: var(--r);
 }
-.gal-viewport img {
+.gal-photo {
     flex: 0 0 100%;
     scroll-snap-align: start;
+}
+.gal-photo:focus-visible { outline-offset: -4px; }   /* à l'intérieur : le cadre rognerait l'anneau */
+.gal-photo img {
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
@@ -808,6 +811,47 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     font-size: 16px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
     pointer-events: none;
+}
+
+
+/* ===== Visionneuse plein écran : le dialog est aussi une .gallery, étendue à tout l'écran ===== */
+.visionneuse {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    background: var(--txt);
+    color-scheme: dark;   /* barres de défilement de la photo doublée lisibles sur le fond sombre */
+}
+.visionneuse .gal-viewport {
+    height: 100%;
+    border-radius: 0;
+}
+.vis-cadre {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    display: flex;
+    overflow: auto;                 /* la photo doublée défile dans son cadre, */
+    overscroll-behavior: contain;   /* sans entraîner la photo voisine */
+}
+.vis-cadre img {
+    flex: none;
+    margin: auto;   /* centrée, et une fois doublée, atteignable jusqu'aux bords */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    cursor: zoom-in;
+}
+.vis-cadre img.is-zoomed {
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+}
+.visionneuse .panneau-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;   /* le défilé, placé après lui, le recouvrirait */
 }
 
 
