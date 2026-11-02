@@ -108,25 +108,20 @@ document.addEventListener('scroll', (e) => {
     }, 120));
 }, true);
 
-// ===== Vidéo : façade YouTube =====
-// Rien n'est chargé depuis Google tant que personne ne clique. Le clic construit
-// le lecteur, et vaut consentement éclairé puisque la phrase d'information est visible.
+// ===== Façades : vidéo YouTube, carte Google Maps =====
+// Rien n'est chargé depuis Google tant que personne ne clique. Le bouton porte l'adresse de
+// l'iframe, qui remplace au clic tout le contenu de la façade (le parent du bouton).
+// Le clic vaut consentement éclairé, puisque la phrase d'information est visible.
 document.addEventListener('click', (e) => {
-    const button = e.target.closest('.gal-play');
+    const button = e.target.closest('[data-facade]');
     if (!button) return;
 
-    const block = button.closest('.gal-video');
-    const videoId = block?.dataset.videoId;
-    if (!videoId) return;
-
-    const player = document.createElement('iframe');
-    player.className = 'gal-iframe';
-    player.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
-    player.title = 'Vidéo du produit';
-    player.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-    player.allowFullscreen = true;
-    block.classList.add('is-playing');
-    block.replaceChildren(player);
+    const iframe = document.createElement('iframe');
+    iframe.src = button.dataset.facade;
+    iframe.title = button.dataset.facadeTitle;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.allowFullscreen = true;
+    button.parentElement.replaceChildren(iframe);
 });
 
 // ===== Configurateur : tissu, coloris, message WhatsApp =====
@@ -243,18 +238,65 @@ document.addEventListener('click', (e) => {
 
 
 // ===== Bandeau cookies =====
-// localStorage peut lever une exception en navigation privée stricte : on protège les deux accès.
-try {
-    if (!localStorage.getItem('cookie-consent')) {
-        document.getElementById('cookie-banner')?.classList.add('show');
-    }
-} catch (err) { /* pas de bandeau, tant pis */ }
+// Google Analytics ne se charge qu'après « Accepter » : en prod, le bandeau porte son identifiant.
+// Le choix est gardé six mois avec sa date, puis le bandeau revient.
+const SIX_MOIS = 182 * 24 * 60 * 60 * 1000;
+
+// Choix encore valable, sinon null. localStorage peut lever une exception en navigation privée
+// stricte, et un choix enregistré sans date ne se lit pas : dans les deux cas, on redemande.
+function choixCookies() {
+    try {
+        const { choix, date } = JSON.parse(localStorage.getItem('cookie-consent'));
+        return Date.now() - date < SIX_MOIS ? choix : null;
+    } catch (err) { return null; }
+}
+
+function chargerAnalytics(id) {
+    if (window.gtag) return;   // déjà chargé dans la page
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', id);
+
+    const script = document.createElement('script');
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+    document.head.append(script);
+}
+
+// Analytics pose ses cookies sur le domaine principal, sans « www. »
+function effacerCookiesAnalytics() {
+    const domaine = location.hostname.replace(/^www\./, '');
+    document.cookie.split('; ')
+        .map(cookie => cookie.split('=')[0])
+        .filter(nom => nom.startsWith('_ga'))
+        .forEach(nom => { document.cookie = nom + '=; max-age=0; path=/; domain=' + domaine; });
+}
+
+// Bandeau affiché tant qu'il n'y a pas de choix. Analytics seulement sur « accept » : sinon,
+// on le coupe s'il tourne déjà dans la page (retrait de l'accord) et on efface ses cookies.
+function appliquerChoix(choix) {
+    const bandeau = document.getElementById('cookie-banner');
+    bandeau?.classList.toggle('show', !choix);
+
+    const id = bandeau?.dataset.ga;
+    if (!id) return;   // hors prod : jamais d'Analytics
+    window['ga-disable-' + id] = choix !== 'accept';
+    if (choix === 'accept') chargerAnalytics(id);
+    else effacerCookiesAnalytics();
+}
+
+appliquerChoix(choixCookies());
 
 document.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-cookie]');
-    if (!btn) return;
-    try { localStorage.setItem('cookie-consent', btn.dataset.cookie); } catch (err) { /* ignoré */ }
-    document.getElementById('cookie-banner')?.classList.remove('show');
+    const choix = e.target.closest('[data-cookie]')?.dataset.cookie;
+    if (!choix) return;
+    try { localStorage.setItem('cookie-consent', JSON.stringify({ choix, date: Date.now() })); } catch (err) { /* ignoré */ }
+    appliquerChoix(choix);
+});
+
+// « Gérer les cookies », dans le pied de page, rouvre le bandeau
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.cookie-manage')) document.getElementById('cookie-banner')?.classList.add('show');
 });
 
 
