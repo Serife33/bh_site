@@ -31,10 +31,10 @@
                 <span class="pcard-from">à partir de</span>
             {% endif %}
             {% if product.actualPrice < product.initialPrice %}
-                <span class="promo">{{ product.actualPrice }} €</span>
-                <del>{{ product.initialPrice }} €</del>
+                <span class="promo">{{ product.actualPrice|prix }}</span>
+                <del>{{ product.initialPrice|prix }}</del>
             {% else %}
-                {{ product.actualPrice }} €
+                {{ product.actualPrice|prix }}
             {% endif %}
         </div>
     </div>

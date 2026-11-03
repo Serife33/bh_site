@@ -148,31 +148,28 @@
 
                 {# Variante affichée : celle du lien ?taille=…&matiere=…, sinon la première. Une valeur
                    inconnue est ignorée. Sans variante, prix et stock sont ceux du produit. #}
-                {% set demandees = product.variants|filter(v => v.size == app.request.query.get('taille')) %}
-                {% set offre = demandees|filter(v => (v.fabric.name ?? null) == app.request.query.get('matiere'))|first
+                {% set demandees = product.variants|filter(v => v.size == tailleDemandee) %}
+                {% set offre = demandees|filter(v => (v.fabric.name ?? null) == matiereDemandee)|first
                     ?: demandees|first ?: product.variants|first ?: product %}
 
-                {# Avec des variantes, prix barré et remise sont toujours écrits, masqués sans remise :
-                   ils apparaissent quand on choisit une variante en promotion #}
-                {% set remise = offre.actualPrice < offre.initialPrice %}
+                {# Prix barré et remise sont toujours écrits, masqués sans remise :
+                   sur un produit à variantes, ils apparaissent quand on choisit une variante en promotion #}
+                {% set remise = offre|remise %}
                 <div class="price-row">
-                    <span class="price">{{ offre.actualPrice }} €</span>
-                    {% if remise or product.variants|length %}
-                        <del class="price-old"{{ remise ? '' : ' hidden' }}>{{ offre.initialPrice }} €</del>
-                    {% endif %}
-                    {% if product.variants|length %}
-                        <span class="price-remise"{{ remise ? '' : ' hidden' }}>-{{ remise ? (100 - 100 * offre.actualPrice / offre.initialPrice)|round }}&nbsp;%</span>
-                    {% endif %}
+                    <span class="price">{{ offre.actualPrice|prix }}</span>
+                    <del class="price-old"{{ remise ? '' : ' hidden' }}>{{ offre.initialPrice|prix }}</del>
+                    <span class="price-remise"{{ remise ? '' : ' hidden' }}>-{{ remise }}&nbsp;%</span>
                 </div>
                 <p class="price-facilities">Paiement en 2, 3 ou 4 fois SANS FRAIS</p>
 
                 {# Variantes : la taille, puis la matière parmi celles de cette taille.
-                   Leurs prix et stocks sont écrits ici : la fiche les suit sans appel au serveur. #}
+                   Leurs prix et leur disponibilité sont écrits ici : la fiche les suit sans appel au serveur. #}
                 {% if product.variants|length %}
                     {% set tailles = product.variants|reduce((liste, v) => v.size and v.size not in liste ? liste|merge([v.size]) : liste, []) %}
                     {% set matieres = product.variants|reduce((liste, v) => v.fabric and v.fabric.name not in liste ? liste|merge([v.fabric.name]) : liste, []) %}
                     <div data-variantes="{{ product.variants|map(v => {
-                        taille: v.size, matiere: v.fabric.name ?? null, prix: v.actualPrice, prixBarre: v.initialPrice, stock: v.stock
+                        taille: v.size, matiere: v.fabric.name ?? null,
+                        prix: v.actualPrice|prix, prixBarre: v.initialPrice|prix, remise: v|remise, enStock: v.stock > 0
                     })|json_encode }}">
                         {% if tailles|length %}
                             <div class="cfg-group">
@@ -329,7 +326,7 @@
                                    class="variant-chip{{ v.id == product.id ? ' is-active' }}{{ loop.index0 >= maxVariants ? ' swatch-extra' }}"
                                    {{ v.id == product.id ? 'aria-current="page"' }}>
                                     <span class="variant-dim">{{ dim|length ? dim|first : v.name }}</span>
-                                    <span class="variant-price">{{ v.actualPrice|number_format(0, ',', ' ') }} €</span>
+                                    <span class="variant-price">{{ v.actualPrice|prix }}</span>
                                 </a>
                             {% endfor %}
                             {% if variants|length > maxVariants %}
@@ -341,11 +338,10 @@
 
                 {# Buybox épurée : réassurance + CTA #}
                 <div class="buybox">
-                    {# Avec des variantes, les deux mentions sont écrites : on voit celle du stock de la variante choisie #}
-                    {% set enStock = product.variants|length and offre.stock > 0 %}
-                    {% if product.variants|length %}
-                        <p class="buybox-lead dispo-stock"{{ enStock ? '' : ' hidden' }}><i class="fa-solid fa-check"></i> Disponible immédiatement</p>
-                    {% endif %}
+                    {# En stock : « Disponible immédiatement ». Sinon, le délai de fabrication, que les variantes
+                       affichent toujours. Sur un produit à variantes, on voit la mention de la variante choisie. #}
+                    {% set enStock = offre.stock > 0 %}
+                    <p class="buybox-lead dispo-stock"{{ enStock ? '' : ' hidden' }}><i class="fa-solid fa-check"></i> Disponible immédiatement</p>
                     {% if product.isCustomMade or product.variants|length %}
                         <p class="buybox-lead dispo-commande"{{ enStock ? ' hidden' }}><i class="fa-regular fa-clock"></i>
                             Fabriqué sur commande{% if product.leadMinWeeks and product.leadMaxWeeks %} · livraison sous {{ product.leadMinWeeks }} à {{ product.leadMaxWeeks }} semaines{% endif %}

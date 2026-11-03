@@ -172,21 +172,23 @@ document.addEventListener('click', (e) => {
 
 // ===== Configurateur : taille, matière, tissu, coloris, message WhatsApp =====
 
-// Prix, prix barré, remise et disponibilité de la variante choisie, lus dans les données de la fiche.
-// Une taille ou une matière que le produit ne propose pas vaut null, comme dans ces données.
+// Les variantes écrites sur la fiche (aucune hors d'une fiche à variantes). Prix déjà au format du site.
+function variantes() {
+    return JSON.parse(document.querySelector('[data-variantes]')?.dataset.variantes ?? '[]');
+}
+
+// Prix, prix barré, remise et disponibilité de la variante choisie.
+// Une taille ou une matière que le produit ne propose pas vaut null, comme dans les données.
 function afficherVariante(taille, matiere) {
-    const donnees = document.querySelector('[data-variantes]')?.dataset.variantes;
-    const variante = donnees && JSON.parse(donnees).find(v => v.taille === taille && v.matiere === matiere);
+    const variante = variantes().find(v => v.taille === taille && v.matiere === matiere);
     if (!variante) return;
 
-    const remise = Number(variante.prix) < Number(variante.prixBarre);
-    const enStock = variante.stock > 0;
-    document.querySelector('.price').textContent = variante.prix + ' €';
-    document.querySelector('.price-old').textContent = variante.prixBarre + ' €';
-    document.querySelector('.price-remise').textContent = '-' + Math.round(100 - 100 * variante.prix / variante.prixBarre) + ' %';
-    document.querySelectorAll('.price-old, .price-remise').forEach(e => { e.hidden = !remise; });
-    document.querySelector('.dispo-stock').hidden = !enStock;
-    document.querySelector('.dispo-commande').hidden = enStock;
+    document.querySelector('.price').textContent = variante.prix;
+    document.querySelector('.price-old').textContent = variante.prixBarre;
+    document.querySelector('.price-remise').textContent = '-' + variante.remise + '\u00a0%';
+    document.querySelectorAll('.price-old, .price-remise').forEach(e => { e.hidden = !variante.remise; });
+    document.querySelector('.dispo-stock').hidden = !variante.enStock;
+    document.querySelector('.dispo-commande').hidden = variante.enStock;
 }
 
 // Reflète la sélection courante dans les libellés, le prix et le lien WhatsApp
@@ -220,9 +222,9 @@ function refleterSelection() {
 function choisirTaille(bouton) {
     activerSeul(bouton, '.taille-opt', bouton.parentElement);
 
-    const variantes = JSON.parse(document.querySelector('[data-variantes]').dataset.variantes);
+    const liste = variantes();
     document.querySelectorAll('.matiere-opt').forEach((matiere) => {
-        matiere.hidden = !variantes.some(v => v.taille === bouton.dataset.choix && v.matiere === matiere.dataset.choix);
+        matiere.hidden = !liste.some(v => v.taille === bouton.dataset.choix && v.matiere === matiere.dataset.choix);
     });
     const premiere = document.querySelector('.matiere-opt:not([hidden])');
     if (premiere && !document.querySelector('.matiere-opt.is-active:not([hidden])')) activerSeul(premiere, '.matiere-opt');
@@ -391,6 +393,8 @@ document.addEventListener('click', (e) => {
 });
 
 
-// À chaque page affichée, au premier chargement comme après un lien suivi par Turbo :
-// les libellés et le lien WhatsApp reflètent la pré-sélection
+// Les libellés, le prix et le lien WhatsApp reflètent la pré-sélection : tout de suite au premier
+// affichage (Turbo n'annonce le sien qu'une fois les images chargées), puis à chaque page affichée
+// par Turbo. Le second passage du premier affichage refait le même calcul, sans effet.
+refleterSelection();
 document.addEventListener('turbo:load', refleterSelection);
