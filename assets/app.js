@@ -170,28 +170,66 @@ document.addEventListener('click', (e) => {
     button.parentElement.replaceChildren(iframe);
 });
 
-// ===== Configurateur : tissu, coloris, message WhatsApp =====
+// ===== Configurateur : taille, matière, tissu, coloris, message WhatsApp =====
 
-// Reflète la sélection courante dans les libellés et dans le lien WhatsApp
+// Les variantes écrites sur la fiche (aucune hors d'une fiche à variantes). Prix déjà au format du site.
+function variantes() {
+    return JSON.parse(document.querySelector('[data-variantes]')?.dataset.variantes ?? '[]');
+}
+
+// Prix, prix barré, remise et disponibilité de la variante choisie.
+// Une taille ou une matière que le produit ne propose pas vaut null, comme dans les données.
+function afficherVariante(taille, matiere) {
+    const variante = variantes().find(v => v.taille === taille && v.matiere === matiere);
+    if (!variante) return;
+
+    document.querySelector('.price').textContent = variante.prix;
+    document.querySelector('.price-old').textContent = variante.prixBarre;
+    document.querySelector('.price-remise').textContent = '-' + variante.remise + '\u00a0%';
+    document.querySelectorAll('.price-old, .price-remise').forEach(e => { e.hidden = !variante.remise; });
+    document.querySelector('.dispo-stock').hidden = !variante.enStock;
+    document.querySelector('.dispo-commande').hidden = variante.enStock;
+}
+
+// Reflète la sélection courante dans les libellés, le prix et le lien WhatsApp
 function refleterSelection() {
     const btn = document.querySelector('.btn-devis');
     if (!btn) return;
 
-    const tissu = document.querySelector('.mat-opt.is-active')?.dataset.fabric;
-    const coloris = document.querySelector('.nuancier-group.is-visible .col-dot.is-active')?.dataset.color;
-
-    const libelleTissu = document.querySelector('.cfg-choice[data-choice="fabric"]');
-    const libelleColoris = document.querySelector('.nuancier-group.is-visible .cfg-choice[data-choice="color"]');
-
-    if (libelleTissu && tissu) libelleTissu.textContent = tissu;
-    if (libelleColoris && coloris) libelleColoris.textContent = coloris;
+    // Les options choisies, dans l'ordre du message ; chacune porte sa valeur dans data-choix.
+    // Une matière masquée n'existe pas dans la taille choisie ; le coloris est celui du nuancier visible.
+    const choix = {
+        taille: document.querySelector('.taille-opt.is-active'),
+        matière: document.querySelector('.matiere-opt.is-active:not([hidden])'),
+        tissu: document.querySelector('.mat-opt.is-active'),
+        coloris: document.querySelector('.nuancier-group.is-visible .col-dot.is-active'),
+    };
 
     let message = 'Bonjour, je suis intéressée par le ' + btn.dataset.product;
-    if (tissu) message += ', tissu ' + tissu;
-    if (coloris) message += ', coloris ' + coloris;
+    for (const [nom, option] of Object.entries(choix)) {
+        if (!option) continue;
+        option.closest('.cfg-group').querySelector('.cfg-choice').textContent = option.dataset.choix;
+        message += ', ' + nom + ' ' + option.dataset.choix;
+    }
     message += '. Je souhaite le commander.';
 
     btn.href = lienWhatsApp(btn.dataset.wa, message);
+    afficherVariante(choix.taille?.dataset.choix ?? null, choix.matière?.dataset.choix ?? null);
+}
+
+// Applique une taille : ne restent que les matières proposées dans cette taille.
+// Si la matière choisie n'en fait pas partie, on passe à la première qui reste.
+function choisirTaille(bouton) {
+    activerSeul(bouton, '.taille-opt', bouton.parentElement);
+
+    const liste = variantes();
+    document.querySelectorAll('.matiere-opt').forEach((matiere) => {
+        matiere.hidden = !liste.some(v => v.taille === bouton.dataset.choix && v.matiere === matiere.dataset.choix);
+    });
+    const premiere = document.querySelector('.matiere-opt:not([hidden])');
+    if (premiere && !document.querySelector('.matiere-opt.is-active:not([hidden])')) activerSeul(premiere, '.matiere-opt');
+
+    refleterSelection();
 }
 
 // Applique un tissu : bouton actif, nuancier correspondant affiché, libellés à jour
@@ -219,6 +257,12 @@ function choisirColoris(pastille) {
 
 // Clic sur la fiche
 document.addEventListener('click', (e) => {
+    const taille = e.target.closest('.taille-opt');
+    if (taille) { choisirTaille(taille); return; }
+
+    const matiere = e.target.closest('.matiere-opt');
+    if (matiere) { activerSeul(matiere, '.matiere-opt', matiere.parentElement); refleterSelection(); return; }
+
     const tissu = e.target.closest('.mat-opt');
     if (tissu) { choisirTissu(tissu); return; }
 
@@ -349,6 +393,8 @@ document.addEventListener('click', (e) => {
 });
 
 
-
-// Au chargement : les libellés et le lien WhatsApp reflètent la pré-sélection
+// Les libellés, le prix et le lien WhatsApp reflètent la pré-sélection : tout de suite au premier
+// affichage (Turbo n'annonce le sien qu'une fois les images chargées), puis à chaque page affichée
+// par Turbo. Le second passage du premier affichage refait le même calcul, sans effet.
 refleterSelection();
+document.addEventListener('turbo:load', refleterSelection);

@@ -119,7 +119,7 @@ final class CatalogController extends AbstractController
     }
 
     #[Route('/produit/{slug}', name: 'front_product', methods: ['GET'])]
-    public function product(string $slug, ProductRepository $productRepository): Response
+    public function product(string $slug, Request $request, ProductRepository $productRepository): Response
     {
         // Retrouver le produit ACTIF par son slug (ou 404)
         $product = $productRepository->findOneBy(['slug' => $slug, 'isActive' => true]);
@@ -132,6 +132,9 @@ final class CatalogController extends AbstractController
         return $this->render('front/product.html.twig', [
             'product' => $product,
             'similar' => $similar,
+            // La variante demandée par ?taille=…&matiere=… ; un tableau au lieu d'un texte répond 400
+            'tailleDemandee' => $request->query->getString('taille'),
+            'matiereDemandee' => $request->query->getString('matiere'),
         ]);
     }
 
