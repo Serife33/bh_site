@@ -303,6 +303,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .pcard-price { font-size: 15px; font-weight: 700; }
 .pcard-price .promo { color: var(--promo); }
 .pcard-price del { font-size: 13px; font-weight: 400; color: var(--txt2); margin-left: 6px; }
+.pcard-from { font-size: 13px; font-weight: 400; color: var(--txt2); }
 
 
 
@@ -935,6 +936,8 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     white-space: nowrap;
 }
 .variant-chip .variant-price { font-size: 12px; color: var(--txt2); }
+/* Une taille ou une matière se lit en entier : elle passe à la ligne au lieu d'être coupée */
+.taille-opt .variant-dim, .matiere-opt .variant-dim { white-space: normal; text-align: center; }
 .variant-chip.is-active {
     border-color: var(--txt);
     background: var(--txt);
@@ -1145,8 +1148,12 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
 .price { font-size: 26px; font-weight: 700; color: var(--txt); }
 .price-old { font-size: 16px; color: var(--txt2); }
+.price-remise { font-size: 14px; font-weight: 600; color: var(--promo); }
 .price-facilities { font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 24px; }
 
+
+/* Un élément masqué par l'attribut hidden le reste, même si sa classe lui donne un display */
+[hidden] { display: none !important; }
 
 .swatch-extra { display: none; }
 .swatch-group.is-expanded .swatch-extra { display: inline-flex; }

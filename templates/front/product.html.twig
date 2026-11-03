@@ -35,6 +35,17 @@
     {% if images|length %}
         {% set produit = produit|merge({ 'image': images }) %}
     {% endif %}
+    {# Avec des variantes, une offre groupée : de la moins chère à la plus chère #}
+    {% if product.variants|length %}
+        {% set prix = product.variants|map(v => v.actualPrice) %}
+        {% set produit = produit|merge({ 'offers': {
+            '@type': 'AggregateOffer',
+            'lowPrice': min(prix),
+            'highPrice': max(prix),
+            'offerCount': prix|length,
+            'priceCurrency': 'EUR'
+        } }) %}
+    {% endif %}
 
     {% set fil = {
         '@type': 'BreadcrumbList',
@@ -45,7 +56,8 @@
         ]
     } %}
 
-    <script type="application/ld+json">{{ { '@context': 'https://schema.org', '@graph': [produit, fil] }|json_encode|raw }}</script>
+    {# JSON_HEX_TAG : un « < » saisi dans un texte ne peut pas fermer la balise script #}
+    <script type="application/ld+json">{{ { '@context': 'https://schema.org', '@graph': [produit, fil] }|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
 {% endblock %}
 
 {% block body %}
@@ -132,25 +144,71 @@
 
                 <h1>{{ product.name }}</h1>
 
+                {# Variante affichée : celle du lien ?taille=…&matiere=…, sinon la première. Une valeur
+                   inconnue est ignorée. Sans variante, prix et stock sont ceux du produit. #}
+                {% set demandees = product.variants|filter(v => v.size == app.request.query.get('taille')) %}
+                {% set offre = demandees|filter(v => (v.fabric.name ?? null) == app.request.query.get('matiere'))|first
+                    ?: demandees|first ?: product.variants|first ?: product %}
+
+                {# Avec des variantes, prix barré et remise sont toujours écrits, masqués sans remise :
+                   ils apparaissent quand on choisit une variante en promotion #}
+                {% set remise = offre.actualPrice < offre.initialPrice %}
                 <div class="price-row">
-                    {% if product.actualPrice < product.initialPrice %}
-                        <span class="price">{{ product.actualPrice }} €</span>
-                        <del class="price-old">{{ product.initialPrice }} €</del>
-                    {% else %}
-                        <span class="price">{{ product.actualPrice }} €</span>
+                    <span class="price">{{ offre.actualPrice }} €</span>
+                    {% if remise or product.variants|length %}
+                        <del class="price-old"{{ remise ? '' : ' hidden' }}>{{ offre.initialPrice }} €</del>
+                    {% endif %}
+                    {% if product.variants|length %}
+                        <span class="price-remise"{{ remise ? '' : ' hidden' }}>-{{ remise ? (100 - 100 * offre.actualPrice / offre.initialPrice)|round }}&nbsp;%</span>
                     {% endif %}
                 </div>
                 <p class="price-facilities">Paiement en 2, 3 ou 4 fois SANS FRAIS</p>
+
+                {# Variantes : la taille, puis la matière parmi celles de cette taille.
+                   Leurs prix et stocks sont écrits ici : la fiche les suit sans appel au serveur. #}
+                {% if product.variants|length %}
+                    {% set tailles = product.variants|reduce((liste, v) => v.size and v.size not in liste ? liste|merge([v.size]) : liste, []) %}
+                    {% set matieres = product.variants|reduce((liste, v) => v.fabric and v.fabric.name not in liste ? liste|merge([v.fabric.name]) : liste, []) %}
+                    <div data-variantes="{{ product.variants|map(v => {
+                        taille: v.size, matiere: v.fabric.name ?? null, prix: v.actualPrice, prixBarre: v.initialPrice, stock: v.stock
+                    })|json_encode }}">
+                        {% if tailles|length %}
+                            <div class="cfg-group">
+                                <h3 class="cfg-title">Taille : <span class="cfg-choice">{{ offre.size }}</span></h3>
+                                <div class="variant-row">
+                                    {% for taille in tailles %}
+                                        <button type="button" class="variant-chip taille-opt{{ taille == offre.size ? ' is-active' }}" data-choix="{{ taille }}">
+                                            <span class="variant-dim">{{ taille }}</span>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if matieres|length %}
+                            <div class="cfg-group">
+                                <h3 class="cfg-title">Matière : <span class="cfg-choice">{{ offre.fabric.name ?? '' }}</span></h3>
+                                <div class="variant-row">
+                                    {% for matiere in matieres %}
+                                        <button type="button" class="variant-chip matiere-opt{{ matiere == (offre.fabric.name ?? null) ? ' is-active' }}" data-choix="{{ matiere }}"
+                                                {{- product.variants|filter(v => v.size == offre.size and (v.fabric.name ?? null) == matiere)|length ? '' : ' hidden' }}>
+                                            <span class="variant-dim">{{ matiere }}</span>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
 
                 {# Configurateur : swatches avec révélation « +N » #}
                     {% if product.fabrics|length %}
                         {% set maxFabrics = 3 %}
                         <div class="cfg-group swatch-group">
-                            <h3 class="cfg-title">Tissu : <span class="cfg-choice" data-choice="fabric">{{ product.fabrics|first.name }}</span></h3>
+                            <h3 class="cfg-title">Tissu : <span class="cfg-choice">{{ product.fabrics|first.name }}</span></h3>
                             <div class="mat-row">
                                 {% for fabric in product.fabrics %}
                                     <button type="button" class="mat-opt{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxFabrics ? ' swatch-extra' }}"
-                                            data-fabric="{{ fabric.name }}" data-fabric-id="{{ fabric.id }}">{{ fabric }}</button>
+                                            data-choix="{{ fabric.name }}" data-fabric-id="{{ fabric.id }}">{{ fabric }}</button>
                                 {% endfor %}
                                 {% if product.fabrics|length > maxFabrics %}
                                     <button type="button" class="swatch-more" data-panneau="tissus-{{ product.id }}">+{{ product.fabrics|length - maxFabrics }}</button>
@@ -187,11 +245,11 @@
                             {% if fabric.fabricColors|length %}
                                 {% set maxColors = 5 %}
                                 <div class="cfg-group swatch-group nuancier-group{{ loop.first ? ' is-visible' }}" data-nuancier="{{ fabric.id }}">
-                                    <h3 class="cfg-title">Coloris : <span class="cfg-choice" data-choice="color">{{ fabric.fabricColors|first.name }}</span></h3>
+                                    <h3 class="cfg-title">Coloris : <span class="cfg-choice">{{ fabric.fabricColors|first.name }}</span></h3>
                                     <div class="col-row">
                                         {% for fc in fabric.fabricColors %}
                                             <button type="button" class="col-dot{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxColors ? ' swatch-extra' }}"
-                                                    data-color="{{ fc.name }}" data-index="{{ loop.index0 }}"
+                                                    data-choix="{{ fc.name }}" data-index="{{ loop.index0 }}"
                                                     aria-label="{{ fc.name }}" title="{{ fc.name }}"
                                                     {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></button>
                                         {% endfor %}
@@ -236,12 +294,12 @@
                 {# Finitions : uniquement pour les produits SANS tissu (bois, laque, métal) #}
                     {% if product.colors|length and product.fabrics|length == 0 %}
                         <div class="cfg-group swatch-group nuancier-group is-visible">
-                            <h3 class="cfg-title">Finition : <span class="cfg-choice" data-choice="color">{{ product.colors|first.name }}</span></h3>
+                            <h3 class="cfg-title">Finition : <span class="cfg-choice">{{ product.colors|first.name }}</span></h3>
                             <div class="col-row">
                                 {% for color in product.colors %}
                                     <button type="button" class="col-dot{{ loop.first ? ' is-active' }}"
                                             style="background: {{ color.hex }}"
-                                            data-color="{{ color.name }}" aria-label="{{ color.name }}" title="{{ color.name }}"></button>
+                                            data-choix="{{ color.name }}" aria-label="{{ color.name }}" title="{{ color.name }}"></button>
                                 {% endfor %}
                             </div>
                         </div>
@@ -281,8 +339,13 @@
 
                 {# Buybox épurée : réassurance + CTA #}
                 <div class="buybox">
-                    {% if product.isCustomMade %}
-                        <p class="buybox-lead"><i class="fa-regular fa-clock"></i>
+                    {# Avec des variantes, les deux mentions sont écrites : on voit celle du stock de la variante choisie #}
+                    {% set enStock = product.variants|length and offre.stock > 0 %}
+                    {% if product.variants|length %}
+                        <p class="buybox-lead dispo-stock"{{ enStock ? '' : ' hidden' }}><i class="fa-solid fa-check"></i> Disponible immédiatement</p>
+                    {% endif %}
+                    {% if product.isCustomMade or product.variants|length %}
+                        <p class="buybox-lead dispo-commande"{{ enStock ? ' hidden' }}><i class="fa-regular fa-clock"></i>
                             Fabriqué sur commande{% if product.leadMinWeeks and product.leadMaxWeeks %} · livraison sous {{ product.leadMinWeeks }} à {{ product.leadMaxWeeks }} semaines{% endif %}
                         </p>
                     {% endif %}
