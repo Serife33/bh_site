@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients{% endblock %}
+
+{% block body %}
+    <h1>Clients</h1>
+
+    <a class="btn" href="{{ path('app_customer_new') }}">+ Nouveau client</a>
+
+    <form method="get" class="filtres">
+        <input type="search" name="q" value="{{ search }}" placeholder="Nom, téléphone ou e-mail…" class="filtre-recherche" aria-label="Rechercher un client">
+        <button type="submit">Rechercher</button>
+        <a href="{{ path('app_customer_index') }}" class="filtre-reset">Réinitialiser</a>
+    </form>
+
+    <div class="table-defile">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Téléphone</th>
+                    <th>E-mail</th>
+                    <th>Adresse de livraison</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for customer in pagination %}
+                <tr>
+                    <td>{{ customer.firstName }} {{ customer.lastName }}</td>
+                    <td class="num">{{ customer.phone }}</td>
+                    <td>{{ customer.email }}</td>
+                    <td>{{ customer.address }}</td>
+                    <td class="actions">
+                        <a href="{{ path('app_quote_new', {client: customer.id}) }}">Nouveau devis</a>
+                        <a href="{{ path('app_quote_index', {q: customer.lastName}) }}">Ses devis</a>
+                        <a href="{{ path('app_customer_edit', {id: customer.id}) }}">Modifier</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5">Aucun client ne correspond à cette recherche.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="navigation">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{# Création et modification d'un devis : le même écran #}
+{% set titre = quote.number ? 'Devis ' ~ quote.number : 'Nouveau devis' %}
+
+{% block title %}{{ titre }}{% endblock %}
+
+{% block body %}
+    <a href="{{ path('app_quote_index') }}">← Retour à la liste</a>
+    <div class="tete">
+        <h1>{{ titre }}</h1>
+        <span class="pastille st-{{ quote.status.value }}">{{ quote.status.label }}</span>
+        <p class="aide">
+            {% if quote.number %}Créé le {{ quote.createdAt|date_longue }} par {{ quote.seller.email }}. {% endif %}
+            Le numéro est attribué au premier enregistrement et ne change plus.
+        </p>
+    </div>
+
+    {# Les coloris du nuancier, proposés à la frappe dans le champ « Tissu et coloris, ou finition » de chaque ligne #}
+    <datalist id="finitions">
+        {% for coloris in finitions %}
+            <option value="{{ [coloris.fabric.name, coloris.fabric.reference]|filter(v => v)|join(' ') }}, {{ coloris.name }}">
+        {% endfor %}
+    </datalist>
+
+    {# Les taux du calcul en direct (assets/admin.js) : ceux de QuoteCalculator, jamais recopiés à la main #}
+    {{ form_start(form, {attr: {
+        id: 'form-devis',
+        class: 'grille',
+        'data-tva': constant('App\\Service\\QuoteCalculator::VAT_RATE'),
+        'data-acompte': constant('App\\Service\\QuoteCalculator::DEPOSIT_RATE'),
+    }}) }}
+        <div>
+            {{ form_errors(form) }}
+
+            <section class="bloc">
+                <h2>Client</h2>
+                {{ form_row(form.customer) }}
+                <p class="aide">
+                    Absent de la liste ? <a href="{{ path('app_customer_new') }}">Créez d'abord sa fiche</a>.
+                    {% if quote.customer %}<a href="{{ path('app_customer_edit', {id: quote.customer.id}) }}">Modifier la fiche de {{ quote.customer }}</a>{% endif %}
+                </p>
+            </section>
+
+            <section class="bloc">
+                {{ include('admin/_collection.html.twig', {collection: form.lines, libelle_ajout: '+ Ajouter une ligne'}) }}
+            </section>
+
+            <section class="bloc">
+                <h2>Remise globale, livraison et montage</h2>
+                <div class="champs">
+                    {{ form_row(form.discountValue) }}
+                    {{ form_row(form.discountType) }}
+                    {{ form_row(form.deliveryFee) }}
+                    {{ form_row(form.assemblyFee) }}
+                </div>
+                {{ form_row(form.pickup) }}
+            </section>
+
+            <section class="bloc">
+                <h2>Conditions et suivi</h2>
+                <div class="champs">
+                    {{ form_row(form.leadTime) }}
+                    {{ form_row(form.validUntil) }}
+                    {{ form_row(form.seller) }}
+                    {{ form_row(form.status) }}
+                </div>
+                {{ form_row(form.notes) }}
+            </section>
+        </div>
+
+        <aside class="recap">
+            <section class="bloc">
+                <h2>Récapitulatif</h2>
+                {{ include('quote/_totals.html.twig') }}
+                <p class="aide">HT = TTC ÷ 1,2. Acompte calculé sur le total TTC, livraison et montage compris. Recalculé à l'enregistrement.</p>
+            </section>
+
+            <section class="bloc actions-devis">
+                <button type="submit">Enregistrer</button>
+                {% if quote.id %}
+                    <a class="btn" href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Imprimer ou enregistrer en PDF</a>
+                {% endif %}
+            </section>
+        </aside>
+    {{ form_end(form) }}
+
+    {% if quote.id %}
+        {{ include('admin/_delete_form.html.twig', {
+            action: path('app_quote_delete', {id: quote.id}),
+            token_id: 'delete' ~ quote.id,
+            question: 'Supprimer complètement le devis ' ~ quote.number ~ ' ?',
+        }) }}
+    {% endif %}
+{% endblock %}

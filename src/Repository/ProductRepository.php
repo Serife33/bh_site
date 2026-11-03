@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Category;
 use App\Entity\Fabric;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\SubCategory;
 use App\Enum\ProductModular;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -330,6 +331,27 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $qb;
+    }
+
+    // Le catalogue proposé dans une ligne de devis : tous les produits, masqués et modules compris (le showroom les vend aussi)
+    public function createForQuoteQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.name', 'ASC')
+            ->addOrderBy('p.id', 'ASC');
+    }
+
+    // Leurs variantes, rangées par produit, avec la matière qui les décrit
+    public function createVariantsForQuoteQueryBuilder(): QueryBuilder
+    {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('v', 'p', 'f')
+            ->from(ProductVariant::class, 'v')
+            ->join('v.product', 'p')
+            ->leftJoin('v.fabric', 'f')
+            ->orderBy('p.name', 'ASC')
+            ->addOrderBy('v.position', 'ASC')
+            ->addOrderBy('v.id', 'ASC');
     }
 
     // Les produits dont une variante est dans cette matière : tant qu'il y en a, elle ne se supprime pas.

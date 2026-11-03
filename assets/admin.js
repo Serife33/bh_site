@@ -245,3 +245,71 @@ document.addEventListener('keydown', (e) => {
         e.target.blur();
     }
 });
+
+// ===== Écran d'un devis : pré-remplir une ligne depuis le catalogue =====
+// Choisir un produit ou une de ses variantes reprend sa désignation, sa taille, son prix et
+// « fabriqué selon les choix du client » pour un produit sur mesure. Tout reste modifiable ensuite.
+function preRemplirLigne(select) {
+    const option = select.selectedOptions[0];
+    if (!option?.value) return;   // « Ligne libre » ou « Aucune » : rien à reprendre
+
+    const ligne = select.closest('.collection-ligne');
+    const champ = (nom) => ligne.querySelector(`[name$="[${nom}]"]`);
+
+    if (select === champ('variant')) {
+        champ('product').value = option.dataset.produit;
+        champ('details').value = option.dataset.precision;
+    } else {
+        champ('variant').value = '';   // la variante d'un autre produit ne vaut plus
+    }
+
+    const produit = champ('product').selectedOptions[0];
+    champ('label').value = produit.text;
+    champ('customMade').checked = produit.dataset.surMesure === '1';
+    champ('unitPrice').value = option.dataset.prix;
+}
+
+document.addEventListener('change', (e) => {
+    if (e.target.matches('#form-devis [name$="[product]"], #form-devis [name$="[variant]"]')) preRemplirLigne(e.target);
+});
+
+
+// ===== Écran d'un devis : les montants se recalculent pendant la saisie =====
+// Le calcul de src/Service/QuoteCalculator.php, en centimes pour éviter les erreurs d'arrondi des nombres à virgule.
+// Pour l'affichage seulement : le serveur recalcule tout à l'enregistrement.
+const centimes = (champ) => Math.round((parseFloat(champ.value) || 0) * 100);
+const euros = (montant) => (montant / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+// Remise en % (centièmes de %) ou en centimes d'euro, jamais plus que le montant remisé
+const reduction = (base, valeur, type) => Math.min(base, type === 'percent' ? Math.round(base * valeur / 10000) : valeur);
+
+function recalculerDevis(form) {
+    const lignes = [...form.querySelectorAll('.collection-ligne')].map((ligne) => {
+        const champ = (nom) => ligne.querySelector(`[name$="[${nom}]"]`);
+        const brut = (parseInt(champ('quantity').value, 10) || 0) * centimes(champ('unitPrice'));
+        const total = brut - reduction(brut, centimes(champ('discountValue')), champ('discountType').value);
+        champ('total').value = euros(total);
+        return total;
+    });
+
+    const champ = (nom) => form.elements[`quote[${nom}]`];
+    const articles = lignes.reduce((somme, total) => somme + total, 0);
+    const remise = reduction(articles, centimes(champ('discountValue')), champ('discountType').value);
+    const retrait = champ('pickup').checked;   // retrait au showroom : ni livraison ni montage
+    const livraison = retrait ? 0 : centimes(champ('deliveryFee'));
+    const montage = retrait ? 0 : centimes(champ('assemblyFee'));
+    const ttc = articles - remise + livraison + montage;
+    const ht = Math.round(ttc * 100 / (100 + Number(form.dataset.tva)));
+    const acompte = Math.round(ttc * Number(form.dataset.acompte) / 100);
+
+    const montants = { items: articles, discount: remise, delivery: livraison, assembly: montage, ttc, ht, tva: ttc - ht, deposit: acompte, balance: ttc - acompte };
+    Object.entries(montants).forEach(([cle, montant]) => {
+        form.querySelector(`[data-total="${cle}"]`).textContent = (cle === 'discount' && montant ? '-' : '') + euros(montant);
+    });
+}
+
+// Chaque frappe, chaque ligne ajoutée ou retirée, et le premier affichage.
+// getElementById et non closest : une ligne retirée n'est plus dans la page quand son clic arrive ici.
+['input', 'change', 'click', 'turbo:load'].forEach((type) => document.addEventListener(type, () => {
+    const form = document.getElementById('form-devis');
+    if (form) recalculerDevis(form);
+}));

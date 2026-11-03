@@ -1,0 +1,5 @@
+{# Formulaire POST de suppression, partagé par les clients et les devis : une suppression ne se fait jamais par un simple lien #}
+<form method="post" action="{{ action }}" onsubmit="return confirm('{{ question|e('js') }}');">
+    <input type="hidden" name="_token" value="{{ csrf_token(token_id) }}">
+    <button type="submit">Supprimer</button>
+</form>

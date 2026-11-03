@@ -1,0 +1,127 @@
+{% extends 'document/base.html.twig' %}
+{% import 'document/macros.html.twig' as doc %}
+
+{% block title %}Devis {{ quote.number }}{% endblock %}
+
+{# Un devis accepté ne se modifie plus : retour à la liste #}
+{% block retour %}{{ quote.locked ? path('app_quote_index') : path('app_quote_edit', {id: quote.id}) }}{% endblock %}
+
+{% block document %}
+    <h1>Devis</h1>
+    <dl>
+        <dt>Numéro</dt><dd>{{ quote.number }}</dd>
+        <dt>Date</dt><dd>{{ quote.createdAt|date_longue }}</dd>
+        <dt>Valable jusqu'au</dt><dd>{{ quote.validUntil|date_longue }}</dd>
+        <dt>Votre conseiller</dt><dd>{{ quote.seller.email }}</dd>
+    </dl>
+{% endblock %}
+
+{% block contenu %}
+    {% set customer = quote.customer %}
+    <section class="parties">
+        <div>
+            <h2 class="titre">Client</h2>
+            <p><strong>{{ customer }}</strong></p>
+            <p>{{ customer.phone }}</p>
+            <p>{{ customer.email }}</p>
+        </div>
+        <div>
+            {% if quote.pickup %}
+                <h2 class="titre">Retrait</h2>
+                <p>Au showroom, {{ company.showroom }}</p>
+            {% else %}
+                <h2 class="titre">Livraison</h2>
+                <p>{{ customer.address ?: 'Adresse à préciser' }}</p>
+                <p>{{ totaux.assembly > 0 ? 'Livraison et montage à cette adresse' : 'Livraison à cette adresse' }}</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <table class="lignes">
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th>Qté</th>
+                <th>Prix unitaire TTC</th>
+                <th>Remise</th>
+                <th>Total TTC</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for key, line in quote.lines %}
+            {% set montants = totaux.lines[key] %}
+            {% set photo = line.product ? line.product.mainMedia : null %}
+            <tr>
+                <td>
+                    <div class="produit">
+                        {% if photo %}
+                            <img src="{{ vich_uploader_asset(photo, 'imageFile')|imagine_filter('vignette') }}" alt="">
+                        {% else %}
+                            <span class="sans-photo"></span>
+                        {% endif %}
+                        <div>
+                            <strong>{{ line.label }}</strong>
+                            {% if line.finish %}<p class="detail">{{ line.finish }}</p>{% endif %}
+                            {% if line.details %}<p class="detail">{{ line.details|nl2br }}</p>{% endif %}
+                            {% if line.customMade %}<span class="choix">Fabriqué selon vos choix</span>{% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td>{{ line.quantity }}</td>
+                <td>{{ line.unitPrice|prix(2) }}</td>
+                <td>
+                    {% if montants.discount > 0 %}
+                        {% if line.discountType.value == 'percent' %}
+                            -{{ line.discountValue|replace({'.00': '', '.': ','}) }}&nbsp;%<span class="remise-detail">soit -{{ montants.discount|prix(2) }}</span>
+                        {% else %}
+                            -{{ montants.discount|prix(2) }}
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>{{ montants.total|prix(2) }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <section class="bas">
+        <div class="conditions">
+            <h2 class="titre">Conditions</h2>
+            <dl>
+                {% if quote.leadTime %}<dt>Délai de livraison</dt><dd>{{ quote.leadTime }}</dd>{% endif %}
+                <dt>Validité</dt><dd>Jusqu'au {{ quote.validUntil|date_longue }}</dd>
+                <dt>Paiement</dt><dd>Acompte de {{ constant('App\\Service\\QuoteCalculator::DEPOSIT_RATE') }} % à la signature, solde {{ quote.pickup ? 'au retrait au showroom' : 'à la livraison' }}</dd>
+                <dt>Moyens de paiement</dt><dd>{{ doc.info(company.payment_methods) }}</dd>
+            </dl>
+        </div>
+        {{ include('quote/_totals.html.twig') }}
+    </section>
+
+    <section class="mentions">
+        <h2 class="titre">Informations importantes</h2>
+        <ul>
+            <li><strong>Articles « Fabriqué selon vos choix » :</strong> ils sont fabriqués selon les spécifications du client (dimensions, tissu, coloris). Le droit de rétractation ne s'applique pas à ces articles (article L221-28, 3° du Code de la consommation).</li>
+            <li><strong>Acompte :</strong> les sommes versées à la commande sont des acomptes et non des arrhes (article L214-1 du Code de la consommation). Le devis signé vaut commande ferme.</li>
+            <li><strong>Conditions générales de vente :</strong> consultables sur {{ company.website }}/cgv. Signer ce devis vaut acceptation de ces conditions.</li>
+            <li><strong>Médiateur de la consommation :</strong> {{ doc.info(company.mediator) }}</li>
+            <li>Prix en euros, TVA {{ constant('App\\Service\\QuoteCalculator::VAT_RATE') }} % incluse. Le délai de livraison court à partir de la réception de l'acompte.</li>
+        </ul>
+    </section>
+
+    <section class="accord">
+        <h2>Bon pour accord</h2>
+        <p class="sous">À signer ici, au showroom.</p>
+        <p class="case"><span></span>J'accepte les conditions générales de vente et j'ai pris connaissance des informations ci-dessus.</p>
+        <div class="signer">
+            <p class="champ">Date</p>
+            <p class="champ">Nom et prénom</p>
+            <p class="champ champ-signature">Signature, précédée de la mention « Bon pour accord »</p>
+        </div>
+    </section>
+
+    <footer class="pied">
+        <p>{{ company.name }} · {{ doc.info(company.legal_name) }} · Capital {{ doc.info(company.capital) }}</p>
+        <p>Siège {{ doc.info(company.head_office) }}</p>
+        <p>SIRET {{ doc.info(company.siret) }} · RCS {{ doc.info(company.rcs) }} · TVA intracommunautaire {{ doc.info(company.vat_number) }}</p>
+    </footer>
+{% endblock %}

@@ -84,6 +84,8 @@
 .admin-content input[type=text],
 .admin-content input[type=number],
 .admin-content input[type=email],
+.admin-content input[type=tel],
+.admin-content input[type=date],
 .admin-content input[type=password],
 .admin-content select,
 .admin-content textarea {
@@ -573,3 +575,65 @@ tr.est-masque { opacity: .55; }
 .apercu-champ input[type=text] { max-width: none; }
 
 .photo-video  { background: #E2E6F0; color: #3A4466; }
+
+
+/* ===== Devis et clients ===== */
+
+/* Un tableau trop large pour un téléphone défile dans son cadre, la page ne déborde pas */
+.table-defile { overflow-x: auto; }
+.table-defile table { margin: 0; }
+
+.titre-page { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; }
+.titre-page h1 { margin: 0; }
+.num, .montant { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-content .montant { text-align: right; }
+.admin-content td.actions { white-space: nowrap; }
+.aide { margin: .3rem 0 0; font-size: 13px; font-weight: 400; color: #6B6560; }
+
+/* Pastilles de statut : mêmes formes que les étiquettes des photos */
+.pastille { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.st-draft    { background: #F1EDE6; color: #6B6B63; }
+.st-sent     { background: #E2E6F0; color: #3A4466; }
+.st-accepted { background: #E3EAE2; color: #3E5B45; }
+.st-refused  { background: #F6DEDE; color: #8C2F2F; }
+.st-expired  { background: #FBF0D9; color: #7A5A12; }
+
+.legende { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin: 1.5rem 0 0; padding: 0; list-style: none; font-size: 13px; color: #6B6560; }
+.legende li { display: flex; align-items: center; gap: .4rem; }
+
+/* Écran d'un devis : la saisie à gauche, le récapitulatif à droite sur grand écran */
+.admin-content:has(#form-devis) { max-width: 1240px; }
+.tete { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin: .6rem 0 1.4rem; }
+.tete h1 { margin: 0; }
+.tete .aide { flex-basis: 100%; margin: 0; }
+.grille { display: grid; gap: 1.5rem; align-items: start; }
+@media (min-width: 1000px) {
+  .grille { grid-template-columns: minmax(0, 1fr) 300px; }
+  .recap { position: sticky; top: 1rem; }
+}
+.bloc { background: #fff; border: 1px solid #E7E2DC; border-radius: 10px; padding: 1rem 1.2rem 1.2rem; margin-bottom: 1.5rem; }
+.bloc h2 { margin: 0 0 .4rem; font-size: 1.1rem; }
+.champs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0 1rem; }
+.champs input, .champs select { max-width: none; }
+/* Une case à cocher devant son libellé (Symfony écrit le libellé avant la case) */
+#form-devis div:has(> input[type=checkbox]) { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: .4rem; }
+#form-devis div:has(> input[type=checkbox]) label { margin: 0; font-weight: 400; }
+
+/* Les lignes du devis : les champs de texte se partagent la largeur, les précisions prennent toute la ligne */
+#form-devis .collection-ligne > div { flex: 1 1 200px; min-width: 0; }
+#form-devis .collection-ligne > div:has(input[type=number], input:disabled, select[name$="[discountType]"]) { flex: 0 0 auto; }
+#form-devis .collection-ligne > div:has(textarea) { flex-grow: 2; }
+#form-devis .collection-ligne > div:has(input[type=checkbox]) { flex-basis: 100%; }
+#form-devis .collection-ligne input[type=text]:not(:disabled), #form-devis .collection-ligne select:not([name$="[discountType]"]),
+#form-devis .collection-ligne textarea { box-sizing: border-box; width: 100%; max-width: none; }
+#form-devis .collection-ligne input:disabled { width: 110px; font-weight: 700; color: #1A1A18; }
+#form-devis .collection-ligne textarea { min-height: 0; }
+
+/* Le récapitulatif : même tableau que sur le devis imprimé (quote/_totals.html.twig) */
+.admin-content .totaux { margin: 0; font-variant-numeric: tabular-nums; }
+.admin-content .totaux th, .admin-content .totaux td { padding: .25rem 0; border: 0; background: none; }
+.admin-content .totaux th { font-weight: 400; color: #6B6560; }
+.admin-content .totaux td { text-align: right; white-space: nowrap; }
+.admin-content .totaux .ttc th, .admin-content .totaux .ttc td { padding-top: .6rem; border-top: 1px solid #1A1A18; font-weight: 700; font-size: 17px; color: #1A1A18; }
+.admin-content .totaux .acompte th, .admin-content .totaux .acompte td { padding-top: .6rem; color: #6B4C3B; font-weight: 600; }
+.actions-devis { display: grid; gap: .5rem; text-align: center; }

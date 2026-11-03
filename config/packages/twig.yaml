@@ -2,6 +2,7 @@ twig:
     file_name_pattern: '*.twig'
     globals:
         whatsapp_number: '%env(WHATSAPP_NUMBER)%'
+        company: '%company%'
 
 when@test:
     twig:
