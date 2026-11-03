@@ -7,10 +7,10 @@
 
 {# Formulaire en HTML à la main : c'est le PARE-FEU qui l'intercepte, pas le composant Form de Symfony (cas spécial du login) #}
 <form method="post">
-    {# affiche l'erreur si la connexion précédente a échoué #}
+    {# affiche l'erreur si la connexion précédente a échoué, en français : la langue par défaut du projet est l'anglais (translation.yaml) #}
     {% if error %}
         <div class="alert" >
-            {{ error.messageKey|trans(error.messageData, 'security') }}
+            {{ error.messageKey|trans(error.messageData, 'security', 'fr') }}
         </div> 
     {% endif %}
 
