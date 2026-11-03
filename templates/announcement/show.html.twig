@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ announcement }}{% endblock %}
+
+{% block body %}
+    <h1>{{ announcement }}</h1>
+
+    <table class="table">
+        <tbody>
+            <tr><th>Lien</th><td>{{ announcement.link }}</td></tr>
+            <tr><th>Mis en avant (promo)</th><td>{{ announcement.isPromo ? 'Oui' : 'Non' }}</td></tr>
+            <tr><th>Début</th><td>{{ announcement.startDate ? announcement.startDate|date('d/m/Y') }}</td></tr>
+            <tr><th>Fin</th><td>{{ announcement.endDate ? announcement.endDate|date('d/m/Y') }}</td></tr>
+            <tr><th>Ordre d'affichage</th><td>{{ announcement.position }}</td></tr>
+            <tr><th>Visible sur le site</th><td>{{ announcement.isVisible ? 'Oui' : 'Non' }}</td></tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_announcement_index') }}">Retour à la liste</a>
+
+    <a href="{{ path('app_announcement_edit', {'id': announcement.id}) }}">Modifier</a>
+
+    {{ include('announcement/_delete_form.html.twig') }}
+{% endblock %}
