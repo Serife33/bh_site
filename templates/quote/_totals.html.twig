@@ -1,5 +1,5 @@
 {# Les montants du devis, au même format sur l'écran de saisie et sur le devis imprimé.
-   data-total : la case que assets/admin.js remet à jour pendant la saisie. #}
+   data-total : la case que assets/devis.js remet à jour pendant la saisie. #}
 {% import 'document/macros.html.twig' as doc %}
 <table class="totaux">
     <tr><th>Total des articles</th><td data-total="items">{{ totaux.items|prix(2) }}</td></tr>
@@ -7,7 +7,7 @@
         <tr><th>Remise globale</th><td data-total="discount">{{ totaux.discount > 0 ? '-' }}{{ totaux.discount|prix(2) }}</td></tr>
     {% endif %}
     {# Livraison et montage : sur le document, une ligne seulement s'ils sont cochés ; à l'écran de saisie (saisie),
-       toujours leurs deux lignes, mises à jour par assets/admin.js #}
+       toujours leurs deux lignes, mises à jour par assets/devis.js #}
     {% if quote.delivery or saisie|default(false) %}
         <tr><th>Livraison</th><td data-total="delivery">{{ not quote.delivery ? 'retrait au showroom' : (totaux.delivery > 0 ? totaux.delivery|prix(2) : 'offerte') }}</td></tr>
     {% endif %}

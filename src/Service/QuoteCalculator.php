@@ -8,7 +8,7 @@ use App\Enum\DiscountType;
 
 // Tous les montants d'un devis, à partir des prix TTC saisis. Calcul en chaînes avec bcmath, jamais en float :
 // 0,1 + 0,2 ne fait pas exactement 0,3 en float, et un centime d'écart sur une facture ne pardonne pas.
-// Le même calcul existe en JavaScript (assets/admin.js) pour l'affichage en direct ; celui-ci fait foi.
+// Le même calcul existe en JavaScript (assets/devis.js) pour l'affichage en direct ; celui-ci fait foi.
 final class QuoteCalculator
 {
     /**

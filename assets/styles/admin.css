@@ -804,9 +804,9 @@ tr.est-masque { opacity: .55; }
 .admin-content .totaux td { padding-left: .5rem; text-align: right; white-space: nowrap; }
 .admin-content .totaux .ttc th, .admin-content .totaux .ttc td { padding-top: .6rem; border-top: 1px solid #1A1A18; font-weight: 700; font-size: 17px; color: #1A1A18; }
 .admin-content .totaux .acompte th, .admin-content .totaux .acompte td { padding-top: .6rem; color: #6B4C3B; font-weight: 600; }
-.actions { display: grid; gap: .5rem; }
-#form-devis .actions button { width: 100%; min-height: 48px; font-size: 16px; }
-.actions a { font-size: 14px; text-align: center; }
+.recap .actions { display: grid; gap: .5rem; }
+.recap .actions button { width: 100%; min-height: 48px; font-size: 16px; }
+.recap .actions a { font-size: 14px; text-align: center; }
 
 @media (max-width: 599px) {
   .admin-content:has(#form-devis) { padding: 1rem 1rem 3rem; }

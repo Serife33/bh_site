@@ -201,6 +201,7 @@ final class QuoteControllerTest extends WebTestCase
         $values['quote']['lines'] = [
             $this->line('Ligne test', '-5.00', '150', 'percent'),
             $this->line('Canapé', '2400.00', '2400.01', 'final'),   // prix final au-dessus du prix
+            $this->line('', '100.00', '0', 'percent'),
         ];
         $this->client->request('POST', '/admin/devis/new', $values);
 
@@ -211,9 +212,28 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorExists('#resume-erreurs [data-erreur-de="quote_lines_1_discountValue"]');
         self::assertSelectorExists('#quote_lines_1_discountValue_error1');
         self::assertSelectorExists('#quote_lines_1_discountValue[aria-invalid="true"]');
+        self::assertSelectorExists('#quote_lines_2_label[aria-invalid="true"]');
+        self::assertSelectorNotExists('#quote_lines_0_label[aria-invalid]');
         self::assertSelectorTextContains('#form-devis', 'Le prix ne peut pas être négatif.');
         self::assertSelectorTextContains('#form-devis', 'Une remise ne peut pas dépasser 100 %.');
         self::assertSelectorTextContains('#form-devis', 'Indiquez le délai de livraison');
+    }
+
+    // L'écran du devis est une vraie page ; sans article, le lien du résumé mène au bouton d'ajout
+    public function testQuoteWithoutArticleLeadsToTheAddButton(): void
+    {
+        $this->client->loginUser($this->seller);
+        $values = $this->client->request('GET', '/admin/devis/new')->filter('#form-devis')->form()->getPhpValues();
+        self::assertSelectorExists('meta[name="turbo-visit-control"][content="reload"]');
+        self::assertSelectorExists('#form-devis[data-turbo="false"]');
+
+        $values['quote']['customer'] = $this->customer->getId();
+        unset($values['quote']['lines']);
+        $this->client->request('POST', '/admin/devis/new', $values);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#resume-erreurs a[href="#ajouter-article"]', 'Ajoutez au moins un article.');
+        self::assertSelectorExists('#ajouter-article');
     }
 
     // Canapé à 2 400 € cédé 2 000 € : le client voit le prix d'origine, la remise en € et en %, et le total

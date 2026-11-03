@@ -110,18 +110,26 @@ function majStatut() {
     resultat(aideDe(statut), STATUTS[statut.value], statut.value === 'accepted' && formulaire().dataset.statutEnregistre !== 'accepted' ? 'attention' : '');
 }
 
-// Avant d'enregistrer un passage à « Accepté » : une confirmation, le focus sur le bouton prudent
+// Avant d'enregistrer un passage à « Accepté » : une confirmation, le focus sur le bouton prudent.
+// L'envoi est celui du navigateur (data-turbo false) : un seul à la fois, même avec les deux boutons Enregistrer.
 let verrouillageConfirme = false;
 document.addEventListener('submit', (e) => {
     if (e.target.id !== 'form-devis') return;
+    if (e.target.dataset.envoi) {
+        e.preventDefault();
+        return;
+    }
     if (champDevis('status').value === 'accepted' && e.target.dataset.statutEnregistre !== 'accepted' && !verrouillageConfirme) {
-        e.preventDefault();   // en capture : avant que Turbo n'envoie le formulaire
+        e.preventDefault();
         document.getElementById('dialogue-accepte').showModal();
         return;
     }
+    e.target.dataset.envoi = '1';
     verrouillageConfirme = false;
     modifiee = false;
-}, true);
+});
+// Retour sur la page depuis le cache du navigateur : elle peut de nouveau être envoyée
+window.addEventListener('pageshow', () => delete formulaire()?.dataset.envoi);
 
 document.addEventListener('click', (e) => {
     const bouton = e.target.closest('#dialogue-accepte [data-dialogue]');
@@ -251,11 +259,12 @@ function choisirProduit(article, produit) {
     apresChangement();
 }
 
-// Quitter le champ sans choisir alors que le texte n'est plus le nom du produit : la ligne redevient libre, rien d'autre ne bouge
+// Quitter le champ sans choisir alors que le texte n'est plus le nom du produit, ni le texte enregistré (ancien devis,
+// produit renommé depuis) : la ligne redevient libre, rien d'autre ne bouge
 function quitterArticle(input) {
     const article = input.closest('.article');
     const produit = produitDe(article);
-    if (!produit || input.value.trim() === produit.name) return;
+    if (!produit || [produit.name, input.defaultValue.trim()].includes(input.value.trim())) return;
 
     article.dataset.ancienProduit = article.dataset.produit;
     article.dataset.ancienneVariante = champ(article, 'variant').value;
@@ -519,12 +528,12 @@ function majDelai() {
     bouton.textContent = maxi ? `Utiliser : ${bouton.dataset.delai}` : 'Utiliser le délai du catalogue';
 }
 
-// Un changement : les montants, leur annonce, et l'état « non enregistré »
-function apresChangement() {
+// Un changement : les montants, l'état « non enregistré », et l'annonce des montants sauf pendant la frappe
+function apresChangement(dire = true) {
     marquerModifie();
     majStatut();
     recalculer();
-    annoncer();
+    if (dire) annoncer();
 }
 
 
@@ -607,13 +616,14 @@ document.addEventListener('input', (e) => {
     if (!e.target.closest('#form-devis')) return;
     effacerErreur(e.target);
     if (e.target.matches('[role="combobox"]')) chercher(e.target);
-    else apresChangement();
+    else apresChangement(false);
 });
 
 document.addEventListener('change', (e) => {
     const cible = e.target;
-    // Un champ caché ne change que par ce fichier, ou par le jeton CSRF de Symfony à l'envoi : pas une modification
-    if (!cible.closest('#form-devis') || cible.matches('[role="combobox"], [type="hidden"]')) return;
+    // Un champ caché ne change que par ce fichier, ou par le jeton CSRF de Symfony à l'envoi : pas une modification.
+    // La recherche du client non plus : seul le choix d'un client compte.
+    if (!cible.closest('#form-devis') || cible.matches('[data-source="client"], [type="hidden"]')) return;
     effacerErreur(cible);
     const article = cible.closest('.article');
     if (cible.matches('.c-remise input[type=radio]')) cible.closest('.c-remise').querySelector('.c-rv input').value = valeurNeutre(cible.closest('.c-remise'));
@@ -703,8 +713,8 @@ document.addEventListener('wheel', (e) => {
     if (e.target === document.activeElement && e.target.matches('#form-devis input[type="number"]')) e.target.blur();
 }, { passive: true });
 
-// Au premier affichage, et après un enregistrement refusé que Turbo affiche à la place de la page :
-// alors les modifications ne sont pas enregistrées, et le focus va sur le résumé des erreurs
+// À l'affichage, et après un enregistrement refusé : alors les modifications ne sont pas enregistrées, et le focus
+// va sur le résumé des erreurs
 function demarrer() {
     if (!formulaire()) return;
     const resume = document.getElementById('resume-erreurs');
@@ -718,4 +728,3 @@ function demarrer() {
     resume?.focus();
 }
 document.addEventListener('turbo:load', demarrer);
-document.addEventListener('turbo:render', demarrer);

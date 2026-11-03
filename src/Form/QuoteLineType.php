@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\QuoteLine;
@@ -79,8 +80,8 @@ class QuoteLineType extends AbstractType
         ;
 
         // Produit et variante arrivent par leur identifiant : le repository les retrouve, sinon le champ est refusé
-        $builder->get('product')->addModelTransformer($this->byId($this->productRepository->findForQuoteLine(...)));
-        $builder->get('variant')->addModelTransformer($this->byId($this->productRepository->findVariantForQuoteLine(...)));
+        $builder->get('product')->addModelTransformer(self::byId($this->productRepository->findForQuoteLine(...)));
+        $builder->get('variant')->addModelTransformer(self::byId($this->productRepository->findVariantForQuoteLine(...)));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -90,10 +91,11 @@ class QuoteLineType extends AbstractType
         ]);
     }
 
-    private function byId(callable $find): CallbackTransformer
+    // Une entité envoyée par son identifiant, retrouvée par $find : produit, variante, et le client du devis (QuoteType)
+    public static function byId(callable $find): CallbackTransformer
     {
         return new CallbackTransformer(
-            static fn (Product|ProductVariant|null $entity) => $entity?->getId(),
+            static fn (Customer|Product|ProductVariant|null $entity) => $entity?->getId(),
             static fn (?string $id) => $id ? ($find((int) $id) ?? throw new TransformationFailedException()) : null,
         );
     }

@@ -86,7 +86,7 @@ final class QuoteController extends AbstractController
         return $this->renderEdit($quote, $form, $savedStatus);
     }
 
-    // La recherche de produit d'une ligne de devis (assets/admin.js) : à partir de 2 lettres, 20 produits au plus,
+    // La recherche de produit d'une ligne de devis (assets/devis.js) : à partir de 2 lettres, 20 produits au plus,
     // avec ce qu'il faut pour pré-remplir la ligne
     #[Route('/produits', name: 'app_quote_products', methods: ['GET'])]
     public function products(Request $request, ProductRepository $productRepository): JsonResponse
@@ -119,7 +119,7 @@ final class QuoteController extends AbstractController
         ];
     }
 
-    // Un produit tel que l'écran d'un devis le connaît (assets/admin.js) : la recherche le renvoie,
+    // Un produit tel que l'écran d'un devis le connaît (assets/devis.js) : la recherche le renvoie,
     // une ligne enregistrée le porte déjà (quote/_article.html.twig)
     private function productData(Product $product): array
     {

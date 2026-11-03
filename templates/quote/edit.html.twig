@@ -9,9 +9,10 @@
 {% set titre = quote.number ? 'Devis ' ~ quote.number : 'Nouveau devis' %}
 
 {# Le résumé des erreurs : une ligne par erreur, un lien vers son champ. Un article s'appelle « Article n »,
-   le client mène à sa recherche ; les erreurs d'un article entier (produit, variante) mènent à son nom. #}
+   le client mène à sa recherche, la liste vide au bouton d'ajout ; les erreurs d'un article entier (produit, variante)
+   mènent à son nom. #}
 {% macro erreurs(vue, prefixe) %}
-    {%- set cible = vue.vars.name == 'customer' ? vue.vars.id ~ '_recherche' : (vue.children.label is defined ? vue.children.label.vars.id : vue.vars.id) -%}
+    {%- set cible = {customer: vue.vars.id ~ '_recherche', lines: 'ajouter-article'}[vue.vars.name] ?? (vue.children.label is defined ? vue.children.label.vars.id : vue.vars.id) -%}
     {%- for erreur in vue.vars.errors -%}
         <li data-erreur-de="{{ cible }}"><a href="#{{ cible }}" data-aller="{{ cible }}">{{ prefixe ? prefixe ~ ' : ' }}{{ erreur.message }}</a></li>
     {%- endfor -%}
@@ -21,6 +22,13 @@
 {% endmacro %}
 
 {% block title %}{{ titre }}{% endblock %}
+
+{# Une vraie page, hors de Turbo : le bouton Retour du navigateur avertit d'une saisie non enregistrée, et aucune copie
+   en cache ne réaffiche une saisie abandonnée (ni celle de Turbo, ni les champs remis par le navigateur : autocomplete off) #}
+{% block head %}
+    <meta name="turbo-visit-control" content="reload">
+    <meta name="turbo-cache-control" content="no-cache">
+{% endblock %}
 
 {% block body %}
     <a class="retour" href="{{ path('app_quote_index') }}">← Retour à la liste des devis</a>
@@ -34,7 +42,7 @@
 
     {# Les taux du calcul en direct : ceux enregistrés sur le devis, jamais recopiés à la main #}
     {% set refuse = form.vars.submitted and not form.vars.valid %}
-    {{ form_start(form, {attr: {id: 'form-devis', class: 'grille', novalidate: 'novalidate',
+    {{ form_start(form, {attr: {id: 'form-devis', class: 'grille', novalidate: 'novalidate', 'data-turbo': 'false', autocomplete: 'off',
         'data-tva': quote.vatRate, 'data-acompte': quote.depositRate, 'data-statut-enregistre': statut.value}}) }}
         <div>
             {% if refuse %}

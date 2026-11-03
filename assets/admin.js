@@ -26,7 +26,6 @@ document.addEventListener('click', (e) => {
 });
 
 
-
 // ===== Page « Ordre d'affichage » : ranger les produits à la souris =====
 
 // Le menu déroulant des catégories recharge la page tout seul.

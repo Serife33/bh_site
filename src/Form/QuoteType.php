@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\AdminUser;
-use App\Entity\Customer;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
 use App\Enum\DiscountType;
@@ -12,8 +11,6 @@ use App\Repository\AdminUserRepository;
 use App\Repository\CustomerRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\CallbackTransformer;
-use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -125,10 +122,7 @@ class QuoteType extends AbstractType
             }
         }, 1);
 
-        $builder->get('customer')->addModelTransformer(new CallbackTransformer(
-            static fn (?Customer $customer) => $customer?->getId(),
-            fn (?string $id) => $id ? ($this->customerRepository->findForQuote((int) $id) ?? throw new TransformationFailedException()) : null,
-        ));
+        $builder->get('customer')->addModelTransformer(QuoteLineType::byId($this->customerRepository->findForQuote(...)));
     }
 
     public function configureOptions(OptionsResolver $resolver): void

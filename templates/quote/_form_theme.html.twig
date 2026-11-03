@@ -52,7 +52,7 @@
         <div class="recherche">
             {{- form_widget(form, {attr: {
                 role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': id ~ '_produits',
-                'aria-describedby': describedby|join(' '), autocomplete: 'off', 'data-source': 'produit', 'data-url': path('app_quote_products'),
+                'aria-describedby': describedby|join(' '), 'aria-invalid': errors is empty ? false : 'true', autocomplete: 'off', 'data-source': 'produit', 'data-url': path('app_quote_products'),
             }}) -}}
             <ul id="{{ id }}_produits" class="resultats" role="listbox" aria-label="Produits du catalogue" hidden></ul>
         </div>
