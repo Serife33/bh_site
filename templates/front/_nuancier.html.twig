@@ -1,0 +1,42 @@
+{# Les teintes d'un tissu (coloris) ou d'une matière (finitions) : des pastilles, puis « +N » qui ouvre
+   le panneau de toutes les teintes en grand. Attend fabric, et pour le panneau : son id, son titre, sa légende. #}
+{% set maxColors = 5 %}
+<div class="col-row">
+    {% for fc in fabric.fabricColors %}
+        <button type="button" class="col-dot{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxColors ? ' swatch-extra' }}"
+                data-choix="{{ fc.name }}" data-index="{{ loop.index0 }}"
+                aria-label="{{ fc.name }}" title="{{ fc.name }}"
+                {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></button>
+    {% endfor %}
+    {% if fabric.fabricColors|length > maxColors %}
+        <button type="button" class="swatch-more" data-panneau="{{ panneau }}">+{{ fabric.fabricColors|length - maxColors }}</button>
+    {% endif %}
+</div>
+
+<dialog class="nuancier-panneau" id="{{ panneau }}">
+    <div class="panneau-in">
+        <div class="panneau-head">
+            <div>
+                <h2>{{ titre }}</h2>
+                <p>{{ legende }}</p>
+            </div>
+            <button type="button" class="panneau-close" aria-label="Fermer">✕</button>
+        </div>
+        <div class="panneau-body">
+            <div class="panneau-grid">
+                {% for fc in fabric.fabricColors %}
+                    <button type="button" class="panneau-opt{{ loop.first ? ' is-active' }}"
+                            data-color="{{ fc.name }}" data-index="{{ loop.index0 }}">
+                        <span class="echantillon"
+                              {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></span>
+                        <span class="echantillon-nom">{{ fc.name }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="panneau-foot">
+            <span class="panneau-courant">Sélectionné : <strong>{{ fabric.fabricColors|first.name }}</strong></span>
+            <button type="button" class="btn-valider">Valider</button>
+        </div>
+    </div>
+</dialog>
