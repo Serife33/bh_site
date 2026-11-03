@@ -123,6 +123,27 @@ class ProductRepository extends ServiceEntityRepository
         return (int) $max + 1;   // catégorie vide : MAX vaut null, la première place est 1
     }
 
+    // La première adresse libre : $base, sinon $base-2, $base-3…
+    // Le produit $exceptId est ignoré : régénérer sa propre adresse ne le met pas en conflit avec lui-même.
+    public function uniqueSlug(string $base, ?int $exceptId): string
+    {
+        $taken = $this->createQueryBuilder('p')
+            ->select('p.slug')
+            ->andWhere('p.slug LIKE :prefix')   // candidates : $base et ses variantes, la boucle tranche
+            ->andWhere('p.id != :exceptId')
+            ->setParameter('prefix', $base . '%')
+            ->setParameter('exceptId', $exceptId ?? 0)   // 0 : aucun produit, cas de la création
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        $slug = $base;
+        for ($i = 2; in_array($slug, $taken, true); ++$i) {
+            $slug = $base . '-' . $i;
+        }
+
+        return $slug;
+    }
+
     // Accueil : tous les produits visibles hors modules, avec leurs photos (pour les cartes).
     // Le service HomeSectionsBuilder applique ensuite les règles des trois sections.
     public function findActiveForHome(): array
