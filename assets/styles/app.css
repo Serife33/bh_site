@@ -165,13 +165,15 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 }
 .ft-legal {
     display: flex;
-    gap: 16px;
+    flex-wrap: wrap;                /* les liens passent à la ligne sur mobile */
+    justify-content: center;
+    gap: 8px 16px;
 }
-.ft-legal a {
+.ft-legal a, .ft-legal button {
     color: rgba(255,255,255,.5);   /* même gris que le copyright */
     text-decoration: none;          /* pas de soulignement */
 }
-.ft-legal a:hover {
+.ft-legal a:hover, .ft-legal button:hover {
     color: #fff;                    /* même hover que les autres liens du footer */
 }
 
@@ -353,7 +355,11 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .showroom-hours { font-size: 14px; color: var(--txt2); margin-bottom: 20px; }
 .showroom-map { flex: 1; border-radius: 16px; overflow: hidden; height: 260px; }
 @media (min-width: 768px) { .showroom-map { height: auto; min-height: 320px; } }
-.showroom-map iframe { display: block; width: 100%; height: 100%; }
+.showroom-map iframe { display: block; width: 100%; height: 100%; border: 0; }
+/* Façade de la carte : rien de Google avant le clic */
+.map-facade { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; background: var(--bg2); text-align: center; }
+.map-facade i { font-size: 32px; color: var(--accent); }
+.map-facade small { max-width: 320px; font-size: 12px; line-height: 1.4; color: var(--txt2); }
 
 
 /* ===== RÉSEAUX SOCIAUX ===== */
@@ -649,9 +655,12 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     scroll-behavior: smooth;
     border-radius: var(--r);
 }
-.gal-viewport img {
+.gal-photo {
     flex: 0 0 100%;
     scroll-snap-align: start;
+}
+.gal-photo:focus-visible { outline-offset: -4px; }   /* à l'intérieur : le cadre rognerait l'anneau */
+.gal-photo img {
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
@@ -673,6 +682,10 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .gal-viewport::-webkit-scrollbar,
 .gal-thumbs::-webkit-scrollbar {
     display: none;
+}
+/* Le seul réglage du mouvement : les défilements du script suivent cette règle */
+@media (prefers-reduced-motion: reduce) {
+    .gal-viewport, .gal-thumbs { scroll-behavior: auto; }
 }
 .gal-thumb {
     flex: 0 0 72px;
@@ -777,12 +790,12 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 /* Le lecteur, après le clic. Les vidéos sont filmées à la verticale : il prend son
    propre format, centré sur fond noir, avec une hauteur bornée pour ne pas manger
    tout l'écran sur grand écran. */
-.gal-video.is-playing {
+.gal-video:has(iframe) {
     display: flex;
     justify-content: center;
     background: #000;
 }
-.gal-iframe {
+.gal-video iframe {
     display: block;
     height: min(70vh, 560px);
     width: auto;
@@ -802,6 +815,48 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     font-size: 16px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
     pointer-events: none;
+}
+
+
+/* ===== Visionneuse plein écran : le dialog est aussi une .gallery, étendue à tout l'écran ===== */
+.visionneuse {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    background: var(--txt);
+    color-scheme: dark;   /* barres de défilement de la photo doublée lisibles sur le fond sombre */
+}
+.visionneuse .gal-viewport {
+    height: 100%;
+    border-radius: 0;
+}
+.vis-cadre {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    display: flex;
+    overflow: auto;   /* la photo doublée défile dans son cadre */
+}
+/* Doublée, son défilement n'entraîne pas la voisine ; à sa taille, le glissé doit passer à la voisine */
+.vis-cadre:has(.is-zoomed) { overscroll-behavior: contain; }
+.vis-cadre img {
+    flex: none;
+    margin: auto;   /* centrée, et une fois doublée, atteignable jusqu'aux bords */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    cursor: zoom-in;
+}
+.vis-cadre img.is-zoomed {
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+}
+.visionneuse .panneau-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;   /* le défilé, placé après lui, le recouvrirait */
 }
 
 
@@ -1015,6 +1070,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     font-size: 14px;
 }
 .cookie-banner.show { display: flex; }   /* rendu visible par le JS */
+body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsApp cachait « Accepter » sur mobile */
 .cookie-banner a { color: #fff; }
 .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .cookie-actions button {
@@ -1022,9 +1078,23 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-radius: var(--r);
     font-size: 14px;
     cursor: pointer;
+    background: #fff;              /* Refuser et Accepter : même poids visuel (CNIL) */
+    color: var(--txt);
 }
-.cookie-refuse { background: transparent; border: 1px solid rgba(255,255,255,.4); color: #fff; }
-.cookie-accept { background: #fff; border: none; color: var(--txt); }
+
+
+/* ===== Pages de texte : mentions légales, CGV, confidentialité, offres ===== */
+.wrap-legal { max-width: 860px; line-height: 1.6; }
+.wrap-legal h1 { font-size: 28px; margin-bottom: 8px; }
+.wrap-legal h2 { font-size: 20px; margin: 32px 0 10px; }
+.wrap-legal h3 { font-size: 16px; margin: 20px 0 6px; }
+.wrap-legal p, .wrap-legal ul, .wrap-legal ol, .wrap-legal table { margin-bottom: 12px; }
+.wrap-legal ul, .wrap-legal ol { list-style: revert; padding-left: 22px; }   /* retrouve les puces retirées par Tailwind */
+.wrap-legal a { color: var(--accent); text-decoration: underline; }
+.wrap-legal table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 14px; }   /* défile sur mobile au lieu de déborder */
+.wrap-legal th, .wrap-legal td { padding: 8px 10px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+.wrap-legal th { background: var(--bg2); }
+.legal-box { margin: 16px 0; padding: 20px; border: 1px solid var(--txt); border-radius: var(--r); }   /* encadré exigé pour les garanties légales */
 
 
 

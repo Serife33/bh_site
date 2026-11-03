@@ -9,11 +9,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\HasLifecycleCallbacks]   // dit à Doctrine : "cette entité a des callbacks, va les chercher"
+#[UniqueEntity('slug', message: 'Cette adresse est déjà utilisée par un autre produit.')]
 class Product
 {
     #[ORM\Id]
@@ -26,7 +29,7 @@ class Product
     #[Assert\Length(max: 160, maxMessage: 'Le nom ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $name = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: 180, unique: true)]
     #[Assert\Regex(
         pattern: '/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
         message: "L'adresse ne doit contenir que des minuscules, des chiffres et des tirets — ni accents, ni espaces, ni majuscules."
@@ -177,14 +180,15 @@ class Product
     }
 
     // Génère le slug depuis le nom UNIQUEMENT s'il est vide.
-    // Rempli à la main → on respecte la saisie (comportement de WordPress ou Shopify).
-    // Vidé dans le formulaire → il se régénère depuis le nom.
+    // Rempli à la main → on respecte la saisie (comportement de WordPress ou Shopify), UniqueEntity refuse un doublon.
+    // Vidé dans le formulaire → il se régénère depuis le nom, suivi de -2, -3… si l'adresse est déjà prise.
     #[ORM\PrePersist]
     #[ORM\PreUpdate]
-    public function generateSlug(): void
+    public function generateSlug(LifecycleEventArgs $args): void
     {
         if ($this->slug === null || trim($this->slug) === '') {
-            $this->slug = (new AsciiSlugger())->slug($this->name ?? '')->lower();
+            $base = (new AsciiSlugger())->slug($this->name ?? '')->lower();
+            $this->slug = $args->getObjectManager()->getRepository(self::class)->uniqueSlug($base, $this->id);
         }
     }
 
@@ -205,7 +209,6 @@ class Product
         $this->initialPrice = $variants[0]->getInitialPrice();
         $this->stock = array_sum(array_map(static fn (ProductVariant $variant) => $variant->getStock(), $variants));
     }
-
 
 
     public function getId(): ?int
@@ -614,7 +617,7 @@ class Product
      *
      * @return list<Media>
      */
-    private function getPhotos(): array
+    public function getPhotos(): array
     {
         return array_values(
             $this->media->filter(static fn (Media $media) => $media->isPhoto())->toArray(),
