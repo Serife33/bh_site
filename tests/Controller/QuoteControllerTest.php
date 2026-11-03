@@ -6,6 +6,7 @@ use App\Entity\AdminUser;
 use App\Entity\Category;
 use App\Entity\Customer;
 use App\Entity\Fabric;
+use App\Entity\Family;
 use App\Entity\FabricColor;
 use App\Entity\Invoice;
 use App\Entity\Product;
@@ -503,6 +504,60 @@ final class QuoteControllerTest extends WebTestCase
         }
     }
 
+    // Composer un canapé : la recherche le propose en premier pour une gamme modulable, la fenêtre liste ses modules
+    // actifs dans leur ordre, à 0, ou un de chacun de ceux de l'ensemble cherché ; ses tissus sont proposés
+    public function testCompositionIsProposedForAModularRange(): void
+    {
+        ['family' => $family, 'ensemble' => $ensemble] = $this->modularRange();
+        $this->client->loginUser($this->seller);
+
+        $results = $this->searchProducts('essailuma');
+        self::assertSame(['composition' => true, 'name' => 'ESSAILUMA', 'modules' => 3, 'url' => '/admin/devis/composition/' . $family->getId()], $results[0]);
+        self::assertCount(1, array_filter($results, static fn (array $result) => isset($result['composition'])));
+        self::assertSame('/admin/devis/composition/' . $family->getId() . '?ensemble=' . $ensemble->getId(), $this->searchProducts('essailuma 3 places')[0]['url']);
+        self::assertArrayNotHasKey('composition', $this->searchProducts('table essailuma')[0]);   // pas une gamme modulable
+
+        $modules = fn (string $url) => $this->client->request('GET', $url)->filter('.compo-module')
+            ->each(static fn ($module) => $module->filter('.compo-nom')->text() . ' ' . $module->filter('[data-nombre]')->text());
+        self::assertSame(['Module ESSAILUMA méridienne 0', 'Module ESSAILUMA angle 0', 'Module ESSAILUMA central 70 cm 0'], $modules($results[0]['url']));
+        self::assertSelectorTextContains('#compo-titre', 'Composer un canapé ESSAILUMA');
+        self::assertSelectorExists('#compo-tissus option[value="Chenille Essai, Terra"]');
+        self::assertSame(['Module ESSAILUMA méridienne 1', 'Module ESSAILUMA angle 0', 'Module ESSAILUMA central 70 cm 1'],
+            $modules('/admin/devis/composition/' . $family->getId() . '?ensemble=' . $ensemble->getId()));
+    }
+
+    // La composition ajoutée au devis (2 centraux 70 cm, un angle, une méridienne, un tissu commun changé sur l'angle) :
+    // un article par module, le bon total, et sur le devis imprimable un titre et un sous-total, puis une ligne libre à part
+    public function testCompositionOnTheQuoteAndItsDocument(): void
+    {
+        ['modules' => [$meridienne, $angle, $central]] = $this->modularRange();
+        $this->client->loginUser($this->seller);
+
+        $url = '/admin/devis/new?client=' . $this->customer->getId();
+        $values = $this->client->request('GET', $url)->filter('#form-devis')->form()->getPhpValues();
+        $module = fn (Product $product, int $quantity, string $finish) => $this->line($product->getName(), $product->getActualPrice(), '0', 'percent',
+            ['product' => $product->getId(), 'quantity' => (string) $quantity, 'finish' => $finish]);
+        $values['quote']['lines'] = [
+            $module($meridienne, 1, 'Chenille Essai, Terra'),
+            $module($angle, 1, 'Velours Essai, Bleu nuit'),
+            $module($central, 2, 'Chenille Essai, Terra'),
+            $this->line('Housse de protection', '49.90', '0', 'percent'),
+        ];
+        $values['quote']['leadTime'] = '6 semaines';
+        $this->client->request('POST', $url, $values);
+
+        $quote = $this->em->getRepository(Quote::class)->findOneBy(['customer' => $this->customer]);
+        self::assertSame('2417.90', $quote->getTotal());   // 829 + 689 + 2 × 425 + 49,90
+        self::assertSame(['Chenille Essai, Terra', 'Velours Essai, Bleu nuit', 'Chenille Essai, Terra', null],
+            $quote->getLines()->map(static fn (QuoteLine $line) => $line->getFinish())->getValues());
+
+        $this->client->request('GET', '/admin/devis/' . $quote->getId());
+        self::assertSelectorCount(1, '.compo-titre');
+        self::assertSelectorTextContains('.lignes tbody tr:first-child', 'Canapé ESSAILUMA, composition');
+        self::assertSelectorTextSame('.compo-total td:last-child', "2\u{A0}368,00\u{A0}€");   // sous-total de la composition
+        self::assertSelectorTextContains('.compo-total + tr', 'Housse de protection');
+    }
+
     private function searchProducts(string $search): array
     {
         $this->client->request('GET', '/admin/devis/produits?q=' . urlencode($search));
@@ -526,6 +581,28 @@ final class QuoteControllerTest extends WebTestCase
         $this->em->flush();
 
         return $quote;
+    }
+
+    // Une gamme modulable d'essai : trois modules actifs dans leur ordre d'affichage (l'angle fabriqué sur mesure), un module
+    // masqué, un ensemble composé de la méridienne et du central, et une table de la même gamme
+    private function modularRange(): array
+    {
+        $family = (new Family())->setName('ESSAILUMA');
+        $fabric = (new Fabric())->setName('Chenille')->setReference('Essai')->addFabricColor((new FabricColor())->setName('Terra')->setHex('#B16042'));
+        $this->em->persist($family);
+        $this->em->persist($fabric);
+        $range = static fn (Product $product, ProductModular $modular, int $position) => $product->setFamily($family)->setIsModular($modular)->setPosition($position);
+        $modules = [
+            $range($this->product('Module ESSAILUMA méridienne')->setActualPrice('829.00')->setIsCustomMade(false)->addFabric($fabric), ProductModular::Module, 10),
+            $range($this->product('Module ESSAILUMA angle')->setActualPrice('689.00'), ProductModular::Module, 16),
+            $range($this->product('Module ESSAILUMA central 70 cm')->setActualPrice('425.00')->setIsCustomMade(false), ProductModular::Module, 17),
+        ];
+        $range($this->product('Module ESSAILUMA pouf')->setIsActive(false), ProductModular::Module, 11);
+        $ensemble = $range($this->product('Canapé ESSAILUMA 3 places')->addModule($modules[0])->addModule($modules[2]), ProductModular::Yes, 5);
+        $range($this->product('Table ESSAILUMA'), ProductModular::No, 30);
+        $this->em->flush();
+
+        return ['family' => $family, 'modules' => $modules, 'ensemble' => $ensemble];
     }
 
     private function product(string $name): Product

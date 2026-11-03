@@ -53,8 +53,10 @@
         </div>
     </section>
 
-    {# La colonne Remise seulement si une ligne est remisée : un devis sans remise n'en parle pas #}
+    {# La colonne Remise seulement si une ligne est remisée : un devis sans remise n'en parle pas.
+       Un canapé composé module par module : son titre avant ses modules, son sous-total après (QuoteCalculator). #}
     {% set colonneRemise = totaux.lines|filter(l => l.discount > 0)|length > 0 %}
+    {% set colonnes = colonneRemise ? 5 : 4 %}
     <table class="lignes">
         <thead>
             <tr>
@@ -69,6 +71,9 @@
         {% for key, line in quote.lines %}
             {% set montants = totaux.lines[key] %}
             {% set photo = line.product ? line.product.mainMedia : null %}
+            {% for composition in totaux.compositions|filter(c => c.first == key) %}
+                <tr class="compo-titre"><td colspan="{{ colonnes }}">Canapé {{ composition.family }}, composition</td></tr>
+            {% endfor %}
             <tr>
                 <td>
                     <div class="produit">
@@ -102,6 +107,9 @@
                 {% endif %}
                 <td>{{ montants.total|prix(2) }}</td>
             </tr>
+            {% for composition in totaux.compositions|filter(c => c.last == key) %}
+                <tr class="compo-total"><td colspan="{{ colonnes - 1 }}">Sous-total de la composition</td><td>{{ composition.total|prix(2) }}</td></tr>
+            {% endfor %}
         {% endfor %}
         </tbody>
     </table>

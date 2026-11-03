@@ -185,7 +185,7 @@
     {{ form_end(form) }}
 
     {# Passer à « Accepté » verrouille le devis : on le confirme avant l'enregistrement #}
-    <dialog id="dialogue-accepte" aria-labelledby="dialogue-titre" aria-describedby="dialogue-texte">
+    <dialog id="dialogue-accepte" class="dialogue" aria-labelledby="dialogue-titre" aria-describedby="dialogue-texte">
         <h2 id="dialogue-titre">Verrouiller le devis ?</h2>
         <p id="dialogue-texte">Le statut Accepté veut dire que le client a signé. Après l'enregistrement, le devis ne se modifie plus : articles, prix, livraison et acompte restent tels quels.</p>
         <div class="dialogue-actions">
@@ -193,4 +193,7 @@
             <button type="button" data-dialogue="oui">Enregistrer et verrouiller</button>
         </div>
     </dialog>
+
+    {# Composer un canapé modulable : rempli à l'ouverture (quote/_composition.html.twig). Échap ferme sans rien ajouter. #}
+    <dialog id="dialogue-composition" class="dialogue" aria-labelledby="compo-titre" aria-describedby="compo-intro"></dialog>
 {% endblock %}

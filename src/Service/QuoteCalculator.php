@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
 use App\Enum\DiscountType;
+use App\Enum\ProductModular;
 
 // Tous les montants d'un devis, à partir des prix TTC saisis. Calcul en chaînes avec bcmath, jamais en float :
 // 0,1 + 0,2 ne fait pas exactement 0,3 en float, et un centime d'écart sur une facture ne pardonne pas.
@@ -18,8 +19,10 @@ final class QuoteCalculator
      *
      * L'acompte est le montant saisi sur le devis, sinon son taux appliqué au total TTC ; sa part du total
      * l'accompagne (« 32,46 % »). L'acompte et le solde ont aussi leur HT et leur TVA, pour la facture d'acompte.
+     * Les compositions (canapés composés module par module) ont leur sous-total, pour les documents.
      *
-     * @return array{lines: array<int, array{discount: string, rate: string, total: string}>, items: string, discount: string,
+     * @return array{lines: array<int, array{discount: string, rate: string, total: string}>,
+     *     compositions: list<array{family: string, first: int, last: int, total: string}>, items: string, discount: string,
      *     delivery: string, assembly: string, ttc: string, ht: string, tva: string, deposit: string, depositShare: string,
      *     depositHt: string, depositTva: string, balance: string, balanceHt: string, balanceTva: string}
      */
@@ -49,6 +52,7 @@ final class QuoteCalculator
 
         return [
             'lines'        => $lines,
+            'compositions' => $this->compositions($quote, $lines),
             'items'        => $items,
             'discount'     => $discount,
             'delivery'     => $delivery,
@@ -64,6 +68,33 @@ final class QuoteCalculator
             'balanceHt'    => bcsub($ht, $depositHt, 2),
             'balanceTva'   => bcsub($tva, $depositTva, 2),
         ];
+    }
+
+    /**
+     * Les modules d'une même gamme qui se suivent, deux au moins : un canapé composé dans le devis, regroupé sur les
+     * documents sous son titre, avec son sous-total. Déduit des produits des lignes et de leur ordre.
+     *
+     * @return list<array{family: string, first: int, last: int, total: string}>
+     */
+    private function compositions(Quote $quote, array $lines): array
+    {
+        $groups = [];
+        $previous = null;
+        foreach ($quote->getLines() as $key => $line) {
+            $product = $line->getProduct();
+            $family = $product?->getIsModular() === ProductModular::Module ? $product->getFamily() : null;
+            if ($family !== null && $family !== $previous) {
+                $groups[] = ['family' => $family->getName(), 'first' => $key, 'last' => $key, 'total' => '0.00'];
+            }
+            if ($family !== null) {
+                $last = count($groups) - 1;
+                $groups[$last]['last'] = $key;
+                $groups[$last]['total'] = bcadd($groups[$last]['total'], $lines[$key]['total'], 2);
+            }
+            $previous = $family;
+        }
+
+        return array_values(array_filter($groups, static fn (array $group) => $group['first'] !== $group['last']));
     }
 
     // Le HT d'un montant TTC : TTC ÷ 1,2 pour une TVA à 20 %, arrondi au centime

@@ -74,6 +74,7 @@
 
     <h2 class="titre">Rappel de la commande (devis {{ quote.number }} du {{ quote.createdAt|date_longue }})</h2>
     {% set colonneRemise = totaux.discount > 0 or totaux.lines|filter(l => l.discount > 0)|length > 0 %}
+    {% set colonnes = colonneRemise ? 6 : 5 %}
     <table class="lignes">
         <thead>
             <tr>
@@ -88,6 +89,9 @@
         <tbody>
         {% for key, line in quote.lines %}
             {% set montants = totaux.lines[key] %}
+            {% for composition in totaux.compositions|filter(c => c.first == key) %}
+                <tr class="compo-titre"><td colspan="{{ colonnes }}">Canapé {{ composition.family }}, composition</td></tr>
+            {% endfor %}
             <tr>
                 <td>
                     <strong>{{ line.label }}</strong>
@@ -107,6 +111,9 @@
                 <td>{{ montants.total|ht(quote.vatRate)|prix(2) }}</td>
                 <td>{{ tva }}</td>
             </tr>
+            {% for composition in totaux.compositions|filter(c => c.last == key) %}
+                <tr class="compo-total"><td colspan="{{ colonnes - 2 }}">Sous-total de la composition</td><td>{{ composition.total|ht(quote.vatRate)|prix(2) }}</td><td></td></tr>
+            {% endfor %}
         {% endfor %}
         {% if totaux.discount > 0 %}
             <tr>

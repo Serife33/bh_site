@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Category;
 use App\Entity\Fabric;
+use App\Entity\Family;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\SubCategory;
@@ -367,6 +368,50 @@ class ProductRepository extends ServiceEntityRepository
         $this->loadFinishes($products);
 
         return $products;
+    }
+
+    // Les modules actifs d'une gamme, dans leur ordre d'affichage, avec leurs photos, tissus et finitions : un nombre fixe
+    // de requêtes, quel que soit le nombre de modules. Pour composer un canapé, dans un devis et sur la fiche du site.
+    public function findActiveModulesOfFamily(Family $family): array
+    {
+        $modules = $this->createQueryBuilder('p')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')   // photos dans l'ordre de leur collection (position)
+            ->andWhere('p.family = :family')
+            ->andWhere('p.isModular = :module')
+            ->andWhere('p.isActive = true')
+            ->setParameter('family', $family)
+            ->setParameter('module', ProductModular::Module)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $this->loadFinishes($modules);
+
+        return $modules;
+    }
+
+    // Les gammes de ces identifiants qui ont des modules actifs, avec leur nombre : de quoi proposer de composer un canapé
+    /** @return list<array{id: int, name: string, modules: int}> */
+    public function countActiveModulesOfFamilies(array $familyIds): array
+    {
+        if ($familyIds === []) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('p')
+            ->select('f.id', 'f.name', 'COUNT(p.id) AS modules')
+            ->join('p.family', 'f')
+            ->andWhere('f.id IN (:families)')
+            ->andWhere('p.isModular = :module')
+            ->andWhere('p.isActive = true')
+            ->setParameter('families', $familyIds)
+            ->setParameter('module', ProductModular::Module)
+            ->groupBy('f.id', 'f.name')
+            ->orderBy('f.name', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
     }
 
     // Le produit et la variante d'une ligne de devis, reçus par leur identifiant

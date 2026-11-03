@@ -2,9 +2,12 @@
 
 namespace App\Tests\Service;
 
+use App\Entity\Family;
+use App\Entity\Product;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
 use App\Enum\DiscountType;
+use App\Enum\ProductModular;
 use App\Service\QuoteCalculator;
 use PHPUnit\Framework\TestCase;
 
@@ -145,6 +148,29 @@ final class QuoteCalculatorTest extends TestCase
         self::assertSame('0.00', $totals['lines'][0]['total']);
         self::assertSame('80.00', $totals['discount']);
         self::assertSame('40.00', $totals['ttc']);   // il reste la livraison, jamais remisée
+    }
+
+    // Les modules d'une même gamme qui se suivent forment une composition, avec son sous-total remisé ;
+    // un module seul, un ensemble ou une ligne libre n'en sont pas
+    public function testConsecutiveModulesOfARangeAreGrouped(): void
+    {
+        $luma = (new Family())->setName('LUMA');
+        $madrid = (new Family())->setName('MADRID');
+        $product = static fn (Family $family, ProductModular $modular) => (new Product())->setFamily($family)->setIsModular($modular);
+        $quote = $this->quote(
+            $this->line('829.00')->setProduct($product($luma, ProductModular::Module)),
+            $this->line('425.00', 2, '50.00', DiscountType::Amount)->setProduct($product($luma, ProductModular::Module)),
+            $this->line('49.90'),
+            $this->line('689.00')->setProduct($product($luma, ProductModular::Module)),
+            $this->line('3785.00')->setProduct($product($luma, ProductModular::Yes)),
+            $this->line('500.00')->setProduct($product($madrid, ProductModular::Module)),
+            $this->line('300.00')->setProduct($product($madrid, ProductModular::Module)),
+        );
+
+        self::assertSame([
+            ['family' => 'LUMA', 'first' => 0, 'last' => 1, 'total' => '1629.00'],
+            ['family' => 'MADRID', 'first' => 5, 'last' => 6, 'total' => '800.00'],
+        ], (new QuoteCalculator())->totals($quote)['compositions']);
     }
 
     private function quote(QuoteLine ...$lines): Quote

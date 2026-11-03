@@ -16,6 +16,7 @@ const champDevis = (nom) => formulaire().elements[`quote[${nom}]`];
 // L'aide d'un champ, réécrite en résultat (« Catalogue : 2 399,00 € »)
 const aideDe = (element) => document.getElementById(`${element.id}_help`);
 const lireJson = (texte) => (texte ? JSON.parse(texte) : null);
+const nombreDe = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;   // « 1 article », « 3 articles »
 
 function resultat(element, texte, etat = '') {
     element.textContent = texte;
@@ -82,7 +83,7 @@ function majResume() {
     const nombre = resume.querySelectorAll('li').length;
     resume.classList.toggle('corrige', !nombre);
     resume.querySelector('h2').textContent = nombre
-        ? `Le devis n'est pas enregistré : ${nombre} point${nombre > 1 ? 's' : ''} à corriger`
+        ? `Le devis n'est pas enregistré : ${nombreDe(nombre, 'point')} à corriger`
         : 'Tout est corrigé. Vous pouvez enregistrer.';
 }
 
@@ -248,13 +249,18 @@ function lier(article, produit, variante = '') {
 
 // Un seul champ « Article » : son texte est le nom imprimé ; le choisir dans la liste lie en plus le produit.
 // Précisions, finition, quantité et remise ne changent pas.
-function choisirProduit(article, produit) {
+function remplirProduit(article, produit) {
     delete article.dataset.ancienProduit;
     delete article.dataset.ancienneVariante;
     lier(article, produit);
     champ(article, 'label').value = produit.name;
+    champ(article, 'label').dataset.avant = produit.name;   // le texte remis si une recherche ouvre ensuite la composition
     champ(article, 'unitPrice').value = produit.price;
     champ(article, 'customMade').checked = produit.customMade;
+}
+
+function choisirProduit(article, produit) {
+    remplirProduit(article, produit);
     annoncer(`${produit.name} choisi : prix ${euros(centimes(produit.price))} et case « fabriqué selon les choix du client » remplis.`);
     apresChangement();
 }
@@ -406,8 +412,8 @@ function retablir(article) {
     apresChangement();
 }
 
-// Un article ajouté : le modèle de carte de la collection, son numéro de ligne et son numéro d'article
-function ajouterArticle() {
+// Un article ajouté à la fin : le modèle de carte de la collection, son numéro de ligne et son numéro d'article
+function nouvelArticle() {
     const conteneur = document.getElementById('articles');
     const index = Number(conteneur.dataset.index);
     const numero = Math.max(0, ...articles().map((article) => Number(article.dataset.numero))) + 1;
@@ -415,8 +421,13 @@ function ajouterArticle() {
     conteneur.dataset.index = index + 1;
     const article = conteneur.lastElementChild;
     preparer(article);
+    return article;
+}
+
+function ajouterArticle() {
+    const article = nouvelArticle();
     champ(article, 'label').focus();
-    annoncer(`Article ${numero} ajouté.`);
+    annoncer(`Article ${article.dataset.numero} ajouté.`);
     apresChangement();
 }
 
@@ -492,7 +503,7 @@ function recalculer() {
     const nombre = articlesActifs().length;
     const points = [
         client ? { texte: `Client : ${client.name}` } : { texte: 'Choisissez le client', cible: `${champDevis('customer').id}_recherche` },
-        nombre ? { texte: `${nombre} article${nombre > 1 ? 's' : ''}` } : { texte: 'Ajoutez au moins un article', cible: 'ajouter-article' },
+        nombre ? { texte: nombreDe(nombre, 'article') } : { texte: 'Ajoutez au moins un article', cible: 'ajouter-article' },
         ...problemes,
         champDevis('leadTime').value.trim() ? { texte: 'Délai de livraison indiqué' } : { texte: 'Indiquez le délai de livraison', cible: champDevis('leadTime').id },
         ...(erreurAcompte ? [] : [{ texte: `Acompte : ${euros(acompte)}` }]),
@@ -549,10 +560,12 @@ const SOURCES = {
         quitter: (input) => { input.value = clientDe()?.name ?? ''; },
     },
     produit: {
-        texte: (produit) => `${produit.name} · ${euros(centimes(produit.price))}`,
+        // En premier, une gamme modulable trouvée : « Composer un canapé LUMA (7 modules) »
+        texte: (produit) => (produit.composition ? `Composer un canapé ${produit.name} (${nombreDe(produit.modules, 'module')})`
+            : `${produit.name} · ${euros(centimes(produit.price))}`),
         etiquette: (produit) => produit.hidden && 'masqué',   // pas encore en ligne : chiffrable, mais à ne pas confondre
         vide: 'Aucun produit du catalogue. Le texte tapé sera le nom imprimé (ligne libre).',
-        choisir: (input, produit) => choisirProduit(input.closest('.article'), produit),
+        choisir: (input, produit) => (produit.composition ? ouvrirComposition(input, produit.url) : choisirProduit(input.closest('.article'), produit)),
         quitter: quitterArticle,
     },
 };
@@ -586,7 +599,7 @@ function ouvrir(input, elements) {
     liste.hidden = false;
     input.setAttribute('aria-expanded', 'true');
     input.removeAttribute('aria-activedescendant');
-    annoncer(elements.length ? `${elements.length} résultat${elements.length > 1 ? 's' : ''}.` : 'Aucun résultat.');
+    annoncer(elements.length ? `${nombreDe(elements.length, 'résultat')}.` : 'Aucun résultat.');
 }
 
 function choisir(input, rang) {
@@ -614,7 +627,89 @@ function chercher(input) {
 }
 
 
+// ===== Composer un canapé modulable : une fenêtre, un article par module choisi =====
+// Le contenu de la fenêtre vient du serveur (QuoteController::composition). Rien ne change dans le devis avant
+// « Ajouter au devis » ; Échap ou Annuler ferment sans rien ajouter, le focus revient au champ Article.
+const MODULES_MAX = 9;
+const dialogueCompo = () => document.getElementById('dialogue-composition');
+const modulesCompo = () => [...dialogueCompo().querySelectorAll('.compo-module')];
+const nombreModule = (module) => Number(module.querySelector('[data-nombre]').value);
+// Une carte encore vide, à l'endroit de la recherche : la composition la remplace
+const estVide = (article) => !produitDe(article) && ['label', 'unitPrice', 'finish', 'details'].every((nom) => !champ(article, nom).value.trim());
+
+async function ouvrirComposition(input, url) {
+    input.value = input.dataset.avant ?? '';   // le texte d'avant la recherche : la carte reste telle qu'elle était
+    const dialogue = dialogueCompo();
+    try {
+        const reponse = await fetch(url);
+        if (!reponse.ok || reponse.redirected) throw new Error(reponse.statusText);   // session expirée : page de connexion
+        dialogue.innerHTML = await reponse.text();   // gabarit du serveur, échappé
+    } catch {
+        annoncer('La composition ne se charge pas. Rechargez la page.');
+        return;
+    }
+    dialogue.article = input.closest('.article');
+    dialogue.showModal();
+    majComposition();
+    dialogue.querySelector('[data-pas="1"]').focus();
+}
+
+// Les boutons − et + (0 à 9), le nombre de modules et le total, dits dans la fenêtre
+function majComposition(texte = '') {
+    let nombre = 0;
+    let total = 0;
+    modulesCompo().forEach((module) => {
+        const n = nombreModule(module);
+        module.querySelector('[data-pas="-1"]').setAttribute('aria-disabled', String(n === 0));
+        module.querySelector('[data-pas="1"]').setAttribute('aria-disabled', String(n === MODULES_MAX));
+        nombre += n;
+        total += n * centimes(lireJson(module.dataset.produit).price);
+    });
+    dialogueCompo().querySelector('[data-compo="ajouter"]').disabled = !nombre;
+    // Le module changé n'est dit qu'au lecteur d'écran : à l'écran, son nombre est sous ses yeux
+    dialogueCompo().querySelector('[data-compo-somme]').replaceChildren(Object.assign(document.createElement('span'), { className: 'sr-only', textContent: texte }),
+        nombre ? `Composition : ${nombreDe(nombre, 'module')}, ${euros(total)}.` : 'Aucun module choisi.');
+}
+
+// Un article par module choisi, à la suite, à la fin du devis : produit lié, prix, nombre, tissu commun
+function ajouterComposition() {
+    const dialogue = dialogueCompo();
+    const tissu = dialogue.querySelector('[data-tissu]').value.trim();
+    if (estVide(dialogue.article)) dialogue.article.remove();
+    const ajoutes = modulesCompo().filter(nombreModule).map((module) => {
+        const article = nouvelArticle();
+        remplirProduit(article, lireJson(module.dataset.produit));
+        champ(article, 'quantity').value = nombreModule(module);
+        champ(article, 'finish').value = tissu;
+        return article;
+    });
+    dialogue.close();
+    champ(ajoutes[0], 'label').focus();
+    annoncer(`Composition ajoutée : ${nombreDe(ajoutes.length, 'article')}, à partir de l'article ${ajoutes[0].dataset.numero}.`);
+    apresChangement();
+}
+
+document.addEventListener('click', (e) => {
+    const bouton = e.target.closest('#dialogue-composition button');
+    if (!bouton) return;
+    if (bouton.dataset.compo) {
+        bouton.dataset.compo === 'ajouter' ? ajouterComposition() : dialogueCompo().close();
+        return;
+    }
+    if (bouton.getAttribute('aria-disabled') === 'true') return;
+    const module = bouton.closest('.compo-module');
+    const nombre = module.querySelector('[data-nombre]');
+    nombre.value = nombreModule(module) + Number(bouton.dataset.pas);
+    majComposition(`${module.querySelector('.compo-nom').textContent} : ${nombre.value}. `);
+});
+
+
 // ===== Les gestes du vendeur =====
+// Le texte du champ Article quand on y entre : remis si la recherche ouvre la composition
+document.addEventListener('focusin', (e) => {
+    if (e.target.matches?.('#form-devis [data-source="produit"]')) e.target.dataset.avant = e.target.value;
+});
+
 document.addEventListener('input', (e) => {
     if (!e.target.closest('#form-devis')) return;
     effacerErreur(e.target);

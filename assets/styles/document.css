@@ -111,6 +111,10 @@ ul { list-style: none; }
 .encadre-acompte .ttc th, .encadre-acompte .ttc td { padding-top: 2mm; padding-bottom: 2.5mm; border-top: 1px solid var(--encre); color: var(--encre); font-size: 12pt; font-weight: 500; }
 .acquittee { padding: 2mm 3mm; background: var(--sable); font-size: 8pt; }
 .lignes strong { font-weight: 500; }
+/* Un canapé composé module par module : son titre, puis son sous-total sous ses modules */
+.lignes .compo-titre td { padding-bottom: 0; border-bottom: 0; color: var(--brun); font-size: 7pt; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+.lignes .compo-total td { padding-top: 1.5mm; color: var(--gris); text-align: right; }
+.lignes .compo-total td + td { color: var(--encre); font-weight: 500; }
 .lignes tfoot { display: table-row-group; }   /* une seule fois, à la fin : pas répété sur chaque page imprimée */
 .lignes tfoot th { padding-top: 1.5mm; border: 0; color: var(--gris); font-size: 8.5pt; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .lignes tfoot td { padding-top: 1.5mm; border: 0; }
@@ -133,5 +137,5 @@ ul { list-style: none; }
   .lignes tbody tr { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1mm 3mm; padding: 3mm 0; border-bottom: 1px solid var(--filet); }
   .lignes tbody td { padding: 0; border: 0; }
   .lignes tbody td:first-child { flex-basis: 100%; }
-  .lignes tbody td:nth-child(2):not(:empty)::before { content: "Qté "; color: var(--gris); }
+  .lignes tbody tr:not(.compo-total) td:nth-child(2):not(:empty)::before { content: "Qté "; color: var(--gris); }
 }

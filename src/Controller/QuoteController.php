@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
+use App\Entity\Family;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
+use App\Enum\ProductModular;
 use App\Enum\QuoteStatus;
 use App\Form\QuoteType;
 use App\Repository\AdminUserRepository;
@@ -94,7 +96,42 @@ final class QuoteController extends AbstractController
         $search = trim($request->query->getString('q'));
         $products = mb_strlen($search) < 2 ? [] : $productRepository->findForQuoteSearch($search, self::SEARCH_RESULTS);
 
-        return $this->json(array_map($this->productData(...), $products));
+        // Une gamme modulable trouvée (un de ses modules ou ensembles) : en premier, de quoi composer son canapé,
+        // à partir de l'ensemble si la recherche n'a trouvé que lui dans la gamme
+        $found = [];
+        foreach ($products as $product) {
+            if ($product->getFamily() && $product->getIsModular() !== ProductModular::No) {
+                $found[$product->getFamily()->getId()][] = $product;
+            }
+        }
+        $compositions = array_map(fn (array $family) => [
+            'composition' => true,
+            'name'        => $family['name'],
+            'modules'     => (int) $family['modules'],
+            'url'         => $this->generateUrl('app_quote_composition', ['id' => $family['id'], 'ensemble' => count($found[$family['id']]) === 1
+                && $found[$family['id']][0]->getIsModular() === ProductModular::Yes ? $found[$family['id']][0]->getId() : null]),
+        ], $productRepository->countActiveModulesOfFamilies(array_keys($found)));
+
+        return $this->json([...$compositions, ...array_map($this->productData(...), $products)]);
+    }
+
+    // La fenêtre « Composer un canapé » d'une gamme (assets/devis.js) : ses modules, au départ aucun, ou un de chacun de
+    // ceux de l'ensemble cherché, comme le configurateur du site ; les finitions de la gamme pour le tissu commun
+    #[Route('/composition/{id}', name: 'app_quote_composition', methods: ['GET'])]
+    public function composition(Request $request, Family $family, ProductRepository $productRepository): Response
+    {
+        $modules = $productRepository->findActiveModulesOfFamily($family);
+        $ensemble = $request->query->getInt('ensemble') ? $productRepository->findForQuoteLine($request->query->getInt('ensemble')) : null;
+
+        return $this->render('quote/_composition.html.twig', [
+            'gamme'   => $family->getName(),
+            'modules' => array_map(fn (Product $module) => [
+                'produit' => $module,
+                'donnees' => $this->productData($module),
+                'nombre'  => (int) $ensemble?->getModules()->contains($module),
+            ], $modules),
+            'tissus'  => array_unique(array_merge([], ...array_map(static fn (Product $module) => array_column($module->getFinishes(), 'label'), $modules))),
+        ]);
     }
 
     // La recherche du client d'un devis (assets/devis.js) : nom, prénom, téléphone ou e-mail, 20 clients au plus
