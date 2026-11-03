@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Fabric;
+use App\Entity\ProductVariant;
 use App\Form\FabricType;
 use App\Repository\FabricRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,6 +73,20 @@ final class FabricController extends AbstractController
     public function delete(Request $request, Fabric $fabric, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$fabric->getId(), $request->getPayload()->getString('_token'))) {
+            // Une variante qui garde cette matière bloquerait la suppression dans la base (erreur 500) : on explique plutôt
+            $variants = $entityManager->getRepository(ProductVariant::class)->findBy(['fabric' => $fabric]);
+
+            if ($variants !== []) {
+                $products = array_unique(array_map(static fn (ProductVariant $variant) => $variant->getProduct()->getName(), $variants));
+                $this->addFlash('error', sprintf(
+                    'Impossible de supprimer « %s » : c\'est la matière de variantes de %s. Change ou retire ces variantes d\'abord.',
+                    $fabric,
+                    implode(', ', $products),
+                ));
+
+                return $this->redirectToRoute('app_fabric_show', ['id' => $fabric->getId()], Response::HTTP_SEE_OTHER);
+            }
+
             $entityManager->remove($fabric);
             $entityManager->flush();
         }

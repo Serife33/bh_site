@@ -96,6 +96,8 @@
   background: #fff;
 }
 .admin-content textarea { min-height: 90px; }
+/* Un champ verrouillé (prix et stock calculés à partir des variantes) se voit verrouillé */
+.admin-content input:disabled { background: #F2EFEB; color: #6B645D; cursor: not-allowed; }
 .admin-content input[type=checkbox],
 .admin-content input[type=radio] { margin-right: 0.4rem; }
 
@@ -178,9 +180,9 @@
 }
 
 
-/* ===== NUANCIER — formulaire imbriqué ===== */
+/* ===== COLLECTIONS : nuancier d'un tissu, variantes d'un produit (admin/_collection.html.twig) ===== */
 
-.nuancier-ligne {
+.collection-ligne {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
@@ -193,12 +195,12 @@
 }
 
 /* Chaque champ devient une colonne */
-.nuancier-ligne > div {
+.collection-ligne > div {
   margin: 0;
 }
 
 /* Libellés compacts au-dessus des champs */
-.nuancier-ligne label {
+.collection-ligne label {
   display: block;
   font-size: 12px;
   color: #6B645D;
@@ -206,13 +208,17 @@
 }
 
 /* Largeurs : le nom prend la place, le reste est étroit */
-.nuancier-ligne input[type="text"] { width: 180px; }
-.nuancier-ligne input[type="color"] { width: 48px; height: 34px; padding: 2px; }
-.nuancier-ligne input[type="number"] { width: 70px; }
+.collection-ligne input[type="text"] { width: 180px; }
+.collection-ligne input[type="color"] { width: 48px; height: 34px; padding: 2px; }
+.collection-ligne input[type="number"] { width: 70px; }
+.collection-ligne input[step="0.01"] { width: 110px; }   /* les prix des variantes : 1155.00 doit tenir */
 
-/* On masque les textes d'aide, trop verbeux répétés 19 fois */
-.nuancier-ligne .help-text,
-.nuancier-ligne small {
+/* L'erreur de la ligne entière (ni taille ni matière) passe au-dessus de ses champs */
+.collection-ligne > ul { flex-basis: 100%; margin: 0; }
+
+/* On masque les textes d'aide, trop verbeux répétés à chaque ligne */
+.collection-ligne .help-text,
+.collection-ligne small {
   display: none;
 }
 
@@ -233,8 +239,8 @@
   border-color: #8B3A3A;
 }
 
-/* L'aperçu Vich dans le nuancier : une vignette, pas une photo pleine taille */
-.nuancier-ligne img {
+/* L'aperçu Vich d'un coloris : une vignette, pas une photo pleine taille */
+.collection-ligne img {
   max-width: 60px;
   height: auto;
   border-radius: 3px;

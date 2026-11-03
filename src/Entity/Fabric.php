@@ -28,7 +28,7 @@ class Fabric
     /**
      * @var Collection<int, FabricColor>
      */
-    #[ORM\OneToMany(targetEntity: FabricColor::class, mappedBy: 'fabric', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: FabricColor::class, mappedBy: 'fabric', cascade: ['persist'], orphanRemoval: true)]
         #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
     private Collection $fabricColors;
 

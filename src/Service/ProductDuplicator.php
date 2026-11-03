@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Media;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -25,6 +26,7 @@ final class ProductDuplicator
      * Copie en mémoire, pas encore enregistrée : tout le contenu de l'original,
      * sauf l'adresse (régénérée depuis le nom, suivie de -2, -3… si elle est prise), la position (attribuée à la fin
      * de sa catégorie par le contrôleur) et les photos (recopiées par copyPhotos).
+     * Les variantes sont recopiées sans leur ancienne adresse (legacySlug) : elle reste à l'original.
      */
     public function prepareCopy(Product $original): Product
     {
@@ -58,6 +60,14 @@ final class ProductDuplicator
         }
         foreach ($original->getModules() as $module) {
             $copy->addModule($module);
+        }
+        foreach ($original->getVariants() as $variant) {
+            $copy->addVariant((new ProductVariant())
+                ->setSize($variant->getSize())
+                ->setFabric($variant->getFabric())
+                ->setInitialPrice($variant->getInitialPrice())
+                ->setActualPrice($variant->getActualPrice())
+                ->setStock($variant->getStock()));
         }
 
         return $copy;
