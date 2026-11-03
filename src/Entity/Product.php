@@ -139,6 +139,13 @@ class Product
     #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
     private Collection $media;
 
+    /**
+     * @var Collection<int, ProductVariant>
+     */
+    #[ORM\OneToMany(targetEntity: ProductVariant::class, mappedBy: 'product', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
+    private Collection $variants;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -152,6 +159,7 @@ class Product
         $this->colors = new ArrayCollection();
         $this->modules = new ArrayCollection();
         $this->media = new ArrayCollection();
+        $this->variants = new ArrayCollection();
     }
 
 
@@ -184,6 +192,23 @@ class Product
         }
     }
 
+    // Prix et stock deviennent le résumé des variantes : prix de la moins chère (et son prix barré), somme des stocks.
+    // PreFlush et non PreUpdate : appelé à chaque flush, même si seules les variantes (modifiées depuis leur produit) ont changé.
+    #[ORM\PreFlush]
+    public function refreshFromVariants(): void
+    {
+        $variants = $this->variants->toArray();
+
+        if ($variants === []) {
+            return;
+        }
+
+        usort($variants, static fn (ProductVariant $a, ProductVariant $b) => (float) $a->getActualPrice() <=> (float) $b->getActualPrice());
+
+        $this->actualPrice = $variants[0]->getActualPrice();
+        $this->initialPrice = $variants[0]->getInitialPrice();
+        $this->stock = array_sum(array_map(static fn (ProductVariant $variant) => $variant->getStock(), $variants));
+    }
 
 
     public function getId(): ?int
@@ -527,6 +552,36 @@ class Product
             // set the owning side to null (unless already changed)
             if ($medium->getProduct() === $this) {
                 $medium->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductVariant>
+     */
+    public function getVariants(): Collection
+    {
+        return $this->variants;
+    }
+
+    public function addVariant(ProductVariant $variant): static
+    {
+        if (!$this->variants->contains($variant)) {
+            $this->variants->add($variant);
+            $variant->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVariant(ProductVariant $variant): static
+    {
+        if ($this->variants->removeElement($variant)) {
+            // on annule le lien seulement s'il pointait bien vers ce produit
+            if ($variant->getProduct() === $this) {
+                $variant->setProduct(null);
             }
         }
 
