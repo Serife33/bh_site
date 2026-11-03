@@ -1,0 +1,17 @@
+{# Liste rangée au glisser-déposer : à chaque dépôt, assets/admin.js envoie à « url » les data-id dans leur nouvel ordre.
+   Reçoit : url, lignes. Une ligne : id, nom, masque (ligne atténuée, étiquette « masqué »),
+   etiquette (facultative, ex. « module »), liens ({libellé: adresse}). #}
+<ul id="liste-ordre" data-url="{{ url }}" data-token="{{ csrf_token('ordre') }}">
+    {% for ligne in lignes %}
+        <li class="ordre-ligne{% if ligne.masque %} est-masque{% endif %}" data-id="{{ ligne.id }}">
+            <span class="ordre-poignee" aria-hidden="true">⠿</span>
+            <span class="ordre-rang">{{ loop.index }}</span>
+            <span class="ordre-nom">{{ ligne.nom }}</span>
+            {% if ligne.masque %}<span class="ordre-etiquette">masqué</span>{% endif %}
+            {% if ligne.etiquette ?? false %}<span class="ordre-etiquette">{{ ligne.etiquette }}</span>{% endif %}
+            {% for libelle, lien in ligne.liens %}<a href="{{ lien }}">{{ libelle }}</a>{% endfor %}
+        </li>
+    {% endfor %}
+</ul>
+
+<p id="ordre-message" role="status" aria-live="polite" class="ordre-message"></p>

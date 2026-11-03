@@ -17,6 +17,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ProductRepository extends ServiceEntityRepository
 {
+    use PositionsTrait;   // updatePositions() : la page « Ordre d'affichage »
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Product::class);
@@ -81,28 +83,6 @@ class ProductRepository extends ServiceEntityRepository
             ->addOrderBy('p.id', 'ASC') // départage : deux positions égales sortent toujours dans le même ordre
             ->getQuery()
             ->getArrayResult();
-    }
-
-
-    // Enregistre un nouvel ordre : le 1er identifiant reçoit la position 1, le 2e la position 2…
-    // UPDATE direct : seule la colonne position change, updatedAt ne bouge pas
-    // (le lastmod du sitemap et le tri des promos restent justes).
-    // Tout ou rien : si une requête échoue, aucune position n'est modifiée.
-    public function updatePositions(array $ids): void
-    {
-        $requete = $this->createQueryBuilder('p')
-            ->update()
-            ->set('p.position', ':position')
-            ->where('p.id = :id')
-            ->getQuery();
-
-        $this->getEntityManager()->wrapInTransaction(function () use ($requete, $ids) {
-            foreach (array_values($ids) as $rang => $id) {
-                $requete->setParameter('position', $rang + 1)
-                        ->setParameter('id', $id)
-                        ->execute();
-            }
-        });
     }
 
 
