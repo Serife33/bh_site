@@ -19,7 +19,7 @@ class ProductVariant
     #[ORM\Column]
     private ?int $id = null;
 
-    // Supprimer le produit supprime ses variantes, directement dans la base
+    // Supprimer le produit supprime ses variantes : Doctrine s'en charge, et la base aussi si la suppression se fait hors Doctrine
     #[ORM\ManyToOne(inversedBy: 'variants')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Product $product = null;
@@ -36,12 +36,13 @@ class ProductVariant
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\NotNull(message: 'Le prix initial est obligatoire.')]
-    #[Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')]
+    #[Assert\Positive(message: 'Le prix doit être supérieur à 0.')]
+    #[Assert\LessThanOrEqual(value: 50000, message: 'Le prix ne peut pas dépasser {{ compared_value }} €.')]
     private ?string $initialPrice = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\NotNull(message: 'Le prix actuel est obligatoire.')]
-    #[Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')]
+    #[Assert\Positive(message: 'Le prix doit être supérieur à 0.')]
     #[Assert\LessThanOrEqual(
         propertyPath: 'initialPrice',
         message: 'Le prix actuel ne peut pas dépasser le prix initial.'
@@ -51,6 +52,7 @@ class ProductVariant
     #[ORM\Column(options: ['default' => 0])]
     #[Assert\NotNull(message: 'Le stock est obligatoire (0 = sur commande).')]
     #[Assert\PositiveOrZero(message: 'Le stock ne peut pas être négatif.')]
+    #[Assert\LessThanOrEqual(value: 9999, message: 'Stock invraisemblable : {{ compared_value }} maximum.')]
     private ?int $stock = 0;
 
     // Ordre d'affichage sur la fiche
