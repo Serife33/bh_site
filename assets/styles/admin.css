@@ -374,7 +374,7 @@
 
 .ordre-nom { flex: 1; }
 
-.ordre-etiquette {
+.ordre-etiquette, .resultats .etiquette {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: .04em;

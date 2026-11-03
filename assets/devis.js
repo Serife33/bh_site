@@ -550,6 +550,7 @@ const SOURCES = {
     },
     produit: {
         texte: (produit) => `${produit.name} · ${euros(centimes(produit.price))}`,
+        etiquette: (produit) => produit.hidden && 'masqué',   // pas encore en ligne : chiffrable, mais à ne pas confondre
         vide: 'Aucun produit du catalogue. Le texte tapé sera le nom imprimé (ligne libre).',
         choisir: (input, produit) => choisirProduit(input.closest('.article'), produit),
         quitter: quitterArticle,
@@ -572,6 +573,8 @@ function ouvrir(input, elements) {
         option.setAttribute('role', 'option');
         if (element) {
             Object.assign(option, { id: `${liste.id}_${rang}`, textContent: sourceDe(input).texte(element) });
+            const etiquette = sourceDe(input).etiquette?.(element);
+            if (etiquette) option.append(' ', Object.assign(document.createElement('span'), { className: 'etiquette', textContent: etiquette }));
             option.dataset.rang = rang;
             option.setAttribute('aria-selected', 'false');
         } else {

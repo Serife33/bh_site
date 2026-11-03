@@ -128,6 +128,7 @@ final class QuoteController extends AbstractController
             'name'       => $product->getName(),
             'price'      => $product->getActualPrice(),
             'customMade' => $product->isCustomMade(),
+            'hidden'     => !$product->isActive(),   // masqué sur le site : proposé quand même, avec l'étiquette « masqué »
             'leadTime'   => $product->getLeadMaxWeeks() ? [$product->getLeadMinWeeks() ?? $product->getLeadMaxWeeks(), $product->getLeadMaxWeeks()] : null,
             'variants'   => $product->getVariants()->map(static fn (ProductVariant $variant) => [
                 'id'       => $variant->getId(),

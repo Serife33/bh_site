@@ -127,7 +127,7 @@ final class QuoteControllerTest extends WebTestCase
 
         $products = $this->searchProducts('essaimadrid');
         self::assertCount(20, $products);
-        self::assertSame(['id' => $first->getId(), 'name' => 'Canapé ESSAIMADRID 01', 'price' => '1155.00', 'customMade' => true, 'leadTime' => null,
+        self::assertSame(['id' => $first->getId(), 'name' => 'Canapé ESSAIMADRID 01', 'price' => '1155.00', 'customMade' => true, 'hidden' => false, 'leadTime' => null,
             'variants' => [['id' => $first->getVariants()->first()->getId(), 'size' => '160x200', 'material' => null, 'label' => 'Taille 160x200', 'price' => '1155.00']],
             'finishes' => [['material' => null, 'label' => 'Chenille Essai, Terra']]], $products[0]);
         self::assertSame('Canapé ESSAIMADRID 20', $products[19]['name']);   // par ordre alphabétique
@@ -140,6 +140,16 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSame([], $this->searchProducts('m'));
         self::assertSame([], $this->searchProducts("%' OR 1=1 -- "));
         self::assertSame([], $this->searchProducts('%%'));
+    }
+
+    // Un produit masqué sur le site reste proposé (chiffré avant sa mise en ligne), et la recherche le dit
+    public function testHiddenProductsAreProposedAndSaidSo(): void
+    {
+        $this->product('Table ESSAIDANTE')->setIsActive(false);
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+
+        self::assertTrue($this->searchProducts('essaidante')[0]['hidden']);   // chiffrable avant sa mise en ligne
     }
 
     // Le client d'un devis se cherche par son nom ou son téléphone, comme un produit
