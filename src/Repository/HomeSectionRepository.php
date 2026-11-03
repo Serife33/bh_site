@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\HomeSection;
+use App\Enum\ProductModular;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,6 +41,8 @@ class HomeSectionRepository extends ServiceEntityRepository
             ->addSelect('i', 'p', 'm')
             ->andWhere('s.isVisible = true')
             ->andWhere('p.isActive = true')
+            ->andWhere('p.isModular != :module')   // un produit devenu module ne s'affiche plus que sur la fiche de son ensemble
+            ->setParameter('module', ProductModular::Module)
             ->orderBy('s.position', 'ASC')
             ->addOrderBy('s.id', 'ASC')   // puis produits et photos dans leur ordre : Doctrine ajoute leurs #[OrderBy]
             ->getQuery()

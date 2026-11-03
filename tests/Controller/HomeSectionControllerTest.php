@@ -71,6 +71,17 @@ final class HomeSectionControllerTest extends WebTestCase
         self::assertSame(['Test table', 'Test chaise'], $section->filter('.pcard-name')->each(static fn (Crawler $name) => $name->text()));
     }
 
+    public function testEmptiedTitleIsRefused(): void
+    {
+        $section = static::getContainer()->get(HomeSectionRepository::class)->findForIndex()[0];
+        $this->logIn();
+        $this->client->request('GET', '/admin/home-section/' . $section->getId() . '/edit');
+        $this->client->submitForm('Enregistrer', ['home_section[title]' => '']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form', 'Le titre est obligatoire.');
+    }
+
     public function testFixedBlocksStayWithoutSections(): void
     {
         foreach (static::getContainer()->get(HomeSectionRepository::class)->findForIndex() as $section) {

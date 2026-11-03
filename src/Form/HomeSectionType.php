@@ -19,6 +19,7 @@ class HomeSectionType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Titre',
+                'empty_data' => '',   // vidé en modification : « obligatoire » s'affiche au lieu d'une erreur 500
                 'attr' => ['placeholder' => 'Nouveautés'],
             ])
             ->add('subtitle', TextType::class, [

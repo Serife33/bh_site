@@ -11,7 +11,7 @@ use App\Repository\HomeSectionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-// Ce que l'accueil reçoit : sections visibles dans leur ordre, chacune avec ses seuls produits visibles
+// Ce que l'accueil reçoit : sections visibles dans leur ordre, chacune avec ses seuls produits visibles, modules exclus
 final class HomeSectionRepositoryTest extends KernelTestCase
 {
     private EntityManagerInterface $em;
@@ -35,8 +35,9 @@ final class HomeSectionRepositoryTest extends KernelTestCase
         $chair = $this->product('Test chaise', $category, true);
         $table = $this->product('Test table', $category, true);
         $hidden = $this->product('Test masqué', $category, false);
+        $module = $this->product('Test module', $category, true)->setIsModular(ProductModular::Module);
 
-        $this->section('Test deuxième', 99, true)->addProduct($table)->addProduct($hidden)->addProduct($chair);
+        $this->section('Test deuxième', 99, true)->addProduct($table)->addProduct($hidden)->addProduct($module)->addProduct($chair);
         $this->section('Test première', 98, true)->addProduct($chair);
         $this->section('Test masquée', 97, false)->addProduct($chair);
         $this->section('Test sans produit visible', 96, true)->addProduct($hidden);

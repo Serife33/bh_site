@@ -21,10 +21,10 @@ final class Version20261103133514 extends AbstractMigration
         $this->addSql('ALTER TABLE home_section_product ADD CONSTRAINT FK_965F68F2D823E37A FOREIGN KEY (section_id) REFERENCES home_section (id) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE home_section_product ADD CONSTRAINT FK_965F68F24584665A FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE');
 
-        // L'accueil reste identique : les produits que HomeSectionsBuilder choisissait le 3/11/2026, dans l'ordre affiché.
+        // L'accueil reste identique : les produits que HomeSectionsBuilder affichait en ligne le 3/11/2026, dans l'ordre affiché.
         // [titre, sous-titre, identifiants des produits]
         $sections = [
-            ['Nouveautés', 'Nos dernières pièces arrivées', [25, 231, 441, 284, 24, 151, 442, 285]],
+            ['Nouveautés', 'Nos dernières pièces arrivées', [25, 231, 281, 284, 24, 151, 282, 285]],
             ['Promotions', 'Nos offres du moment', [237, 113, 6, 114, 7, 115, 18, 116]],
             ['Disponible immédiatement', 'En stock, livraison rapide', [30, 102, 43, 122]],
         ];
