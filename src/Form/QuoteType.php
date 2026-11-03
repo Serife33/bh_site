@@ -41,7 +41,7 @@ class QuoteType extends AbstractType
     {
         $builder
             // Cherché par le vendeur (quote/edit.html.twig, assets/devis.js), envoyé par son identifiant
-            ->add('customer', HiddenType::class, ['error_bubbling' => false, 'invalid_message' => "Ce client n'existe plus dans le fichier."])
+            ->add('customer', HiddenType::class, ['label' => 'Client', 'error_bubbling' => false, 'invalid_message' => "Ce client n'existe plus dans le fichier."])
             ->add('lines', CollectionType::class, [
                 'label' => 'Articles',
                 'entry_type' => QuoteLineType::class,
@@ -98,6 +98,7 @@ class QuoteType extends AbstractType
             ])
             ->add('seller', EntityType::class, [
                 'label' => 'Vendeur',
+                'help' => 'Imprimé sur le devis comme « Votre conseiller ».',
                 'class' => AdminUser::class,
                 'query_builder' => fn (AdminUserRepository $repository) => $repository->createSellersQueryBuilder(),
                 'choice_label' => 'email',
@@ -106,12 +107,14 @@ class QuoteType extends AbstractType
                 'label' => 'Statut',
                 'class' => QuoteStatus::class,
                 'choice_label' => 'label',
-                'help' => 'Accepté : le devis est signé et ne se modifie plus. Envoyé passe seul à Expiré après sa date de validité.',
+                'help' => 'Pas encore remis au client.',   // une phrase par statut, réécrite pendant la saisie (assets/devis.js)
+                'help_attr' => ['class' => 'resultat deux'],
             ])
             ->add('notes', TextareaType::class, [
                 'label' => 'Notes internes',
                 'required' => false,
-                'attr' => ['placeholder' => "Visibles seulement dans l'administration, jamais sur le devis imprimé."],
+                'help' => 'Jamais imprimées sur le devis.',
+                'attr' => ['rows' => 3, 'maxlength' => 5000],
             ])
         ;
 

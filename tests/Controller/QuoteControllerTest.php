@@ -156,6 +156,22 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSame('[]', $this->client->getResponse()->getContent());   // 2 lettres au moins
     }
 
+    // Une ligne libre : le nom tapé dans le champ « Article », sans produit choisi, est le nom imprimé
+    public function testFreeLineByTheArticleField(): void
+    {
+        $this->client->loginUser($this->seller);
+        $values = $this->client->request('GET', '/admin/devis/new')->filter('#form-devis')->form()->getPhpValues();
+        $values['quote'] = ['customer' => $this->customer->getId(), 'leadTime' => '6 semaines',
+            'lines' => [$this->line('Tapis sur mesure 200x300', '480.00', '0', 'percent', ['product' => ''])]] + $values['quote'];
+        $this->client->request('POST', '/admin/devis/new', $values);
+
+        $line = $this->em->getRepository(Quote::class)->findOneBy(['customer' => $this->customer])->getLines()->first();
+        self::assertNull($line->getProduct());
+        self::assertSame('Tapis sur mesure 200x300', $line->getLabel());
+        $this->client->request('GET', '/admin/devis/' . $line->getQuote()->getId());
+        self::assertSelectorTextContains('.lignes tbody', 'Tapis sur mesure 200x300');
+    }
+
     public function testForeignVariantIsRefused(): void
     {
         $sofa = $this->product('Canapé essai');
@@ -189,8 +205,12 @@ final class QuoteControllerTest extends WebTestCase
         $this->client->request('POST', '/admin/devis/new', $values);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('#form-devis', 'Le prix final ne peut pas dépasser le prix unitaire.');
-        self::assertSelectorNotExists('select[name="quote[discountType]"] option[value=final]');   // pas de prix final pour la remise globale
+        self::assertSelectorTextContains('#form-devis', "Le prix final ne peut pas dépasser le prix unitaire (2\u{A0}400,00\u{A0}€).");
+        self::assertSelectorNotExists('[name="quote[discountType]"][value=final]');   // pas de prix final pour la remise globale
+        // Le résumé en haut renvoie vers chaque champ ; le prix final refusé l'est sous le champ de la remise
+        self::assertSelectorExists('#resume-erreurs [data-erreur-de="quote_lines_1_discountValue"]');
+        self::assertSelectorExists('#quote_lines_1_discountValue_error1');
+        self::assertSelectorExists('#quote_lines_1_discountValue[aria-invalid="true"]');
         self::assertSelectorTextContains('#form-devis', 'Le prix ne peut pas être négatif.');
         self::assertSelectorTextContains('#form-devis', 'Une remise ne peut pas dépasser 100 %.');
         self::assertSelectorTextContains('#form-devis', 'Indiquez le délai de livraison');
@@ -242,14 +262,14 @@ final class QuoteControllerTest extends WebTestCase
             'lines' => [$this->line('Ligne test', '100.00', '0', 'percent')]] + $values['quote'];
         $this->client->request('POST', '/admin/devis/new', $values);
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('#form-devis', "L'acompte ne peut pas dépasser le total TTC du devis.");
+        self::assertSelectorTextContains('#form-devis', "L'acompte ne peut pas dépasser le total TTC.");
 
         // Le total passe de 100 € à 50 €, sous l'acompte de 80 € déjà saisi
         $values = $this->client->request('GET', '/admin/devis/' . $quote->getId() . '/edit')->filter('#form-devis')->form()->getPhpValues();
         $values['quote']['lines'][0]['unitPrice'] = '50.00';
         $this->client->request('POST', '/admin/devis/' . $quote->getId() . '/edit', $values);
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('#form-devis', "L'acompte ne peut pas dépasser le total TTC du devis.");
+        self::assertSelectorTextContains('#form-devis', "L'acompte ne peut pas dépasser le total TTC.");
     }
 
     // « 30 % du total » choisi : un montant envoyé quand même (sans JavaScript) ne compte pas

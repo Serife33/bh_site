@@ -752,6 +752,23 @@ tr.est-masque { opacity: .55; }
 #form-devis .btn-secondaire:disabled { border-style: dashed; border-color: #C9C2BA; background: #fff; color: #8A847E; cursor: not-allowed; }
 .g-suivi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .8rem 1rem; margin-bottom: .8rem; }
 
+/* Résumé des erreurs d'un enregistrement refusé, ligne d'état sous Enregistrer, confirmation avant « Accepté » */
+.resume-erreurs { margin-bottom: 1.5rem; padding: 1rem 1.2rem; border: 2px solid #8A2020; border-radius: 10px; background: #F7E1E1; }
+.resume-erreurs:focus { outline: 3px solid #6B4C3B; outline-offset: 2px; }
+.resume-erreurs h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #8A2020; }
+.resume-erreurs ul { margin: 0; padding-left: 1.2rem; }
+.admin-content .resume-erreurs a { color: #8A2020; font-weight: 600; }
+.resume-erreurs.corrige { border-color: #1E5B2A; background: #E4F1E4; }
+.resume-erreurs.corrige h2 { color: #1E5B2A; }
+.etat-enr { min-height: 1.45em; margin: 0; font-size: 13px; color: #6B6560; text-align: center; }
+.etat-enr.attention { color: #7A5A12; font-weight: 600; }
+#dialogue-accepte { box-sizing: border-box; max-width: min(440px, calc(100vw - 32px)); padding: 1.4rem; border: 0; border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); font: 15px/1.5 system-ui, sans-serif; color: #1A1A18; }
+#dialogue-accepte::backdrop { background: rgba(26, 26, 24, .45); }
+#dialogue-accepte h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
+.dialogue-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+.dialogue-actions button { min-height: 44px; }
+.dialogue-actions .btn-secondaire { background: #fff; color: #6B4C3B; border: 1px solid #8B6F4E; }
+
 /* Le récapitulatif : même tableau que sur le devis imprimé (quote/_totals.html.twig) */
 .recap .bloc { margin-bottom: 1rem; }
 .recap .bloc > h2 { font-size: 1.1rem; }

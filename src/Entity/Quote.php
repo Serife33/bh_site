@@ -51,7 +51,7 @@ class Quote
     #[ORM\OneToMany(targetEntity: QuoteLine::class, mappedBy: 'quote', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['id' => 'ASC'])]   // l'ordre de saisie : une ligne s'ajoute toujours à la fin
     #[Assert\Valid]
-    #[Assert\Count(min: 1, max: 50, minMessage: 'Ajoutez au moins une ligne.', maxMessage: '{{ limit }} lignes au plus.')]
+    #[Assert\Count(min: 1, max: 50, minMessage: 'Ajoutez au moins un article.', maxMessage: '{{ limit }} articles au plus.')]
     private Collection $lines;
 
     // Livraison et montage sont des options : sans livraison, le client retire au showroom.
@@ -65,12 +65,12 @@ class Quote
     // Leurs prix, comptés seulement si l'option est cochée ; 0 : offert. Jamais remisés, compris dans l'acompte.
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')]
-    #[Assert\LessThanOrEqual(value: 5000, message: 'Prix invraisemblable : {{ compared_value }} € maximum.')]
+    #[Assert\LessThanOrEqual(value: 5000, message: 'Le prix de la livraison ne peut pas dépasser 5 000 €.')]
     private ?string $deliveryFee = '0.00';
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')]
-    #[Assert\LessThanOrEqual(value: 5000, message: 'Prix invraisemblable : {{ compared_value }} € maximum.')]
+    #[Assert\LessThanOrEqual(value: 5000, message: 'Le prix du montage ne peut pas dépasser 5 000 €.')]
     private ?string $assemblyFee = '0.00';
 
     // Les taux en % du jour de la création, gardés avec le devis : changer ces valeurs par défaut
@@ -85,7 +85,7 @@ class Quote
     // L'acompte TTC demandé, quand le client en donne un autre que celui du taux (1 000 € au lieu de 984,30 €).
     // Vide : le taux s'applique.
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2, nullable: true)]
-    #[Assert\Positive(message: "L'acompte doit être supérieur à 0, ou laissez le champ vide pour le pourcentage habituel.")]
+    #[Assert\Positive(message: 'Indiquez un montant supérieur à 0, ou choisissez le pourcentage du total.')]
     private ?string $depositAmount = null;
 
     // Le total TTC recalculé à chaque enregistrement, pour la liste des devis.

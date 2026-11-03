@@ -8,21 +8,41 @@
 {% import 'document/macros.html.twig' as doc %}
 {% set titre = quote.number ? 'Devis ' ~ quote.number : 'Nouveau devis' %}
 
+{# Le résumé des erreurs : une ligne par erreur, un lien vers son champ. Un article s'appelle « Article n »,
+   le client mène à sa recherche ; les erreurs d'un article entier (produit, variante) mènent à son nom. #}
+{% macro erreurs(vue, prefixe) %}
+    {%- set cible = vue.vars.name == 'customer' ? vue.vars.id ~ '_recherche' : (vue.children.label is defined ? vue.children.label.vars.id : vue.vars.id) -%}
+    {%- for erreur in vue.vars.errors -%}
+        <li data-erreur-de="{{ cible }}"><a href="#{{ cible }}" data-aller="{{ cible }}">{{ prefixe ? prefixe ~ ' : ' }}{{ erreur.message }}</a></li>
+    {%- endfor -%}
+    {%- for enfant in vue.children -%}
+        {{- _self.erreurs(enfant, vue.vars.name == 'lines' ? 'Article ' ~ loop.index : (prefixe ?: enfant.vars.label|default('')|striptags|replace({'(obligatoire)': ''})|trim)) -}}
+    {%- endfor -%}
+{% endmacro %}
+
 {% block title %}{{ titre }}{% endblock %}
 
 {% block body %}
     <a class="retour" href="{{ path('app_quote_index') }}">← Retour à la liste des devis</a>
     <div class="tete">
         <h1>{{ titre }}</h1>
-        <span class="pastille st-{{ quote.status.value }}">{{ quote.status.label }}</span>
+        <span class="pastille st-{{ statut.value }}">{{ statut.label }}</span>
         <p class="aide">
             {{- quote.number ? 'Créé le ' ~ quote.createdAt|date_longue ~ ' par ' ~ quote.seller.email ~ '.' : 'Le numéro sera attribué au premier enregistrement.' -}}
         </p>
     </div>
 
     {# Les taux du calcul en direct : ceux enregistrés sur le devis, jamais recopiés à la main #}
-    {{ form_start(form, {attr: {id: 'form-devis', class: 'grille', 'data-tva': quote.vatRate, 'data-acompte': quote.depositRate}}) }}
+    {% set refuse = form.vars.submitted and not form.vars.valid %}
+    {{ form_start(form, {attr: {id: 'form-devis', class: 'grille', novalidate: 'novalidate',
+        'data-tva': quote.vatRate, 'data-acompte': quote.depositRate, 'data-statut-enregistre': statut.value}}) }}
         <div>
+            {% if refuse %}
+                <div class="resume-erreurs" id="resume-erreurs" tabindex="-1" aria-labelledby="resume-titre">
+                    <h2 id="resume-titre">Le devis n'est pas enregistré : des points sont à corriger</h2>
+                    <ul>{{ _self.erreurs(form, '') }}</ul>
+                </div>
+            {% endif %}
             {{ form_errors(form) }}
 
             {# Le client se cherche comme un produit ; sa fiche se crée ou se modifie dans un nouvel onglet : le devis reste ouvert #}
@@ -129,10 +149,23 @@
             </section>
             <section class="bloc actions" aria-label="Enregistrement">
                 <button type="submit">Enregistrer</button>
+                <p class="etat-enr{{ refuse ? ' attention' }}" data-etat-enregistrement>
+                    {{- refuse ? 'Modifications non enregistrées.' : (quote.id ? "Aucune modification depuis l'enregistrement." : 'Pas encore enregistré.') -}}
+                </p>
                 {% if quote.id %}
-                    <a href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Devis imprimable (imprimer, supprimer)</a>
+                    <a href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Devis imprimable (imprimer, supprimer)<span data-sans-modifications>{{ refuse ? ', sans les modifications en cours' }}</span></a>
                 {% endif %}
             </section>
         </aside>
     {{ form_end(form) }}
+
+    {# Passer à « Accepté » verrouille le devis : on le confirme avant l'enregistrement #}
+    <dialog id="dialogue-accepte" aria-labelledby="dialogue-titre" aria-describedby="dialogue-texte">
+        <h2 id="dialogue-titre">Verrouiller le devis ?</h2>
+        <p id="dialogue-texte">Le statut Accepté veut dire que le client a signé. Après l'enregistrement, le devis ne se modifie plus : articles, prix, livraison et acompte restent tels quels.</p>
+        <div class="dialogue-actions">
+            <button type="button" class="btn-secondaire" data-dialogue="non" autofocus>Revenir au devis</button>
+            <button type="button" data-dialogue="oui">Enregistrer et verrouiller</button>
+        </div>
+    </dialog>
 {% endblock %}

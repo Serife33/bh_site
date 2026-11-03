@@ -67,6 +67,7 @@ final class QuoteController extends AbstractController
             ->setSeller($this->getUser())   // le vendeur connecté, modifiable dans le formulaire
             ->setCustomer($customerId ? $customerRepository->findForQuote($customerId) : null)
             ->addLine(new QuoteLine());     // une première ligne prête à remplir
+        $savedStatus = $quote->getStatus();   // la pastille dit le statut enregistré, pas celui en cours de saisie
         $form = $this->createForm(QuoteType::class, $quote);
         $form->handleRequest($request);
 
@@ -82,7 +83,7 @@ final class QuoteController extends AbstractController
             return $this->saved($quote);
         }
 
-        return $this->renderEdit($quote, $form);
+        return $this->renderEdit($quote, $form, $savedStatus);
     }
 
     // La recherche de produit d'une ligne de devis (assets/admin.js) : à partir de 2 lettres, 20 produits au plus,
@@ -148,6 +149,7 @@ final class QuoteController extends AbstractController
             return $this->redirectToRoute('app_quote_print', ['id' => $quote->getId()]);
         }
 
+        $savedStatus = $quote->getStatus();   // la pastille dit le statut enregistré, pas celui en cours de saisie
         $form = $this->createForm(QuoteType::class, $quote);
         $form->handleRequest($request);
 
@@ -158,7 +160,7 @@ final class QuoteController extends AbstractController
             return $this->saved($quote);
         }
 
-        return $this->renderEdit($quote, $form);
+        return $this->renderEdit($quote, $form, $savedStatus);
     }
 
     // Le devis au format A4 : « Imprimer » puis « Enregistrer au format PDF » dans le navigateur
@@ -200,13 +202,14 @@ final class QuoteController extends AbstractController
         return $this->redirectToRoute($quote->isLocked() ? 'app_quote_print' : 'app_quote_edit', ['id' => $quote->getId()], Response::HTTP_SEE_OTHER);
     }
 
-    private function renderEdit(Quote $quote, FormInterface $form): Response
+    private function renderEdit(Quote $quote, FormInterface $form, QuoteStatus $savedStatus): Response
     {
         $products = array_filter($quote->getLines()->map(static fn (QuoteLine $line) => $line->getProduct())->toArray());
 
         return $this->render('quote/edit.html.twig', [
             'quote'     => $quote,
             'form'      => $form,
+            'statut'    => $savedStatus,
             'totaux'    => $this->calculator->totals($quote),
             'client'    => $quote->getCustomer() ? $this->customerData($quote->getCustomer()) : null,
             'catalogue' => array_combine(array_map(static fn (Product $product) => $product->getId(), $products), array_map($this->productData(...), $products)),

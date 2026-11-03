@@ -47,6 +47,95 @@ function annoncer(texte = '') {
 }
 
 
+// ===== Modifications non enregistrées : dites sous Enregistrer, et rappelées avant de quitter la page =====
+let modifiee = false;
+
+function marquerModifie() {
+    if (modifiee) return;
+    modifiee = true;
+    resultat(formulaire().querySelector('[data-etat-enregistrement]'), 'Modifications non enregistrées.', 'attention');
+    const lien = formulaire().querySelector('[data-sans-modifications]');
+    if (lien) lien.textContent = ', sans les modifications en cours';
+}
+
+window.addEventListener('beforeunload', (e) => {
+    if (formulaire() && modifiee) e.preventDefault();
+});
+document.addEventListener('turbo:before-visit', (e) => {
+    if (formulaire() && modifiee && !confirm('Quitter sans enregistrer ? Les modifications de ce devis seront perdues.')) e.preventDefault();
+});
+
+
+// ===== Erreurs d'un enregistrement refusé : le résumé en haut, le message sous chaque champ =====
+// Corriger un champ retire son message et sa ligne du résumé.
+function effacerErreur(element) {
+    if (element.getAttribute('aria-invalid') !== 'true') return;
+    element.removeAttribute('aria-invalid');
+    (element.getAttribute('aria-describedby') ?? '').split(' ').filter((id) => /_error\d+$/.test(id)).forEach((id) => document.getElementById(id)?.remove());
+    document.querySelectorAll(`[data-erreur-de="${element.id}"]`).forEach((ligne) => ligne.remove());
+    majResume();
+}
+
+function majResume() {
+    const resume = document.getElementById('resume-erreurs');
+    if (!resume) return;
+    const nombre = resume.querySelectorAll('li').length;
+    resume.classList.toggle('corrige', !nombre);
+    resume.querySelector('h2').textContent = nombre
+        ? `Le devis n'est pas enregistré : ${nombre} point${nombre > 1 ? 's' : ''} à corriger`
+        : 'Tout est corrigé. Vous pouvez enregistrer.';
+}
+
+// Un lien du résumé ou d'« Avant d'enregistrer » mène au champ et y place le focus
+document.addEventListener('click', (e) => {
+    const lien = e.target.closest('#contenu [data-aller]');
+    if (!lien) return;
+    e.preventDefault();
+    const cible = document.getElementById(lien.dataset.aller);
+    cible?.scrollIntoView({ block: 'center' });
+    cible?.focus({ preventScroll: true });
+});
+
+// La phrase sous le statut ; « Accepté » prévient qu'il verrouillera le devis
+const STATUTS = {
+    draft: 'Pas encore remis au client.',
+    sent: 'Remis au client. Passe seul à Expiré après la date de validité.',
+    accepted: "Le client a signé. À l'enregistrement, le devis est verrouillé.",
+    refused: 'Le client ne donne pas suite.',
+    expired: 'Date de validité dépassée.',
+};
+
+function majStatut() {
+    const statut = champDevis('status');
+    resultat(aideDe(statut), STATUTS[statut.value], statut.value === 'accepted' && formulaire().dataset.statutEnregistre !== 'accepted' ? 'attention' : '');
+}
+
+// Avant d'enregistrer un passage à « Accepté » : une confirmation, le focus sur le bouton prudent
+let verrouillageConfirme = false;
+document.addEventListener('submit', (e) => {
+    if (e.target.id !== 'form-devis') return;
+    if (champDevis('status').value === 'accepted' && e.target.dataset.statutEnregistre !== 'accepted' && !verrouillageConfirme) {
+        e.preventDefault();   // en capture : avant que Turbo n'envoie le formulaire
+        document.getElementById('dialogue-accepte').showModal();
+        return;
+    }
+    verrouillageConfirme = false;
+    modifiee = false;
+}, true);
+
+document.addEventListener('click', (e) => {
+    const bouton = e.target.closest('#dialogue-accepte [data-dialogue]');
+    if (!bouton) return;
+    document.getElementById('dialogue-accepte').close();
+    if (bouton.dataset.dialogue === 'oui') {
+        verrouillageConfirme = true;
+        formulaire().requestSubmit();
+    } else {
+        champDevis('status').focus();
+    }
+});
+
+
 // ===== Le client : sa fiche, lue sur le fichier client =====
 const sectionClient = () => document.querySelector('[data-client]');
 const clientDe = () => lireJson(sectionClient().dataset.client);
@@ -414,8 +503,10 @@ function majDelai() {
     bouton.textContent = maxi ? `Utiliser : ${bouton.dataset.delai}` : 'Utiliser le délai du catalogue';
 }
 
-// Un changement : les montants, et leur annonce
+// Un changement : les montants, leur annonce, et l'état « non enregistré »
 function apresChangement() {
+    marquerModifie();
+    majStatut();
     recalculer();
     annoncer();
 }
@@ -498,6 +589,7 @@ function chercher(input) {
 // ===== Les gestes du vendeur =====
 document.addEventListener('input', (e) => {
     if (!e.target.closest('#form-devis')) return;
+    effacerErreur(e.target);
     if (e.target.matches('[role="combobox"]')) chercher(e.target);
     else apresChangement();
 });
@@ -505,6 +597,7 @@ document.addEventListener('input', (e) => {
 document.addEventListener('change', (e) => {
     const cible = e.target;
     if (!cible.closest('#form-devis') || cible.matches('[role="combobox"]')) return;
+    effacerErreur(cible);
     const article = cible.closest('.article');
     if (cible.matches('.c-remise input[type=radio]')) cible.closest('.c-remise').querySelector('.c-rv input').value = valeurNeutre(cible.closest('.c-remise'));
     if (cible.matches('[data-taille]')) {
@@ -536,6 +629,11 @@ document.addEventListener('focusout', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+    // Entrée dans un champ n'envoie pas le formulaire : on enregistre avec le bouton
+    if (e.key === 'Enter' && e.target.matches?.('#form-devis input') && e.target.getAttribute('aria-expanded') !== 'true') {
+        e.preventDefault();
+        return;
+    }
     const input = e.target.closest?.('#form-devis [role="combobox"]');
     if (!input || input.getAttribute('aria-expanded') !== 'true') return;
 
@@ -583,13 +681,24 @@ document.addEventListener('click', (e) => {
     })[bouton.dataset.action]();
 });
 
-// Au premier affichage, et après un enregistrement refusé que Turbo affiche à la place de la page
+// La molette ne change pas un prix pendant qu'on fait défiler la page : le champ perd le focus au premier cran
+document.addEventListener('wheel', (e) => {
+    if (e.target === document.activeElement && e.target.matches('#form-devis input[type="number"]')) e.target.blur();
+}, { passive: true });
+
+// Au premier affichage, et après un enregistrement refusé que Turbo affiche à la place de la page :
+// alors les modifications ne sont pas enregistrées, et le focus va sur le résumé des erreurs
 function demarrer() {
     if (!formulaire()) return;
+    const resume = document.getElementById('resume-erreurs');
+    modifiee = !!resume;
     majFiche();
     articles().forEach(preparer);
+    majStatut();
     recalculer();
     derniersMontants = texteMontants();
+    majResume();
+    resume?.focus();
 }
 document.addEventListener('turbo:load', demarrer);
 document.addEventListener('turbo:render', demarrer);

@@ -2,9 +2,11 @@
 
 namespace App\Entity;
 
+use App\Enum\DiscountType;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 // Une ligne de devis : un produit du catalogue, avec sa variante, ou une ligne libre. Produit et variante
 // pré-remplissent la ligne et donnent sa photo : libellé, précisions et prix sont recopiés et restent modifiables à la main.
@@ -12,10 +14,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Assert\Expression(
     'this.getVariant() === null or this.getVariant().getProduct() === this.getProduct()',
     message: "Cette variante n'appartient pas au produit choisi.",
-)]
-#[Assert\Expression(
-    'this.getDiscountType().value != "final" or this.getUnitPrice() === null or this.getDiscountValue() <= this.getUnitPrice()',
-    message: 'Le prix final ne peut pas dépasser le prix unitaire.',
 )]
 class QuoteLine
 {
@@ -42,7 +40,7 @@ class QuoteLine
     private ?ProductVariant $variant = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'La désignation est obligatoire.')]
+    #[Assert\NotBlank(message: "Choisissez un produit dans la liste, ou tapez le nom de l'article.")]
     #[Assert\Length(max: 255, maxMessage: 'La désignation ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $label = null;
 
@@ -62,7 +60,7 @@ class QuoteLine
     private ?int $quantity = 1;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotNull(message: 'Le prix est obligatoire.')]
+    #[Assert\NotNull(message: 'Indiquez le prix unitaire TTC.')]
     #[Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')]
     #[Assert\LessThanOrEqual(value: 50000, message: 'Le prix ne peut pas dépasser {{ compared_value }} €.')]
     private ?string $unitPrice = null;
@@ -70,6 +68,17 @@ class QuoteLine
     // « Fabriqué selon les choix du client » : pas de droit de rétractation (article L221-28, 3° du Code de la consommation)
     #[ORM\Column]
     private bool $customMade = false;
+
+    // Un prix final se compare au prix unitaire : le message va sous le champ de la remise, avec le prix à ne pas dépasser
+    #[Assert\Callback]
+    public function validateFinalPrice(ExecutionContextInterface $context): void
+    {
+        if ($this->getDiscountType() === DiscountType::FinalPrice && $this->unitPrice !== null && bccomp($this->getDiscountValue() ?? '0', $this->unitPrice, 2) > 0) {
+            $context->buildViolation(sprintf('Le prix final ne peut pas dépasser le prix unitaire (%s).', number_format((float) $this->unitPrice, 2, ',', "\u{A0}") . "\u{A0}€"))
+                ->atPath('discountValue')
+                ->addViolation();
+        }
+    }
 
     public function getId(): ?int
     {

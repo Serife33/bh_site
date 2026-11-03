@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraint;
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class DepositWithinTotal extends Constraint
 {
-    public string $message = "L'acompte ne peut pas dépasser le total TTC du devis.";
+    public string $message = "L'acompte ne peut pas dépasser le total TTC.";
 
     public function getTargets(): string
     {
