@@ -256,16 +256,16 @@ function chargerAnalytics(id) {
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
     window.gtag('js', new Date());
-    window.gtag('config', id);
+    window.gtag('config', id, { cookie_expires: 13 * 30 * 24 * 60 * 60, cookie_update: false });   // 13 mois au plus, sans prolongation, comme l'annonce la politique
 
     const script = document.createElement('script');
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
     document.head.append(script);
 }
 
-// Analytics pose ses cookies sur le domaine principal, sans « www. »
+// Analytics pose ses cookies sur le domaine principal (brillancehome.fr), quel que soit le sous-domaine
 function effacerCookiesAnalytics() {
-    const domaine = location.hostname.replace(/^www\./, '');
+    const domaine = location.hostname.split('.').slice(-2).join('.');
     document.cookie.split('; ')
         .map(cookie => cookie.split('=')[0])
         .filter(nom => nom.startsWith('_ga'))
@@ -294,9 +294,12 @@ document.addEventListener('click', (e) => {
     appliquerChoix(choix);
 });
 
-// « Gérer les cookies », dans le pied de page, rouvre le bandeau
+// « Gérer les cookies », dans le pied de page, rouvre le bandeau et y amène le focus (clavier, lecteur d'écran)
 document.addEventListener('click', (e) => {
-    if (e.target.closest('.cookie-manage')) document.getElementById('cookie-banner')?.classList.add('show');
+    if (!e.target.closest('.cookie-manage')) return;
+    const bandeau = document.getElementById('cookie-banner');
+    bandeau?.classList.add('show');
+    bandeau?.querySelector('[data-cookie]')?.focus();
 });
 
 
