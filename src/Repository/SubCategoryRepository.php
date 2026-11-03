@@ -72,4 +72,14 @@ class SubCategoryRepository extends ServiceEntityRepository
             ->getArrayResult();
     }
 
+    public function findOneBySlug(string $slug): ?SubCategory
+    {
+        return $this->findOneBy(['slug' => $slug]);
+    }
+
+    // L'import retrouve les sous-catégories écrites en toutes lettres dans le tableur
+    public function findOneByName(string $name): ?SubCategory
+    {
+        return $this->findOneBy(['name' => $name]);
+    }
 }

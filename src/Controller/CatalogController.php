@@ -20,7 +20,7 @@ final class CatalogController extends AbstractController
     public function category(string $slug, Request $request, CategoryRepository $categoryRepository, ProductRepository $productRepository, SubCategoryRepository $subCategoryRepository, PaginatorInterface $paginator): Response 
     {
         // Retrouver la catégorie par son slug (ou 404 si elle n'existe pas)
-        $category = $categoryRepository->findOneBy(['slug' => $slug]);
+        $category = $categoryRepository->findOneBySlug($slug);
         if (!$category) {
             throw $this->createNotFoundException('Cette catégorie n\'existe pas.');
         }
@@ -31,7 +31,7 @@ final class CatalogController extends AbstractController
         // L'ancienne adresse ?sous-categorie=… a sa propre page maintenant : redirection définitive
         $slugSubCategory = $request->query->get('sous-categorie');
         if ($slugSubCategory) {
-            $ancienne = $subCategoryRepository->findOneBy(['slug' => $slugSubCategory]);
+            $ancienne = $subCategoryRepository->findOneBySlug($slugSubCategory);
             if ($ancienne) {
                 return $this->redirectToRoute('front_subcategory', [
                     'slug' => $category->getSlug(),
@@ -79,12 +79,12 @@ final class CatalogController extends AbstractController
         SubCategoryRepository $subCategoryRepository,
         PaginatorInterface $paginator
     ): Response {
-        $category = $categoryRepository->findOneBy(['slug' => $slug]);
+        $category = $categoryRepository->findOneBySlug($slug);
         if (!$category) {
             throw $this->createNotFoundException('Cette catégorie n\'existe pas.');
         }
 
-        $subCategory = $subCategoryRepository->findOneBy(['slug' => $sousCategorie]);
+        $subCategory = $subCategoryRepository->findOneBySlug($sousCategorie);
         if (!$subCategory) {
             throw $this->createNotFoundException('Cette sous-catégorie n\'existe pas.');
         }
@@ -122,7 +122,7 @@ final class CatalogController extends AbstractController
     public function product(string $slug, Request $request, ProductRepository $productRepository): Response
     {
         // Retrouver le produit ACTIF par son slug (ou 404)
-        $product = $productRepository->findOneBy(['slug' => $slug, 'isActive' => true]);
+        $product = $productRepository->findActiveBySlug($slug);
         if (!$product) {
             throw $this->createNotFoundException('Ce produit n\'existe pas.');
         }

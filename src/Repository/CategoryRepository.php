@@ -27,5 +27,33 @@ class CategoryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult(); // tableaux bruts, pas d'objets Color
     }
- 
+
+    // Le menu du site et « Nos univers » de l'accueil : dans l'ordre de création
+    public function findForMenu(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    // Les menus déroulants de l'admin : des objets, triés par nom
+    public function findSortedByName(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findOneBySlug(string $slug): ?Category
+    {
+        return $this->findOneBy(['slug' => $slug]);
+    }
+
+    // L'import retrouve la catégorie écrite en toutes lettres dans le tableur
+    public function findOneByName(string $name): ?Category
+    {
+        return $this->findOneBy(['name' => $name]);
+    }
 }
