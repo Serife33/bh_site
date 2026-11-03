@@ -346,11 +346,22 @@ function recalculer() {
     const globale = remise(form.querySelector('.remise-globale .c-remise'), totalArticles);
     if (globale.erreur) problemes.push({ texte: `Remise sur l'ensemble : ${globale.erreur.split(' (')[0].replace(/\.$/, '').toLowerCase()}`, cible: globale.champ.id });
 
-    // Livraison et montage : leur prix ne compte que si la case est cochée
-    const options = { delivery: ['offerte', 'non comprise'], assembly: ['offert', 'non compris'] };
-    const prixOption = (cle) => (champDevis(cle).checked ? centimes(champDevis(`${cle}Fee`).value) : 0);
-    const livraison = prixOption('delivery');
-    const montage = prixOption('assembly');
+    // Livraison et montage : un prix inutile est grisé (non envoyé, il vaut 0), une phrase dit pourquoi
+    const livre = champDevis('delivery').value === '1';
+    const monte = champDevis('assembly').checked;
+    champDevis('deliveryFee').disabled = !livre;
+    champDevis('assemblyFee').disabled = !monte;
+    const livraison = livre ? centimes(champDevis('deliveryFee').value) : 0;
+    const montage = monte ? centimes(champDevis('assemblyFee').value) : 0;
+    resultat(aideDe(champDevis('deliveryFee')), !livre ? 'Retrait au showroom : pas de livraison.'
+        : livraison ? `Livraison facturée ${euros(livraison)}.` : 'Livraison offerte. Tapez un prix si elle est payante.', livre && !livraison ? 'attention' : '');
+    resultat(aideDe(champDevis('assemblyFee')), !monte ? 'Pas de montage.'
+        : montage ? `Montage facturé ${euros(montage)}.` : "Montage offert. Tapez un prix s'il est payant.", monte && !montage ? 'attention' : '');
+    const client = clientDe();
+    resultat(form.querySelector('[data-adresse-livraison]'), !livre ? 'Sans objet pour un retrait.' : !client ? "Choisissez d'abord le client."
+        : client.address ? `${client.address} (fiche client)` : 'Adresse absente de la fiche client. Complétez la fiche.', livre && client && !client.address ? 'attention' : '');
+    majDelai();
+
     const ttc = totalArticles - globale.montant + livraison + montage;
     const ht = Math.round(ttc * 100 / (100 + Number(form.dataset.tva)));
 
@@ -362,14 +373,35 @@ function recalculer() {
     champDevis('depositAmount').placeholder = `${taux.toLocaleString('fr-FR')} % = ${euros(calcule)}`;
 
     const montants = { items: totalArticles, discount: globale.montant, delivery: livraison, assembly: montage, ttc, ht, tva: ttc - ht, deposit: acompte, balance: ttc - acompte };
-    Object.entries(montants).forEach(([cle, montant]) => {
-        cellule(cle).textContent = cle in options
-            ? (!champDevis(cle).checked ? options[cle][1] : (montant ? euros(montant) : options[cle][0]))
-            : (cle === 'discount' && montant ? '-' : '') + euros(montant);
-    });
+    Object.entries(montants).forEach(([cle, montant]) => { cellule(cle).textContent = (cle === 'discount' && montant ? '-' : '') + euros(montant); });
+    cellule('delivery').textContent = !livre ? 'retrait au showroom' : livraison ? euros(livraison) : 'offerte';
+    cellule('assembly').textContent = !monte ? 'sans montage' : montage ? euros(montage) : 'offert';
     form.querySelector('[data-part-acompte]').textContent = `${saisi ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR')} %`;
-    form.querySelector('[data-moment-solde]').textContent = champDevis('delivery').checked ? 'à la livraison' : 'au retrait';
+    form.querySelector('[data-moment-solde]').textContent = livre ? 'à la livraison' : 'au retrait';
     return problemes;
+}
+
+// Délai : ce que dit le catalogue des articles choisis, et un raccourci vers le plus long
+function majDelai() {
+    const delais = [];
+    let mini = 0;
+    let maxi = 0;
+    articlesActifs().forEach((article) => {
+        const produit = produitDe(article);
+        if (!produit) return;
+        if (!produit.leadTime) {
+            delais.push(`${produit.name} : aucun délai indiqué`);
+            return;
+        }
+        delais.push(`${produit.name} : ${produit.leadTime[0]} à ${produit.leadTime[1]} semaines`);
+        mini = Math.max(mini, produit.leadTime[0]);
+        maxi = Math.max(maxi, produit.leadTime[1]);
+    });
+    formulaire().querySelector('[data-delais-catalogue]').textContent = delais.length ? `Catalogue : ${delais.join(' ; ')}.` : "Aucun article du catalogue pour l'instant.";
+    const bouton = formulaire().querySelector('[data-delai-catalogue]');
+    bouton.disabled = !maxi;
+    bouton.dataset.delai = maxi ? `${mini} à ${maxi} semaines après réception de l'acompte` : '';
+    bouton.textContent = maxi ? `Utiliser : ${bouton.dataset.delai}` : 'Utiliser le délai du catalogue';
 }
 
 // Un changement : les montants, et leur annonce
@@ -527,6 +559,11 @@ document.addEventListener('click', (e) => {
         retirer: () => retirer(article),
         annuler: () => retablir(article),
         revenir: () => revenir(article),
+        delai: () => {
+            champDevis('leadTime').value = bouton.dataset.delai;
+            champDevis('leadTime').focus();
+            apresChangement();
+        },
     })[bouton.dataset.action]();
 });
 

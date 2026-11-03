@@ -741,7 +741,14 @@ tr.est-masque { opacity: .55; }
 
 /* Sections 3 à 5 */
 .g-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem 1.5rem; }
+.g-options .champ { margin-top: .5rem; }
+#form-devis .segments.large label { flex: 1 1 0; padding: .35rem .6rem; line-height: 1.25; text-align: center; white-space: normal; }
+#form-devis .valeur { min-height: 2.9em; margin: 0; font-size: 14px; }
+#form-devis .valeur.attention { color: #7A5A12; font-weight: 600; }
 .c-delai { margin-top: 1.4rem; padding-top: 1.1rem; border-top: 1px solid #E7E2DC; }
+.raccourcis { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+#form-devis .raccourcis button { font-size: 14px; }
+#form-devis .btn-secondaire:disabled { border-style: dashed; border-color: #C9C2BA; background: #fff; color: #8A847E; cursor: not-allowed; }
 .g-suivi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .8rem 1rem; margin-bottom: .8rem; }
 
 /* Le récapitulatif : même tableau que sur le devis imprimé (quote/_totals.html.twig) */

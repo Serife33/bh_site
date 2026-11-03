@@ -62,13 +62,33 @@
 
             <section class="bloc" aria-labelledby="section-livraison">
                 <h2 id="section-livraison"><span class="etape" aria-hidden="true">3</span>Livraison, montage et délai</h2>
+                {# Un prix enregistré à 0 s'affiche vide : son résultat dit « offerte », pas un « 0,00 » qui ressemble à un oubli #}
                 <div class="g-options">
-                    {{ form_row(form.delivery) }}
-                    {{ form_row(form.deliveryFee) }}
-                    {{ form_row(form.assembly) }}
-                    {{ form_row(form.assemblyFee) }}
+                    <fieldset>
+                        <legend>{{ form.delivery.vars.label }}</legend>
+                        {{ form_widget(form.delivery, {attr: {class: 'segments large'}}) }}
+                        {{ form_errors(form.delivery) }}
+                        {{ form_row(form.deliveryFee, {value: form.deliveryFee.vars.value == 0 ? '' : form.deliveryFee.vars.value}) }}
+                        <div class="champ">
+                            <p class="libelle">Adresse de livraison</p>
+                            <p class="valeur" data-adresse-livraison></p>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Montage</legend>
+                        {{ form_row(form.assembly) }}
+                        {{ form_row(form.assemblyFee, {value: form.assemblyFee.vars.value == 0 ? '' : form.assemblyFee.vars.value}) }}
+                    </fieldset>
                 </div>
-                {{ form_row(form.leadTime, {row_attr: {class: 'c-delai'}}) }}
+                {# Les délais des articles du catalogue, et des raccourcis qui ne remplissent rien sans clic #}
+                <div class="c-delai">
+                    {{ form_row(form.leadTime) }}
+                    <p class="aide deux" data-delais-catalogue></p>
+                    <div class="raccourcis">
+                        <button type="button" class="btn-secondaire" data-action="delai" data-delai-catalogue>Utiliser le délai du catalogue</button>
+                        <button type="button" class="btn-secondaire" data-action="delai" data-delai="Disponible immédiatement">Disponible immédiatement</button>
+                    </div>
+                </div>
             </section>
 
             <section class="bloc" aria-labelledby="section-acompte">

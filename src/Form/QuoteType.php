@@ -15,6 +15,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -28,7 +29,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class QuoteType extends AbstractType
 {
-    private const FEE_OPTIONS = ['required' => false, 'empty_data' => '0'] + QuoteLineType::PRICE_OPTIONS;
+    private const FEE_OPTIONS = ['required' => false, 'empty_data' => '0', 'help_attr' => ['class' => 'resultat deux']] + QuoteLineType::PRICE_OPTIONS;
 
     public function __construct(private CustomerRepository $customerRepository)
     {
@@ -55,11 +56,17 @@ class QuoteType extends AbstractType
                 'help' => 'Après les remises par article. Jamais sur la livraison ni le montage.',
                 'choices' => [DiscountType::Percent, DiscountType::Amount],
             ])
-            // Deux options : leur prix ne compte que si elles sont cochées. Prix vide : offert.
-            ->add('delivery', CheckboxType::class, ['label' => 'Livraison (sinon retrait au showroom)', 'required' => false])
-            ->add('deliveryFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix de la livraison TTC', 'help' => 'Vide ou 0 : livraison offerte.'])
-            ->add('assembly', CheckboxType::class, ['label' => 'Montage', 'required' => false])
-            ->add('assemblyFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix du montage TTC', 'help' => 'Vide ou 0 : montage offert.'])
+            // Livraison ou retrait se choisit d'abord, en boutons ; un prix ne compte que pour une option choisie, vide : offerte.
+            // Les aides des prix sont des résultats, réécrits pendant la saisie (assets/devis.js).
+            ->add('delivery', ChoiceType::class, [
+                'label' => 'Le client reçoit ses meubles',
+                'choices' => ['Livraison à domicile' => true, 'Retrait au showroom' => false],
+                'expanded' => true,
+                'empty_data' => '0',
+            ])
+            ->add('deliveryFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix de la livraison TTC', 'help' => 'Livraison offerte. Tapez un prix si elle est payante.'])
+            ->add('assembly', CheckboxType::class, ['label' => 'Montage par nos soins', 'required' => false])
+            ->add('assemblyFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix du montage TTC', 'help' => 'Pas de montage.'])
             ->add('depositAmount', MoneyType::class, [
                 'label' => 'Acompte TTC',
                 'required' => false,
@@ -67,8 +74,10 @@ class QuoteType extends AbstractType
                 'help' => 'Vide : le pourcentage habituel du total. Un montant saisi le remplace.',
             ] + QuoteLineType::PRICE_OPTIONS)
             ->add('leadTime', TextType::class, [
-                'label' => 'Délai de livraison',
-                'attr' => ['placeholder' => "6 à 10 semaines après réception de l'acompte"],
+                'label' => 'Délai de livraison <span class="obl">(obligatoire)</span>',
+                'label_html' => true,
+                'help' => 'Imprimé sur le devis. Pour un retrait : quand les meubles seront prêts au showroom.',
+                'attr' => ['maxlength' => 255],
             ])
             ->add('validUntil', DateType::class, [
                 'label' => "Valable jusqu'au",

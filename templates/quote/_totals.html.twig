@@ -9,10 +9,10 @@
     {# Livraison et montage : sur le document, une ligne seulement s'ils sont cochés ; à l'écran de saisie (saisie),
        toujours leurs deux lignes, mises à jour par assets/admin.js #}
     {% if quote.delivery or saisie|default(false) %}
-        <tr><th>Livraison</th><td data-total="delivery">{{ not quote.delivery ? 'non comprise' : (totaux.delivery > 0 ? totaux.delivery|prix(2) : 'offerte') }}</td></tr>
+        <tr><th>Livraison</th><td data-total="delivery">{{ not quote.delivery ? 'retrait au showroom' : (totaux.delivery > 0 ? totaux.delivery|prix(2) : 'offerte') }}</td></tr>
     {% endif %}
     {% if quote.assembly or saisie|default(false) %}
-        <tr><th>Montage</th><td data-total="assembly">{{ not quote.assembly ? 'non compris' : (totaux.assembly > 0 ? totaux.assembly|prix(2) : 'offert') }}</td></tr>
+        <tr><th>Montage</th><td data-total="assembly">{{ not quote.assembly ? 'sans montage' : (totaux.assembly > 0 ? totaux.assembly|prix(2) : 'offert') }}</td></tr>
     {% endif %}
     <tr><th>Total HT</th><td data-total="ht">{{ totaux.ht|prix(2) }}</td></tr>
     <tr><th>TVA {{ doc.taux(quote.vatRate) }}</th><td data-total="tva">{{ totaux.tva|prix(2) }}</td></tr>
