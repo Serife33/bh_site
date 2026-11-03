@@ -477,7 +477,23 @@ function recalculer() {
     cellule('assembly').textContent = !monte ? 'sans montage' : montage ? euros(montage) : 'offert';
     form.querySelector('[data-part-acompte]').textContent = `${acompte !== calcule ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR')} %`;
     form.querySelector('[data-moment-solde]').textContent = livre ? 'à la livraison' : 'au retrait';
-    return problemes;
+    ['ttc', 'deposit', 'balance'].forEach((cle) => { form.querySelector(`[data-barre="${cle}"]`).textContent = cellule(cle).textContent; });
+
+    // Avant d'enregistrer : ce qui est prêt, ce qui reste à faire (en lien vers le champ)
+    const nombre = articlesActifs().length;
+    const points = [
+        client ? { texte: `Client : ${client.name}` } : { texte: 'Choisissez le client', cible: `${champDevis('customer').id}_recherche` },
+        nombre ? { texte: `${nombre} article${nombre > 1 ? 's' : ''}` } : { texte: 'Ajoutez au moins un article', cible: 'ajouter-article' },
+        ...problemes,
+        champDevis('leadTime').value.trim() ? { texte: 'Délai de livraison indiqué' } : { texte: 'Indiquez le délai de livraison', cible: champDevis('leadTime').id },
+        ...(erreurAcompte ? [] : [{ texte: `Acompte : ${euros(acompte)}` }]),
+    ];
+    form.querySelector('[data-verifs]').replaceChildren(...points.map(({ texte, cible }) => {
+        const point = Object.assign(document.createElement('li'), { className: cible ? 'ko' : 'ok' });
+        point.append(cible ? Object.assign(document.createElement('a'), { href: `#${cible}`, textContent: texte }) : texte);
+        if (cible) point.firstChild.dataset.aller = cible;
+        return point;
+    }));
 }
 
 // Délai : ce que dit le catalogue des articles choisis, et un raccourci vers le plus long

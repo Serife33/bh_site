@@ -147,6 +147,11 @@
                 {{ include('quote/_totals.html.twig', {saisie: true}) }}
                 <p class="aide">HT = TTC ÷ 1,2. Recalculé à l'enregistrement.</p>
             </section>
+            {# Ce qui est prêt, ce qui reste à faire : mis à jour pendant la saisie, ne bloque rien #}
+            <section class="bloc" aria-labelledby="titre-verifs">
+                <h2 id="titre-verifs">Avant d'enregistrer</h2>
+                <ul class="verifs" data-verifs></ul>
+            </section>
             <section class="bloc actions" aria-label="Enregistrement">
                 <button type="submit">Enregistrer</button>
                 <p class="etat-enr{{ refuse ? ' attention' }}" data-etat-enregistrement>
@@ -156,7 +161,19 @@
                     <a href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Devis imprimable (imprimer, supprimer)<span data-sans-modifications>{{ refuse ? ', sans les modifications en cours' }}</span></a>
                 {% endif %}
             </section>
+            {# Les montants et les gestes annoncés au lecteur d'écran, après chaque changement (assets/devis.js) #}
+            <p role="status" class="sr-only" id="annonce"></p>
         </aside>
+
+        {# Tablette et téléphone : le total et Enregistrer restent visibles en bas de l'écran #}
+        <div class="barre-bas">
+            <p class="bb-montants">
+                <span class="bb-lib">Total TTC</span> <strong data-barre="ttc"></strong>
+                <span class="bb-ligne2">Acompte <span data-barre="deposit"></span><span class="bb-solde"> · Reste à payer <span data-barre="balance"></span></span></span>
+            </p>
+            <a href="#recapitulatif">Détail</a>
+            <button type="submit">Enregistrer</button>
+        </div>
     {{ form_end(form) }}
 
     {# Passer à « Accepté » verrouille le devis : on le confirme avant l'enregistrement #}
