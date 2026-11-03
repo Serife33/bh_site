@@ -1,0 +1,92 @@
+{# Le thème de l'écran d'un devis (quote/edit.html.twig). Chaque champ : libellé, champ, erreur, puis aide ou résultat.
+   L'erreur sous le champ et non au-dessus : dans une rangée (quantité, prix, remise), les champs restent alignés.
+   Aides et résultats sont reliés au champ (aria-describedby), comme les erreurs. #}
+{% use 'form_div_layout.html.twig' %}
+
+{%- block form_row_render -%}
+    <div{% with {attr: row_attr|merge({class: ('champ ' ~ row_attr.class|default(''))|trim})} %}{{ block('attributes') }}{% endwith %}>
+        {{- form_label(form) -}}
+        {{- form_widget(form, widget_attr) -}}
+        {{- form_errors(form) -}}
+        {{- form_help(form) -}}
+    </div>
+{%- endblock form_row_render -%}
+
+{# Une erreur : en clair, précédée d'une pastille « ! » (la couleur ne suffit pas) #}
+{%- block form_errors -%}
+    {%- for error in errors -%}
+        <p class="erreur" id="{{ id ~ '_error' ~ loop.index }}">{{ error.message }}</p>
+    {%- endfor -%}
+{%- endblock form_errors -%}
+
+{%- block form_help -%}
+    {%- if help -%}
+        <p id="{{ id }}_help"{% with {attr: help_attr|merge({class: help_attr.class|default('aide')})} %}{{ block('attributes') }}{% endwith %}>{{- block('form_help_content') -}}</p>
+    {%- endif -%}
+{%- endblock form_help -%}
+
+{# Un montant : le symbole € dans le champ, à droite #}
+{%- block money_widget -%}
+    <div class="unite">{{- block('form_widget_simple') -}}<span aria-hidden="true">€</span></div>
+{%- endblock money_widget -%}
+
+{# La case avant son libellé, cliquable sur toute la hauteur de 44 px #}
+{%- block checkbox_row -%}
+    {%- set describedby = (help ? [id ~ '_help'] : [])|merge(errors|map((_, i) => id ~ '_error' ~ (i + 1))) -%}
+    <div class="champ c-case">
+        <label class="case" for="{{ id }}">
+            {{- form_widget(form, {attr: describedby ? {'aria-describedby': describedby|join(' ')} : {}}) -}}
+            {{- label -}}
+        </label>
+        {{- form_errors(form) -}}
+        {{- form_help(form) -}}
+    </div>
+{%- endblock checkbox_row -%}
+
+{# Le nom d'un article : un seul champ, qui cherche dans le catalogue (motif « combobox »). Sous lui, une place réservée :
+   l'aide, ou le bouton « Revenir à » quand la ligne a été détachée de son produit (assets/devis.js). #}
+{%- block _quote_lines_entry_label_row -%}
+    {%- set describedby = [id ~ '_aide']|merge(errors|map((_, i) => id ~ '_error' ~ (i + 1))) -%}
+    <div class="champ c-produit">
+        {{- form_label(form) -}}
+        <div class="recherche">
+            {{- form_widget(form, {attr: {
+                role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': id ~ '_produits',
+                'aria-describedby': describedby|join(' '), autocomplete: 'off', 'data-source': 'produit', 'data-url': path('app_quote_products'),
+            }}) -}}
+            <ul id="{{ id }}_produits" class="resultats" role="listbox" aria-label="Produits du catalogue" hidden></ul>
+        </div>
+        {{- form_errors(form) -}}
+        <div class="c-article-aide" id="{{ id }}_aide" data-article-aide>
+            <p class="aide">Tapez 2 lettres pour chercher dans le catalogue. Sans choix dans la liste, ce texte est le nom imprimé sur le devis.</p>
+        </div>
+    </div>
+{%- endblock -%}
+
+{# Le tissu, le coloris ou la finition : les propositions du produit choisi (assets/devis.js) #}
+{%- block finition_widget -%}
+    {%- set attr = attr|merge({list: id ~ '_propositions'}) -%}
+    {{- block('form_widget_simple') -}}
+    <datalist id="{{ id }}_propositions"></datalist>
+{%- endblock finition_widget -%}
+
+{# Une remise, d'un article ou de l'ensemble : le type d'abord, en boutons, puis la valeur, dont le libellé et l'unité
+   suivent le type (data-libelles, lus par assets/devis.js). Son aide est le résultat : « Remise : -399,00 € (-16,63 %) ». #}
+{%- block remise_row -%}
+    {%- set valeur = form.parent.discountValue -%}
+    {%- set libelles = form.parent.unitPrice is defined
+        ? {percent: ['Remise en %', '%'], amount: ["Remise en € sur l'article", '€'], final: ['Prix final par article', '€']}
+        : {percent: ['Remise en %', '%'], amount: ['Remise en €', '€']} -%}
+    {%- set type = value in libelles|keys ? value : 'percent' -%}
+    <fieldset class="champ c-remise" data-libelles="{{ libelles|json_encode }}"{% if help %} aria-describedby="{{ id }}_help"{% endif %}>
+        <legend>{{ label }}</legend>
+        {{- form_help(form, {help_attr: {class: 'aide'}}) -}}
+        {{- form_widget(form, {attr: {class: 'segments'}}) -}}
+        {{- form_errors(form) -}}
+        {{- form_row(valeur, {label: libelles[type][0], row_attr: {class: 'c-rv'}, unite: libelles[type][1]}) -}}
+    </fieldset>
+{%- endblock remise_row -%}
+
+{%- block valeur_remise_widget -%}
+    <div class="unite">{{- block('form_widget_simple') -}}<span aria-hidden="true" data-unite>{{ unite|default('%') }}</span></div>
+{%- endblock valeur_remise_widget -%}

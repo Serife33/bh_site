@@ -1,81 +1,86 @@
 {% extends 'base.html.twig' %}
 
-{# Création et modification d'un devis : le même écran #}
-{% form_theme form 'quote/_line_theme.html.twig' %}
+{# Création et modification d'un devis : le même écran (docs/UX-DEVIS.md). Cinq sections dans l'ordre de la conversation
+   avec le client, le récapitulatif à droite. Rien n'apparaît ni ne disparaît : un champ inutile est grisé, une phrase dit
+   pourquoi (assets/devis.js). #}
+{% form_theme form 'quote/_form_theme.html.twig' %}
+{% import 'quote/_article.html.twig' as articles %}
 {% set titre = quote.number ? 'Devis ' ~ quote.number : 'Nouveau devis' %}
 
 {% block title %}{{ titre }}{% endblock %}
 
 {% block body %}
-    <a href="{{ path('app_quote_index') }}">← Retour à la liste</a>
+    <a class="retour" href="{{ path('app_quote_index') }}">← Retour à la liste des devis</a>
     <div class="tete">
         <h1>{{ titre }}</h1>
         <span class="pastille st-{{ quote.status.value }}">{{ quote.status.label }}</span>
         <p class="aide">
-            {% if quote.number %}Créé le {{ quote.createdAt|date_longue }} par {{ quote.seller.email }}. {% endif %}
-            Le numéro est attribué au premier enregistrement et ne change plus.
+            {{- quote.number ? 'Créé le ' ~ quote.createdAt|date_longue ~ ' par ' ~ quote.seller.email ~ '.' : 'Le numéro sera attribué au premier enregistrement.' -}}
         </p>
     </div>
 
-    {# Les taux du calcul en direct (assets/admin.js) : ceux enregistrés sur le devis, jamais recopiés à la main #}
-    {{ form_start(form, {attr: {
-        id: 'form-devis',
-        class: 'grille',
-        'data-tva': quote.vatRate,
-        'data-acompte': quote.depositRate,
-    }}) }}
+    {# Les taux du calcul en direct : ceux enregistrés sur le devis, jamais recopiés à la main #}
+    {{ form_start(form, {attr: {id: 'form-devis', class: 'grille', 'data-tva': quote.vatRate, 'data-acompte': quote.depositRate}}) }}
         <div>
             {{ form_errors(form) }}
 
-            <section class="bloc">
-                <h2>Client</h2>
+            <section class="bloc" aria-labelledby="section-client">
+                <h2 id="section-client"><span class="etape" aria-hidden="true">1</span>Client</h2>
                 {{ form_row(form.customer) }}
-                <p class="aide">
-                    Absent de la liste ? <a href="{{ path('app_customer_new') }}">Créez d'abord sa fiche</a>.
-                    {% if quote.customer %}<a href="{{ path('app_customer_edit', {id: quote.customer.id}) }}">Modifier la fiche de {{ quote.customer }}</a>{% endif %}
-                </p>
             </section>
 
-            <section class="bloc">
-                {{ include('admin/_collection.html.twig', {collection: form.lines, libelle_ajout: '+ Ajouter une ligne'}) }}
+            <section class="bloc" aria-labelledby="section-articles">
+                <h2 id="section-articles"><span class="etape" aria-hidden="true">2</span>Articles</h2>
+                <p class="aide">Prix TTC, comme sur le site. Une remise d'article porte sur le total de l'article (prix × quantité).</p>
+                {{ form_errors(form.lines) }}
+                {# Le prochain numéro de ligne suit le dernier, pas le nombre de lignes : après un retrait, ils diffèrent #}
+                <div id="articles"
+                     data-prototype="{{ articles.article(form.lines.vars.prototype, '__numero__', catalogue)|e('html_attr') }}"
+                     data-index="{{ form.lines|length ? form.lines|last.vars.name + 1 : 0 }}">
+                    {% for ligne in form.lines %}{{ articles.article(ligne, loop.index, catalogue) }}{% endfor %}
+                </div>
+                {% do form.lines.setRendered %}
+                <button type="button" class="btn-secondaire btn-ajout" id="ajouter-article" data-action="ajouter">+ Ajouter un article</button>
+                <div class="remise-globale">{{ form_row(form.discountType) }}</div>
             </section>
 
-            <section class="bloc">
-                <h2>Remise globale, livraison, montage et acompte</h2>
-                <div class="champs">
-                    {{ form_row(form.discountValue) }}
-                    {{ form_row(form.discountType) }}
+            <section class="bloc" aria-labelledby="section-livraison">
+                <h2 id="section-livraison"><span class="etape" aria-hidden="true">3</span>Livraison, montage et délai</h2>
+                <div class="g-options">
                     {{ form_row(form.delivery) }}
                     {{ form_row(form.deliveryFee) }}
                     {{ form_row(form.assembly) }}
                     {{ form_row(form.assemblyFee) }}
-                    {{ form_row(form.depositAmount) }}
                 </div>
+                {{ form_row(form.leadTime, {row_attr: {class: 'c-delai'}}) }}
             </section>
 
-            <section class="bloc">
-                <h2>Conditions et suivi</h2>
-                <div class="champs">
-                    {{ form_row(form.leadTime) }}
+            <section class="bloc" aria-labelledby="section-acompte">
+                <h2 id="section-acompte"><span class="etape" aria-hidden="true">4</span>Acompte</h2>
+                {{ form_row(form.depositAmount) }}
+            </section>
+
+            <section class="bloc" aria-labelledby="section-suivi">
+                <h2 id="section-suivi"><span class="etape" aria-hidden="true">5</span>Suivi du devis</h2>
+                <div class="g-suivi">
+                    {{ form_row(form.status) }}
                     {{ form_row(form.validUntil) }}
                     {{ form_row(form.seller) }}
-                    {{ form_row(form.status) }}
                 </div>
                 {{ form_row(form.notes) }}
             </section>
         </div>
 
-        <aside class="recap">
+        <aside class="recap" id="recapitulatif" aria-labelledby="titre-recap">
             <section class="bloc">
-                <h2>Récapitulatif</h2>
+                <h2 id="titre-recap">Récapitulatif</h2>
                 {{ include('quote/_totals.html.twig', {saisie: true}) }}
-                <p class="aide">HT = TTC ÷ 1,2. Acompte calculé sur le total TTC, livraison et montage compris. Recalculé à l'enregistrement.</p>
+                <p class="aide">HT = TTC ÷ 1,2. Recalculé à l'enregistrement.</p>
             </section>
-
-            <section class="bloc actions-devis">
+            <section class="bloc actions" aria-label="Enregistrement">
                 <button type="submit">Enregistrer</button>
                 {% if quote.id %}
-                    <a class="btn" href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Imprimer ou supprimer</a>
+                    <a href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Devis imprimable (imprimer, supprimer)</a>
                 {% endif %}
             </section>
         </aside>

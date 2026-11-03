@@ -38,21 +38,21 @@ class QuoteType extends AbstractType
                 'choice_label' => fn (Customer $customer) => $customer . ($customer->getPhone() ? ' · ' . $customer->getPhone() : ''),
             ])
             ->add('lines', CollectionType::class, [
-                'label' => 'Lignes du devis',
+                'label' => 'Articles',
                 'entry_type' => QuoteLineType::class,
                 'prototype_data' => new QuoteLine(),   // une ligne ajoutée part de quantité 1 et remise 0, comme la première
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false,   // passe par addLine()/removeLine(), qui relient la ligne au devis
-                'error_bubbling' => false, // « Ajoutez au moins une ligne » s'affiche au-dessus du bloc
-                'help' => "Prix TTC, tels qu'affichés sur le site. La remise d'une ligne porte sur le total de la ligne.",
+                'error_bubbling' => false, // « Ajoutez au moins un article » s'affiche au-dessus des articles
             ])
-            ->add('discountValue', NumberType::class, QuoteLineType::DISCOUNT_VALUE_OPTIONS + [
-                'label' => 'Remise globale',
-                'help' => "Sur le total des articles, après les remises de ligne. Jamais sur la livraison ni le montage.",
+            ->add('discountValue', NumberType::class, QuoteLineType::DISCOUNT_VALUE_OPTIONS + ['label' => 'Remise en %'])
+            // Le prix final n'a de sens que sur un article
+            ->add('discountType', EnumType::class, QuoteLineType::DISCOUNT_TYPE_OPTIONS + [
+                'label' => "Remise sur l'ensemble des articles",
+                'help' => 'Après les remises par article. Jamais sur la livraison ni le montage.',
+                'choices' => [DiscountType::Percent, DiscountType::Amount],
             ])
-            // Le prix final n'a de sens que sur une ligne
-            ->add('discountType', EnumType::class, QuoteLineType::DISCOUNT_TYPE_OPTIONS + ['choices' => [DiscountType::Percent, DiscountType::Amount]])
             // Deux options : leur prix ne compte que si elles sont cochées. Prix vide : offert.
             ->add('delivery', CheckboxType::class, ['label' => 'Livraison (sinon retrait au showroom)', 'required' => false])
             ->add('deliveryFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix de la livraison TTC', 'help' => 'Vide ou 0 : livraison offerte.'])

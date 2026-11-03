@@ -11,6 +11,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -20,14 +21,17 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-// Une ligne du bloc « Lignes du devis » de QuoteType. Choisir un produit ou une variante pré-remplit
-// la ligne (assets/admin.js) : désignation, précision, prix et fabrication sur mesure restent modifiables.
-// Les champs du produit, de la variante et du tissu ont leur gabarit : quote/_line_theme.html.twig.
+// Un article du devis (QuoteType), sa carte : quote/_article.html.twig, ses champs particuliers : quote/_form_theme.html.twig.
+// Un seul nom à donner : « Article » (label). Le choisir dans la liste du catalogue lie le produit et sa variante,
+// envoyés par identifiant dans des champs cachés ; sans choix, c'est une ligne libre. Prix, précisions et
+// fabrication sur mesure restent modifiables (assets/devis.js).
 class QuoteLineType extends AbstractType
 {
     // Partagées avec la remise globale de QuoteType. Montants en chaînes : ils vont tels quels au calcul bcmath.
-    public const DISCOUNT_VALUE_OPTIONS = ['scale' => 2, 'html5' => true, 'input' => 'string', 'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01']];
-    public const DISCOUNT_TYPE_OPTIONS = ['label' => 'Type de remise', 'class' => DiscountType::class, 'choice_label' => 'label'];
+    // Le type de remise se choisit d'abord, en boutons ; « remise » est le gabarit du groupe (type, puis valeur).
+    public const DISCOUNT_VALUE_OPTIONS = ['scale' => 2, 'html5' => true, 'input' => 'string', 'block_prefix' => 'valeur_remise',
+        'help' => 'Aucune remise', 'help_attr' => ['class' => 'resultat deux'], 'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01']];
+    public const DISCOUNT_TYPE_OPTIONS = ['class' => DiscountType::class, 'choice_label' => 'label', 'expanded' => true, 'block_prefix' => 'remise'];
     public const PRICE_OPTIONS = ProductType::PRICE_OPTIONS + ['input' => 'string'];
 
     public function __construct(private ProductRepository $productRepository)
@@ -37,41 +41,40 @@ class QuoteLineType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            // Un champ de recherche, la liste des produits trouvés et l'identifiant du produit choisi
-            ->add('product', TextType::class, [
-                'label' => 'Produit du catalogue',
-                'required' => false,
-                'block_prefix' => 'quote_product',
-                'invalid_message' => "Ce produit n'existe plus dans le catalogue.",
+            ->add('label', TextType::class, [
+                'label' => 'Article <span class="obl">(obligatoire)</span>',
+                'label_html' => true,
+                'attr' => ['maxlength' => 255],
             ])
-            // Les variantes du produit choisi seulement : sa taille et son prix sont recopiés dans la ligne
-            ->add('variant', TextType::class, [
-                'label' => 'Variante',
-                'required' => false,
-                'block_prefix' => 'quote_variant',
-                'invalid_message' => "Cette variante n'existe plus dans le catalogue.",
-            ])
-            ->add('label', TextType::class, ['label' => 'Désignation'])
-            // Les tissus, coloris et finitions du produit choisi, proposés à la frappe
+            ->add('product', HiddenType::class, ['invalid_message' => "Ce produit n'existe plus dans le catalogue."])
+            ->add('variant', HiddenType::class, ['invalid_message' => "Cette variante n'existe plus dans le catalogue."])
             ->add('finish', TextType::class, [
                 'label' => 'Tissu et coloris, ou finition',
                 'required' => false,
-                'block_prefix' => 'quote_finish',
+                'block_prefix' => 'finition',   // avec les propositions du produit choisi
+                'help' => 'Choisissez dans les propositions, ou tapez librement.',
+                'attr' => ['maxlength' => 255],
             ])
             ->add('details', TextareaType::class, [
-                'label' => "Précisions (taille, sur-mesure, sens de l'angle…)",
+                'label' => 'Précisions',
                 'required' => false,
-                'attr' => ['rows' => 2],
+                'help' => "Imprimées sous le nom de l'article. Pour un produit du catalogue, notez ici ce qui change : angle à droite, dimensions spéciales.",
+                'attr' => ['rows' => 2, 'maxlength' => 1000],
             ])
-            ->add('quantity', IntegerType::class, ['label' => 'Qté', 'attr' => ['min' => 1, 'max' => 999]])
-            ->add('unitPrice', MoneyType::class, self::PRICE_OPTIONS + ['label' => 'Prix unitaire TTC'])
-            ->add('discountValue', NumberType::class, self::DISCOUNT_VALUE_OPTIONS + ['label' => 'Remise'])
-            ->add('discountType', EnumType::class, self::DISCOUNT_TYPE_OPTIONS)
-            // Affiché seulement, rempli par le calcul en direct : le serveur recalcule tout à l'enregistrement
-            ->add('total', TextType::class, ['label' => 'Total TTC', 'mapped' => false, 'disabled' => true])
+            ->add('quantity', IntegerType::class, ['label' => 'Quantité', 'attr' => ['min' => 1, 'max' => 999, 'inputmode' => 'numeric']])
+            // L'aide est un résultat, réécrit pendant la saisie : le prix du catalogue, ou pourquoi il n'y en a pas
+            ->add('unitPrice', MoneyType::class, self::PRICE_OPTIONS + [
+                'label' => 'Prix unitaire TTC <span class="obl">(obligatoire)</span>',
+                'label_html' => true,
+                'help' => 'Rempli par le produit choisi.',
+                'help_attr' => ['class' => 'resultat deux'],
+            ])
+            ->add('discountValue', NumberType::class, self::DISCOUNT_VALUE_OPTIONS + ['label' => 'Remise en %'])
+            ->add('discountType', EnumType::class, self::DISCOUNT_TYPE_OPTIONS + ['label' => 'Remise sur cet article'])
             ->add('customMade', CheckboxType::class, [
                 'label' => 'Fabriqué selon les choix du client (pas de droit de rétractation)',
                 'required' => false,
+                'help' => "Cochée d'office pour un produit fabriqué à la commande. Imprimée sur le devis.",
             ])
         ;
 

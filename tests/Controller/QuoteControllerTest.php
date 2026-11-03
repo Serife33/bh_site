@@ -126,9 +126,9 @@ final class QuoteControllerTest extends WebTestCase
 
         $products = $this->searchProducts('essaimadrid');
         self::assertCount(20, $products);
-        self::assertSame(['id' => $first->getId(), 'name' => 'Canapé ESSAIMADRID 01', 'price' => '1155.00', 'customMade' => true,
-            'variants' => [['id' => $first->getVariants()->first()->getId(), 'label' => 'Taille 160x200', 'price' => '1155.00']],
-            'finishes' => ['Chenille Essai, Terra']], $products[0]);
+        self::assertSame(['id' => $first->getId(), 'name' => 'Canapé ESSAIMADRID 01', 'price' => '1155.00', 'customMade' => true, 'leadTime' => null,
+            'variants' => [['id' => $first->getVariants()->first()->getId(), 'size' => '160x200', 'material' => null, 'label' => 'Taille 160x200', 'price' => '1155.00']],
+            'finishes' => [['material' => null, 'label' => 'Chenille Essai, Terra']]], $products[0]);
         self::assertSame('Canapé ESSAIMADRID 20', $products[19]['name']);   // par ordre alphabétique
         self::assertCount(20, $this->searchProducts('madrid'));
         foreach ($this->searchProducts('madrid') as $product) {

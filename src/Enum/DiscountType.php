@@ -13,8 +13,8 @@ enum DiscountType: string
     public function label(): string
     {
         return match ($this) {
-            self::Percent    => '%',
-            self::Amount     => '€',
+            self::Percent    => 'En %',
+            self::Amount     => 'En €',
             self::FinalPrice => 'Prix final',
         };
     }

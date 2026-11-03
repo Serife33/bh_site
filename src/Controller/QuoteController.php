@@ -92,18 +92,28 @@ final class QuoteController extends AbstractController
         $search = trim($request->query->getString('q'));
         $products = mb_strlen($search) < 2 ? [] : $productRepository->findForQuoteSearch($search, self::PRODUCT_RESULTS);
 
-        return $this->json(array_map(static fn (Product $product) => [
+        return $this->json(array_map($this->productData(...), $products));
+    }
+
+    // Un produit tel que l'écran d'un devis le connaît (assets/admin.js) : la recherche le renvoie,
+    // une ligne enregistrée le porte déjà (quote/_article.html.twig)
+    private function productData(Product $product): array
+    {
+        return [
             'id'         => $product->getId(),
             'name'       => $product->getName(),
             'price'      => $product->getActualPrice(),
             'customMade' => $product->isCustomMade(),
+            'leadTime'   => $product->getLeadMaxWeeks() ? [$product->getLeadMinWeeks() ?? $product->getLeadMaxWeeks(), $product->getLeadMaxWeeks()] : null,
             'variants'   => $product->getVariants()->map(static fn (ProductVariant $variant) => [
-                'id'    => $variant->getId(),
-                'label' => $variant->getLabel(),
-                'price' => $variant->getActualPrice(),
+                'id'       => $variant->getId(),
+                'size'     => $variant->getSize(),
+                'material' => $variant->getFabric() ? (string) $variant->getFabric() : null,
+                'label'    => $variant->getLabel(),
+                'price'    => $variant->getActualPrice(),
             ])->getValues(),
             'finishes'   => $product->getFinishes(),
-        ], $products));
+        ];
     }
 
     #[Route('/{id}/edit', name: 'app_quote_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
@@ -169,10 +179,13 @@ final class QuoteController extends AbstractController
 
     private function renderEdit(Quote $quote, FormInterface $form): Response
     {
+        $products = array_filter($quote->getLines()->map(static fn (QuoteLine $line) => $line->getProduct())->toArray());
+
         return $this->render('quote/edit.html.twig', [
-            'quote'  => $quote,
-            'form'   => $form,
-            'totaux' => $this->calculator->totals($quote),
+            'quote'     => $quote,
+            'form'      => $form,
+            'totaux'    => $this->calculator->totals($quote),
+            'catalogue' => array_combine(array_map(static fn (Product $product) => $product->getId(), $products), array_map($this->productData(...), $products)),
         ]);
     }
 }
