@@ -1,0 +1,23 @@
+{# Une collection de sous-formulaires (nuancier d'un tissu, variantes d'un produit) : son titre, son aide,
+   les lignes existantes et le modèle d'une ligne vide. Les boutons sont branchés dans assets/admin.js. #}
+{% macro ligne(form) %}
+    <div class="collection-ligne">
+        {{ form_errors(form) }}
+        {% for champ in form %}{{ form_row(champ) }}{% endfor %}
+        <button type="button" class="btn-supprimer-ligne">Retirer</button>
+    </div>
+{% endmacro %}
+
+<h2>{{ collection.vars.label }}</h2>
+{{ form_help(collection) }}
+
+{# Le prochain numéro de ligne suit le dernier, pas le nombre de lignes : après une suppression, ils diffèrent #}
+<div class="collection"
+     data-prototype="{{ _self.ligne(collection.vars.prototype)|e('html_attr') }}"
+     data-index="{{ collection|length ? collection|last.vars.name + 1 : 0 }}">
+    {% for ligne in collection %}{{ _self.ligne(ligne) }}{% endfor %}
+    <button type="button" class="btn btn-ajouter-ligne">{{ libelle_ajout }}</button>
+</div>
+
+{# Une collection vide n'a aucune ligne à marquer : sans ceci, form_widget(form) l'afficherait une seconde fois #}
+{% do collection.setRendered %}

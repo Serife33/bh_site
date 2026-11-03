@@ -137,10 +137,20 @@ class Product
     private Collection $media;
 
     /**
+     * Valid : chaque variante passe aussi ses propres contraintes (prix, stock, taille ou matière).
+     * Unique : pas deux variantes avec la même taille et la même matière.
+     *
      * @var Collection<int, ProductVariant>
      */
     #[ORM\OneToMany(targetEntity: ProductVariant::class, mappedBy: 'product', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
+    #[Assert\Valid]
+    #[Assert\Unique(
+        message: 'Une autre variante a déjà cette taille et cette matière.',
+        normalizer: [ProductVariant::class, 'combination'],
+        errorPath: 'size',
+        stopOnFirstError: false,
+    )]
     private Collection $variants;
 
     #[ORM\Column]

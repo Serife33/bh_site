@@ -14,18 +14,33 @@ use App\Repository\ProductRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ProductType extends AbstractType
 {
+    // Partagées avec ProductVariantType : les bornes des contraintes de Product et ProductVariant
+    public const PRICE_OPTIONS = ['currency' => 'EUR', 'scale' => 2, 'html5' => true, 'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01']];
+    public const STOCK_OPTIONS = ['attr' => ['min' => 0, 'max' => 9999]];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $produitCourant = $builder->getData();
+
+        // Avec des variantes, prix et stock sont recalculés à chaque enregistrement (Product::refreshFromVariants) :
+        // on les affiche grisés, sans les laisser saisir. Le + garde ces options en priorité sur celles du champ.
+        $calcule = $produitCourant !== null && !$produitCourant->getVariants()->isEmpty()
+            ? ['disabled' => true, 'help' => 'Calculé à partir des variantes.']
+            : [];
+
         $builder
         ->add('name',TextType::class, [
             'label' => 'Nom du produit',
@@ -40,24 +55,23 @@ class ProductType extends AbstractType
             'required' => false,
             'attr' => ['rows' => 4],
         ])
-        ->add('initialPrice', MoneyType::class, [
+        ->add('initialPrice', MoneyType::class, $calcule + self::PRICE_OPTIONS + [
             'label' => 'Prix initial',
-            'currency' => 'EUR',
-            'scale' => 2,
-            'html5' => true,
-            'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01'],
         ])
-        ->add('actualPrice', MoneyType::class, [
+        ->add('actualPrice', MoneyType::class, $calcule + self::PRICE_OPTIONS + [
             'label' => 'Prix actuel (promo si < prix initial)',
-            'currency' => 'EUR',
-            'scale' => 2,
-            'html5' => true,
-            'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01'],
             'help' => "Recopie le prix initial s'il n'y a pas de promotion.",
         ])
-        ->add('stock', IntegerType::class, [
+        ->add('stock', IntegerType::class, $calcule + self::STOCK_OPTIONS + [
             'label' => 'Stock (0 = sur commande)',
-            'attr' => ['min' => 0, 'max' => 9999],
+        ])
+        ->add('variants', CollectionType::class, [
+            'label' => 'Variantes',
+            'entry_type' => ProductVariantType::class,
+            'allow_add' => true,
+            'allow_delete' => true,
+            'by_reference' => false,   // passe par addVariant()/removeVariant(), qui relient la variante au produit
+            'help' => 'Ce qui change le prix (taille, matière) va dans les variantes. Les tissus sans effet sur le prix restent dans Tissus.',
         ])
         ->add('isCustomMade', CheckboxType::class, [
             'label' => 'Fabrication sur mesure',
@@ -158,10 +172,16 @@ class ProductType extends AbstractType
         ])
         ;
 
+        // La position des variantes suit l'ordre des lignes du formulaire
+        $builder->get('variants')->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event): void {
+            $position = 1;
+            foreach ($event->getData() as $variant) {
+                $variant->setPosition($position++);
+            }
+        });
+
         // Le champ Modules n'a de sens que pour un ENSEMBLE modulable.
         // Un champ qu'on ne doit pas remplir ne s'affiche pas.
-        $produitCourant = $builder->getData();
-
         if ($produitCourant !== null && $produitCourant->getIsModular() === ProductModular::Yes) {
             $builder->add('modules', EntityType::class, [
                 'label' => 'Modules composant ce produit',
