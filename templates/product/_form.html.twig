@@ -1,6 +1,15 @@
-
 {{ form_start(form) }}
     {{ form_errors(form) }}
-    {{ form_widget(form) }}
+    {{ form_row(form.name) }}
+    {{ form_row(form.description) }}
+    {{ form_row(form.dimension) }}
+    {{ form_row(form.initialPrice) }}
+    {{ form_row(form.actualPrice) }}
+    {{ form_row(form.stock) }}
+
+    {{ include('admin/_collection.html.twig', {collection: form.variants, libelle_ajout: '+ Ajouter une variante'}) }}
+
+    {# Les champs restants, dans l'ordre de ProductType (form_rest, contrairement à form_widget, ne répète pas les erreurs générales) #}
+    {{ form_rest(form) }}
     <button type="submit">{{ button_label }}</button>
 {{ form_end(form) }}

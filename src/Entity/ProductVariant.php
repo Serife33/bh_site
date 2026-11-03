@@ -163,4 +163,10 @@ class ProductVariant
 
         return $this;
     }
+
+    // Ce qui distingue deux variantes d'un même produit : sa taille et sa matière (contrainte Unique de Product::$variants)
+    public static function combination(self $variant): string
+    {
+        return mb_strtolower((string) $variant->size) . '|' . $variant->fabric?->getId();
+    }
 }

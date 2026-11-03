@@ -1,24 +1,27 @@
 import './stimulus_bootstrap.js';
 import Sortable from 'sortablejs';
 
-// ===== Nuancier d'un tissu : ajouter ou retirer une ligne de coloris =====
+// ===== Collections (nuancier d'un tissu, variantes d'un produit) : ajouter ou retirer une ligne =====
+// Le modèle de ligne, bouton Retirer compris, vient de templates/admin/_collection.html.twig.
 document.addEventListener('click', (e) => {
-    const nuancier = document.getElementById('nuancier');
+    const ajouter = e.target.closest('.btn-ajouter-ligne');
 
-    if (nuancier && e.target.closest('#ajouter-couleur')) {
-        const index = parseInt(nuancier.dataset.index, 10);
-        const ligne = document.createElement('div');
-        ligne.className = 'nuancier-ligne';
+    if (ajouter) {
+        const collection = ajouter.closest('.collection');
+        const index = parseInt(collection.dataset.index, 10);
         // __name__ est le marqueur laissé par Symfony : on le remplace par le numéro de ligne
-        ligne.innerHTML = nuancier.dataset.prototype.replace(/__name__/g, index)
-            + '<button type="button" class="btn-supprimer-ligne">Retirer</button>';
-        nuancier.appendChild(ligne);
-        nuancier.dataset.index = index + 1;
+        ajouter.insertAdjacentHTML('beforebegin', collection.dataset.prototype.replace(/__name__/g, index));
+        ajouter.previousElementSibling.querySelector('input, select').focus();   // on remplit la ligne sans remonter au clavier
+        collection.dataset.index = index + 1;
         return;
     }
 
     const retirer = e.target.closest('.btn-supprimer-ligne');
-    if (retirer) retirer.closest('.nuancier-ligne').remove();
+    if (retirer) {
+        // Le bouton cliqué disparaît avec sa ligne : le focus passe au bouton d'ajout au lieu de se perdre
+        retirer.closest('.collection').querySelector('.btn-ajouter-ligne').focus();
+        retirer.closest('.collection-ligne').remove();
+    }
 });
 
 

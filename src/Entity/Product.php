@@ -13,6 +13,7 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\HasLifecycleCallbacks]   // dit à Doctrine : "cette entité a des callbacks, va les chercher"
@@ -140,11 +141,21 @@ class Product
     private Collection $media;
 
     /**
+     * Valid : chaque variante passe aussi ses propres contraintes (prix, stock, taille ou matière).
+     * Unique : pas deux variantes avec la même taille et la même matière.
+     *
      * @var Collection<int, ProductVariant>
      */
     // EAGER : les variantes d'une liste de produits arrivent en une seule requête, pas une par carte
     #[ORM\OneToMany(targetEntity: ProductVariant::class, mappedBy: 'product', cascade: ['persist'], orphanRemoval: true, fetch: 'EAGER')]
     #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
+    #[Assert\Valid]
+    #[Assert\Unique(
+        message: 'Une autre variante a déjà cette taille et cette matière.',
+        normalizer: [ProductVariant::class, 'combination'],
+        errorPath: 'size',
+        stopOnFirstError: false,
+    )]
     private Collection $variants;
 
     #[ORM\Column]
@@ -209,6 +220,21 @@ class Product
         $this->actualPrice = $variants[0]->getActualPrice();
         $this->initialPrice = $variants[0]->getInitialPrice();
         $this->stock = array_sum(array_map(static fn (ProductVariant $variant) => $variant->getStock(), $variants));
+    }
+
+    // La fiche publique propose un même choix pour toutes les variantes : une taille pour toutes ou pour aucune, idem pour la matière.
+    #[Assert\Callback]
+    public function validateVariantCriteria(ExecutionContextInterface $context): void
+    {
+        foreach (['getSize' => 'une taille', 'getFabric' => 'une matière'] as $getter => $criterion) {
+            $filled = $this->variants->filter(static fn (ProductVariant $variant) => $variant->$getter() !== null)->count();
+
+            if ($filled !== 0 && $filled !== $this->variants->count()) {
+                $context->buildViolation("Toutes les variantes doivent avoir {$criterion}, ou aucune.")
+                    ->atPath('variants')
+                    ->addViolation();
+            }
+        }
     }
 
 
