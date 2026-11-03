@@ -12,10 +12,13 @@ use App\Repository\AdminUserRepository;
 use App\Repository\CustomerRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\CallbackTransformer;
+use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -27,16 +30,15 @@ class QuoteType extends AbstractType
 {
     private const FEE_OPTIONS = ['required' => false, 'empty_data' => '0'] + QuoteLineType::PRICE_OPTIONS;
 
+    public function __construct(private CustomerRepository $customerRepository)
+    {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('customer', EntityType::class, [
-                'label' => 'Client',
-                'class' => Customer::class,
-                'placeholder' => '- Choisir -',
-                'query_builder' => fn (CustomerRepository $repository) => $repository->createSortedQueryBuilder(),
-                'choice_label' => fn (Customer $customer) => $customer . ($customer->getPhone() ? ' · ' . $customer->getPhone() : ''),
-            ])
+            // Cherché par le vendeur (quote/edit.html.twig, assets/devis.js), envoyé par son identifiant
+            ->add('customer', HiddenType::class, ['error_bubbling' => false, 'invalid_message' => "Ce client n'existe plus dans le fichier."])
             ->add('lines', CollectionType::class, [
                 'label' => 'Articles',
                 'entry_type' => QuoteLineType::class,
@@ -92,6 +94,11 @@ class QuoteType extends AbstractType
                 'attr' => ['placeholder' => "Visibles seulement dans l'administration, jamais sur le devis imprimé."],
             ])
         ;
+
+        $builder->get('customer')->addModelTransformer(new CallbackTransformer(
+            static fn (?Customer $customer) => $customer?->getId(),
+            fn (?string $id) => $id ? ($this->customerRepository->findForQuote((int) $id) ?? throw new TransformationFailedException()) : null,
+        ));
     }
 
     public function configureOptions(OptionsResolver $resolver): void

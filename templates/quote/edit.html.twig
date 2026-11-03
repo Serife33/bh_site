@@ -24,9 +24,25 @@
         <div>
             {{ form_errors(form) }}
 
-            <section class="bloc" aria-labelledby="section-client">
+            {# Le client se cherche comme un produit ; sa fiche se crée ou se modifie dans un nouvel onglet : le devis reste ouvert #}
+            {% set client_id = form.customer.vars.id ~ '_recherche' %}
+            <section class="bloc" aria-labelledby="section-client" data-client="{{ client ? client|json_encode }}">
                 <h2 id="section-client"><span class="etape" aria-hidden="true">1</span>Client</h2>
-                {{ form_row(form.customer) }}
+                <div class="champ">
+                    <label for="{{ client_id }}">Client <span class="obl">(obligatoire)</span></label>
+                    <div class="recherche">
+                        <input type="text" id="{{ client_id }}" value="{{ client.name ?? '' }}" autocomplete="off"
+                               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="{{ client_id }}_resultats"
+                               aria-describedby="{{ ([client_id ~ '_aide']|merge(form.customer.vars.errors|map((_, i) => form.customer.vars.id ~ '_error' ~ (i + 1))))|join(' ') }}"
+                               {{- form.customer.vars.valid ? '' : ' aria-invalid="true"' }} data-source="client" data-url="{{ path('app_quote_customers') }}">
+                        <ul id="{{ client_id }}_resultats" class="resultats" role="listbox" aria-label="Clients trouvés" hidden></ul>
+                    </div>
+                    {{ form_widget(form.customer) }}
+                    {{ form_errors(form.customer) }}
+                    <p class="aide" id="{{ client_id }}_aide">Tapez 2 lettres du nom, ou le début du téléphone.</p>
+                </div>
+                <div class="fiche-client" data-fiche-client></div>
+                <p class="lien-ajout"><a href="{{ path('app_customer_new') }}" target="_blank">+ Nouveau client (nouvel onglet)</a></p>
             </section>
 
             <section class="bloc" aria-labelledby="section-articles">

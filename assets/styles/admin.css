@@ -684,6 +684,13 @@ tr.est-masque { opacity: .55; }
 .resultats li[aria-selected="true"], .resultats li[data-rang]:hover { background: #F2EDE8; }
 .resultats li[aria-disabled] { color: #6B6560; cursor: default; font-size: 14px; }
 
+/* Section 1 : la fiche du client choisi, trois lignes réservées */
+.fiche-client { box-sizing: border-box; min-height: 6.2em; margin-top: .8rem; padding: .7rem 1rem; background: #FAF8F6; border: 1px solid #E7E2DC; border-radius: 6px; font-size: 14px; }
+.fiche-client p { margin: 0 0 .15rem; }
+.fiche-client .vide { color: #6B6560; }
+.lien-ajout { margin: .6rem 0 0; }
+.lien-ajout a, .fiche-client a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+
 /* Section 2 : un article. Sa disposition suit la largeur de sa carte */
 .article { container-type: inline-size; margin-top: 1rem; padding: 1rem; background: #FAF8F6; border: 1px solid #E7E2DC; border-radius: 8px; }
 .article.est-retire { background: #fff; border-style: dashed; }

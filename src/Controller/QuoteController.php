@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\Quote;
@@ -28,7 +29,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class QuoteController extends AbstractController
 {
     private const QUOTES_PER_PAGE = 20;
-    private const PRODUCT_RESULTS = 20;
+    private const SEARCH_RESULTS = 20;   // produits ou clients trouvés
 
     public function __construct(private QuoteCalculator $calculator)
     {
@@ -64,7 +65,7 @@ final class QuoteController extends AbstractController
         $customerId = $request->query->getInt('client');
         $quote = (new Quote())
             ->setSeller($this->getUser())   // le vendeur connecté, modifiable dans le formulaire
-            ->setCustomer($customerId ? $customerRepository->find($customerId) : null)
+            ->setCustomer($customerId ? $customerRepository->findForQuote($customerId) : null)
             ->addLine(new QuoteLine());     // une première ligne prête à remplir
         $form = $this->createForm(QuoteType::class, $quote);
         $form->handleRequest($request);
@@ -90,9 +91,31 @@ final class QuoteController extends AbstractController
     public function products(Request $request, ProductRepository $productRepository): JsonResponse
     {
         $search = trim($request->query->getString('q'));
-        $products = mb_strlen($search) < 2 ? [] : $productRepository->findForQuoteSearch($search, self::PRODUCT_RESULTS);
+        $products = mb_strlen($search) < 2 ? [] : $productRepository->findForQuoteSearch($search, self::SEARCH_RESULTS);
 
         return $this->json(array_map($this->productData(...), $products));
+    }
+
+    // La recherche du client d'un devis (assets/devis.js) : nom, prénom, téléphone ou e-mail, 20 clients au plus
+    #[Route('/clients', name: 'app_quote_customers', methods: ['GET'])]
+    public function customers(Request $request, CustomerRepository $customerRepository): JsonResponse
+    {
+        $search = trim($request->query->getString('q'));
+
+        return $this->json(array_map($this->customerData(...), mb_strlen($search) < 2 ? [] : $customerRepository->findForQuoteSearch($search, self::SEARCH_RESULTS)));
+    }
+
+    // Un client tel que l'écran d'un devis le montre : sa fiche, et l'adresse de livraison
+    private function customerData(Customer $customer): array
+    {
+        return [
+            'id'      => $customer->getId(),
+            'name'    => (string) $customer,
+            'phone'   => $customer->getPhone(),
+            'email'   => $customer->getEmail(),
+            'address' => $customer->getAddress(),
+            'url'     => $this->generateUrl('app_customer_edit', ['id' => $customer->getId()]),
+        ];
     }
 
     // Un produit tel que l'écran d'un devis le connaît (assets/admin.js) : la recherche le renvoie,
@@ -185,6 +208,7 @@ final class QuoteController extends AbstractController
             'quote'     => $quote,
             'form'      => $form,
             'totaux'    => $this->calculator->totals($quote),
+            'client'    => $quote->getCustomer() ? $this->customerData($quote->getCustomer()) : null,
             'catalogue' => array_combine(array_map(static fn (Product $product) => $product->getId(), $products), array_map($this->productData(...), $products)),
         ]);
     }

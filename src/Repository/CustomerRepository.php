@@ -29,19 +29,35 @@ class CustomerRepository extends ServiceEntityRepository
             ->addOrderBy('c.id', 'ASC');   // départage : sans clé finale unique, la pagination oublie des lignes
 
         if ($search !== '') {
-            $qb->andWhere('c.lastName LIKE :search OR c.firstName LIKE :search OR c.phone LIKE :search OR c.email LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+            $this->andWhereMatches($qb, $search);
         }
 
         return $qb->getQuery();   // non exécutée : le paginator ajoutera le LIMIT
     }
 
-    // Les clients proposés dans le formulaire d'un devis, par ordre alphabétique.
-    // shortcut: une liste déroulante de tout le fichier, à remplacer par une recherche au-delà de quelques centaines de clients
-    public function createSortedQueryBuilder(): QueryBuilder
+    // Le client d'un devis, cherché par le vendeur (QuoteController::customers) : les premiers par ordre alphabétique
+    public function findForQuoteSearch(string $search, int $limit): array
     {
-        return $this->createQueryBuilder('c')
+        return $this->andWhereMatches($this->createQueryBuilder('c'), $search)
             ->orderBy('c.lastName', 'ASC')
-            ->addOrderBy('c.firstName', 'ASC');
+            ->addOrderBy('c.firstName', 'ASC')
+            ->addOrderBy('c.id', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    // Le client d'un devis, reçu par son identifiant
+    public function findForQuote(int $id): ?Customer
+    {
+        return $this->find($id);
+    }
+
+    // La recherche du fichier client, partagée par sa liste et le devis : nom, prénom, téléphone ou e-mail.
+    // Les % et _ tapés sont cherchés tels quels, pas comme des jokers.
+    private function andWhereMatches(QueryBuilder $qb, string $search): QueryBuilder
+    {
+        return $qb->andWhere('c.lastName LIKE :search OR c.firstName LIKE :search OR c.phone LIKE :search OR c.email LIKE :search')
+            ->setParameter('search', '%' . addcslashes($search, '%_\\') . '%');
     }
 }

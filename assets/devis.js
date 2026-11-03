@@ -47,6 +47,38 @@ function annoncer(texte = '') {
 }
 
 
+// ===== Le client : sa fiche, lue sur le fichier client =====
+const sectionClient = () => document.querySelector('[data-client]');
+const clientDe = () => lireJson(sectionClient().dataset.client);
+const paragraphe = (texte, classe = '') => Object.assign(document.createElement('p'), { textContent: texte, className: classe });
+
+function majFiche() {
+    const client = clientDe();
+    const fiche = document.querySelector('[data-fiche-client]');
+    if (!client) {
+        fiche.replaceChildren(paragraphe('Aucun client choisi.', 'vide'));
+        return;
+    }
+    const nom = paragraphe('');
+    nom.append(Object.assign(document.createElement('strong'), { textContent: client.name }));
+    const lien = paragraphe('');
+    lien.append(Object.assign(document.createElement('a'), { href: client.url, target: '_blank', textContent: 'Modifier la fiche (nouvel onglet)' }));
+    fiche.replaceChildren(nom,
+        paragraphe(`${client.phone || 'Pas de téléphone sur la fiche.'} · ${client.email || "Pas d'e-mail sur la fiche."}`),
+        paragraphe(client.address || "Pas d'adresse sur la fiche."),
+        lien);
+}
+
+function choisirClient(input, client) {
+    sectionClient().dataset.client = JSON.stringify(client);
+    champDevis('customer').value = client.id;
+    input.value = client.name;
+    majFiche();
+    annoncer(`Client choisi : ${client.name}.`);
+    apresChangement();
+}
+
+
 // ===== Un article =====
 const articles = () => [...document.querySelectorAll('#articles .article')];
 const articlesActifs = () => articles().filter((article) => !article.classList.contains('est-retire'));
@@ -351,6 +383,13 @@ function apresChangement() {
 // On tape 2 lettres au moins, la liste s'ouvre sous le champ ; flèches haut et bas pour s'y déplacer, Entrée pour
 // choisir, Échap pour fermer. Les résultats viennent du serveur (data-url).
 const SOURCES = {
+    client: {
+        texte: (client) => [client.name, client.phone].filter(Boolean).join(' · '),
+        vide: 'Aucun client trouvé. Créez sa fiche avec « + Nouveau client ».',
+        choisir: choisirClient,
+        // Quitter sans choisir : ce qui est affiché redevient le client enregistré avec le devis
+        quitter: (input) => { input.value = clientDe()?.name ?? ''; },
+    },
     produit: {
         texte: (produit) => `${produit.name} · ${euros(centimes(produit.price))}`,
         vide: 'Aucun produit du catalogue. Le texte tapé sera le nom imprimé (ligne libre).',
@@ -494,6 +533,7 @@ document.addEventListener('click', (e) => {
 // Au premier affichage, et après un enregistrement refusé que Turbo affiche à la place de la page
 function demarrer() {
     if (!formulaire()) return;
+    majFiche();
     articles().forEach(preparer);
     recalculer();
     derniersMontants = texteMontants();

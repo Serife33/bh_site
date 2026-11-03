@@ -68,6 +68,7 @@ final class QuoteControllerTest extends WebTestCase
         yield 'nouveau devis' => ['/admin/devis/new'];
         yield 'fichier client' => ['/admin/client'];
         yield 'recherche de produit' => ['/admin/devis/produits?q=madrid'];
+        yield 'recherche de client' => ['/admin/devis/clients?q=exemple'];
     }
 
     // Le devis BHD-2026-11-001 de la maquette, saisi dans le formulaire, puis sa page imprimable
@@ -139,6 +140,20 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSame([], $this->searchProducts('m'));
         self::assertSame([], $this->searchProducts("%' OR 1=1 -- "));
         self::assertSame([], $this->searchProducts('%%'));
+    }
+
+    // Le client d'un devis se cherche par son nom ou son téléphone, comme un produit
+    public function testCustomerSearchForQuotes(): void
+    {
+        $this->client->loginUser($this->seller);
+
+        $this->client->request('GET', '/admin/devis/clients?q=' . urlencode('06 00 00 00 01'));
+        $customers = json_decode($this->client->getResponse()->getContent(), true);
+
+        self::assertContains(['id' => $this->customer->getId(), 'name' => 'Client Exemple', 'phone' => '06 00 00 00 01', 'email' => null,
+            'address' => "1 rue de l'Exemple, 33000 Bordeaux", 'url' => '/admin/client/' . $this->customer->getId() . '/edit'], $customers);
+        $this->client->request('GET', '/admin/devis/clients?q=e');
+        self::assertSame('[]', $this->client->getResponse()->getContent());   // 2 lettres au moins
     }
 
     public function testForeignVariantIsRefused(): void
