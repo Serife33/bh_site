@@ -10,6 +10,7 @@
 
 <h2>{{ collection.vars.label }}</h2>
 {{ form_help(collection) }}
+{{ form_errors(collection) }}
 
 {# Le prochain numéro de ligne suit le dernier, pas le nombre de lignes : après une suppression, ils diffèrent #}
 <div class="collection"
@@ -19,5 +20,5 @@
     <button type="button" class="btn btn-ajouter-ligne">{{ libelle_ajout }}</button>
 </div>
 
-{# Une collection vide n'a aucune ligne à marquer : sans ceci, form_widget(form) l'afficherait une seconde fois #}
+{# Une collection vide n'a aucune ligne à marquer : sans ceci, form_rest ou form_end l'afficherait une seconde fois #}
 {% do collection.setRendered %}

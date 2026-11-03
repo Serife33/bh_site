@@ -2,11 +2,14 @@
 
 namespace App\Tests\Entity;
 
+use App\Entity\Fabric;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class ProductTest extends TestCase
 {
@@ -40,13 +43,30 @@ final class ProductTest extends TestCase
             ->addVariant($this->variant('180x200')->setActualPrice('-5.00')) // prix négatif
             ->addVariant($this->variant(null));                              // ni taille ni matière
 
-        $violations = Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()->validate($product);
+        // Seulement la propriété : UniqueEntity('slug') demande Doctrine, absent de ce validateur autonome
+        $violations = $this->validator()->validateProperty($product, 'variants');
         $paths = array_map(static fn (ConstraintViolationInterface $violation) => $violation->getPropertyPath(), iterator_to_array($violations));
 
-        self::assertSame(
-            ['variants[1].size', 'variants[2].actualPrice', 'variants[3]'],
-            array_values(array_filter($paths, static fn (string $path) => str_starts_with($path, 'variants'))),
-        );
+        self::assertSame(['variants[1].size', 'variants[2].actualPrice', 'variants[3]'], $paths);
+    }
+
+    public function testVariantsShareTheSameCriteria(): void
+    {
+        $product = $this->product()
+            ->addVariant($this->variant('160x200'))
+            ->addVariant($this->variant(null)->setFabric(new Fabric()));   // matière sans taille, à côté d'une taille sans matière
+
+        // La règle seule, pour la même raison que plus haut (UniqueEntity)
+        $violations = $this->validator()->validate($product, new Callback('validateVariantCriteria'));
+        $messages = array_map(static fn (ConstraintViolationInterface $violation) => $violation->getMessage(), iterator_to_array($violations));
+
+        self::assertSame(['Toutes les variantes doivent avoir une taille, ou aucune.', 'Toutes les variantes doivent avoir une matière, ou aucune.'], $messages);
+        self::assertCount(0, $this->validator()->validate($this->product()->addVariant($this->variant('160x200')), new Callback('validateVariantCriteria')));
+    }
+
+    private function validator(): ValidatorInterface
+    {
+        return Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator();
     }
 
     private function variant(?string $size): ProductVariant

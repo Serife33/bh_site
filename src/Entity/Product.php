@@ -13,6 +13,7 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\HasLifecycleCallbacks]   // dit à Doctrine : "cette entité a des callbacks, va les chercher"
@@ -219,6 +220,21 @@ class Product
         $this->actualPrice = $variants[0]->getActualPrice();
         $this->initialPrice = $variants[0]->getInitialPrice();
         $this->stock = array_sum(array_map(static fn (ProductVariant $variant) => $variant->getStock(), $variants));
+    }
+
+    // La fiche publique propose un même choix pour toutes les variantes : une taille pour toutes ou pour aucune, idem pour la matière.
+    #[Assert\Callback]
+    public function validateVariantCriteria(ExecutionContextInterface $context): void
+    {
+        foreach (['getSize' => 'une taille', 'getFabric' => 'une matière'] as $getter => $criterion) {
+            $filled = $this->variants->filter(static fn (ProductVariant $variant) => $variant->$getter() !== null)->count();
+
+            if ($filled !== 0 && $filled !== $this->variants->count()) {
+                $context->buildViolation("Toutes les variantes doivent avoir {$criterion}, ou aucune.")
+                    ->atPath('variants')
+                    ->addViolation();
+            }
+        }
     }
 
 

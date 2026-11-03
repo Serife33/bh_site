@@ -96,6 +96,8 @@
   background: #fff;
 }
 .admin-content textarea { min-height: 90px; }
+/* Un champ verrouillé (prix et stock calculés à partir des variantes) se voit verrouillé */
+.admin-content input:disabled { background: #F2EFEB; color: #6B645D; cursor: not-allowed; }
 .admin-content input[type=checkbox],
 .admin-content input[type=radio] { margin-right: 0.4rem; }
 

@@ -11,12 +11,17 @@ document.addEventListener('click', (e) => {
         const index = parseInt(collection.dataset.index, 10);
         // __name__ est le marqueur laissé par Symfony : on le remplace par le numéro de ligne
         ajouter.insertAdjacentHTML('beforebegin', collection.dataset.prototype.replace(/__name__/g, index));
+        ajouter.previousElementSibling.querySelector('input, select').focus();   // on remplit la ligne sans remonter au clavier
         collection.dataset.index = index + 1;
         return;
     }
 
     const retirer = e.target.closest('.btn-supprimer-ligne');
-    if (retirer) retirer.closest('.collection-ligne').remove();
+    if (retirer) {
+        // Le bouton cliqué disparaît avec sa ligne : le focus passe au bouton d'ajout au lieu de se perdre
+        retirer.closest('.collection').querySelector('.btn-ajouter-ligne').focus();
+        retirer.closest('.collection-ligne').remove();
+    }
 });
 
 

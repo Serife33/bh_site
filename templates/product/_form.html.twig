@@ -9,7 +9,7 @@
 
     {{ include('admin/_collection.html.twig', {collection: form.variants, libelle_ajout: '+ Ajouter une variante'}) }}
 
-    {# Les champs restants, dans l'ordre de ProductType #}
-    {{ form_widget(form) }}
+    {# Les champs restants, dans l'ordre de ProductType (form_rest, contrairement à form_widget, ne répète pas les erreurs générales) #}
+    {{ form_rest(form) }}
     <button type="submit">{{ button_label }}</button>
 {{ form_end(form) }}

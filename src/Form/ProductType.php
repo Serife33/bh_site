@@ -71,7 +71,8 @@ class ProductType extends AbstractType
             'allow_add' => true,
             'allow_delete' => true,
             'by_reference' => false,   // passe par addVariant()/removeVariant(), qui relient la variante au produit
-            'help' => 'Ce qui change le prix (taille, matière) va dans les variantes. Les tissus sans effet sur le prix restent dans Tissus.',
+            'error_bubbling' => false, // « mêmes critères pour toutes » s'affiche au-dessus du bloc, pas en haut du formulaire
+            'help' => 'Ce qui change le prix (taille, matière) va dans les variantes : le prix et le stock du produit deviennent alors ceux de la variante la moins chère et la somme des stocks. Les tissus sans effet sur le prix restent dans « Tissus disponibles ».',
         ])
         ->add('isCustomMade', CheckboxType::class, [
             'label' => 'Fabrication sur mesure',
