@@ -73,15 +73,20 @@
                                 {% for media in product.media %}
                                     {% if media.video %}
                                         {# Façade : la couverture et un bouton. L'iframe YouTube n'est construite qu'au clic. #}
-                                        <div class="gal-video" data-video-id="{{ media.videoId }}">
+                                        <div class="gal-video">
                                             <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
                                                  alt="{{ media.alt ?? product.name }}">
-                                            <button type="button" class="gal-play" aria-label="Lire la vidéo">▶</button>
+                                            <button type="button" class="gal-play" aria-label="Lire la vidéo"
+                                                    data-facade="https://www.youtube-nocookie.com/embed/{{ media.videoId }}?autoplay=1&rel=0"
+                                                    data-facade-title="Vidéo du produit">▶</button>
                                             <p class="gal-video-note">En lançant la lecture, la vidéo est chargée depuis YouTube, qui peut déposer des traceurs.</p>
                                         </div>
                                     {% else %}
-                                        <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
-                                             alt="{{ media.alt ?? product.name }}">
+                                        {# Un bouton : la photo s'ouvre en grand, au clic comme au clavier #}
+                                        <button type="button" class="gal-photo" aria-haspopup="dialog">
+                                            <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
+                                                 alt="{{ media.alt ?? product.name }}">
+                                        </button>
                                     {% endif %}
                                 {% endfor %}
                             </div>
@@ -100,6 +105,27 @@
                             {% endfor %}
                         </div>
                     </div>
+
+                    {# Visionneuse plein écran, photos seules. Elle reprend les classes de la galerie :
+                       flèches et défilement fonctionnent sans code en plus. #}
+                    {% set photos = product.photos %}
+                    {% if photos %}
+                        <dialog class="gallery visionneuse" aria-label="Photos en grand">
+                            <button type="button" class="panneau-close" aria-label="Fermer">✕</button>
+                            <div class="gal-viewport">
+                                {% for media in photos %}
+                                    <div class="vis-cadre">
+                                        <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
+                                             alt="{{ media.alt ?? product.name }}">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if photos|length > 1 %}
+                                <button type="button" class="gal-arrow gal-prev" aria-label="Photo précédente">‹</button>
+                                <button type="button" class="gal-arrow gal-next" aria-label="Photo suivante">›</button>
+                            {% endif %}
+                        </dialog>
+                    {% endif %}
                 {% endif %}
             </div>
 

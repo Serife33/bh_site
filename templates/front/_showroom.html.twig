@@ -18,13 +18,15 @@
                 <a href="https://wa.me/{{ whatsapp_number }}" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
             </div>
         </div>
+        {# Façade : un bouton à la place de la carte. L'iframe Google Maps n'est construite qu'au clic. #}
         <div class="showroom-map">
-            <iframe
-                src="https://www.google.com/maps?q=12+bis+rue+Suffren+33300+Bordeaux&output=embed"
-                width="100%" height="100%" style="border:0;"
-                loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-                title="Showroom Brillance Home à Bordeaux">
-            </iframe>
+            <button type="button" class="map-facade"
+                    data-facade="https://www.google.com/maps?q=12+bis+rue+Suffren+33300+Bordeaux&output=embed"
+                    data-facade-title="Showroom Brillance Home à Bordeaux">
+                <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+                <strong>Afficher la carte</strong>
+                <small>La carte est chargée depuis Google Maps, qui reçoit votre adresse IP et peut déposer des cookies.</small>
+            </button>
         </div>
     </div>
 </section>

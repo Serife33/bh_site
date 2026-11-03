@@ -39,17 +39,6 @@
         {{ importmap('app') }}
     {% endblock %}
 
-    {# Google Analytics 4 — production uniquement #}
-    {% if app.environment == 'prod' %}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-MSSLTD451N"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-MSSLTD451N');
-        </script>
-    {% endif %}
-
     {# Données structurées du magasin — sur toutes les pages #}
     <script type="application/ld+json">
     {
@@ -182,7 +171,10 @@
             <span>© Brillance Home 2026 · Spécialiste de l'ameublement intérieur · Bordeaux, France</span>
             <span class="ft-legal">
                 <a href="{{ path('front_mentions_legales') }}">Mentions légales</a>
+                <a href="{{ path('front_cgv') }}">CGV</a>
                 <a href="{{ path('front_confidentialite') }}">Politique de confidentialité</a>
+                <a href="{{ path('front_offres') }}">Offres en cours</a>
+                <button type="button" class="cookie-manage">Gérer les cookies</button>
             </span>
         </div>
     </footer>

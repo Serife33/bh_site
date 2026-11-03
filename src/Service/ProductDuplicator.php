@@ -24,14 +24,14 @@ final class ProductDuplicator
 
     /**
      * Copie en mémoire, pas encore enregistrée : tout le contenu de l'original,
-     * sauf l'adresse (régénérée depuis le nouveau nom), la position (attribuée à la fin
+     * sauf l'adresse (régénérée depuis le nom, suivie de -2, -3… si elle est prise), la position (attribuée à la fin
      * de sa catégorie par le contrôleur) et les photos (recopiées par copyPhotos).
      * Les variantes sont recopiées sans leur ancienne adresse (legacySlug) : elle reste à l'original.
      */
     public function prepareCopy(Product $original): Product
     {
         $copy = (new Product())
-            ->setName($original->getName() . ' (copie)')
+            ->setName($original->getName())
             ->setSlug('') // vide : Product::generateSlug() la recrée depuis le nom à l'enregistrement
             ->setDescription($original->getDescription())
             ->setMetaTitle($original->getMetaTitle())
