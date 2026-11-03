@@ -22,7 +22,6 @@ parameters:
         website: 'brillancehome.fr'
         email: '[À COMPLÉTER : e-mail]'
         payment_methods: '[À COMPLÉTER : moyens de paiement acceptés]'
-        mediator: '[À COMPLÉTER : nom et coordonnées du médiateur]'
         early_payment: "[À COMPLÉTER : conditions d'escompte pour paiement anticipé]"
         late_payment: '[À COMPLÉTER : pénalités de retard, à indiquer seulement pour un client professionnel]'
 
