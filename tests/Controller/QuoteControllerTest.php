@@ -83,7 +83,7 @@ final class QuoteControllerTest extends WebTestCase
             $this->line('Lit coffre PARIS', '1155.00', '75', 'amount', ['details' => 'Taille 160x200']),
             $this->line('Tapis sur mesure 200x300', '480.00', '0', 'percent', ['customMade' => '1']),
         ];
-        $values['quote'] = ['discountValue' => '90', 'discountType' => 'amount', 'deliveryFee' => '120.00', 'assemblyFee' => '60.00',
+        $values['quote'] = ['discountValue' => '90', 'discountType' => 'amount', 'delivery' => '1', 'deliveryFee' => '120.00', 'assembly' => '1', 'assemblyFee' => '60.00',
             'leadTime' => "6 à 10 semaines après réception de l'acompte"] + $values['quote'];
         $this->client->request('POST', $url, $values);
 
@@ -239,6 +239,32 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSame(["833,33\u{A0}€", "166,67\u{A0}€", "1\u{A0}000,00\u{A0}€"], $crawler->filter('.encadre-acompte td')->each(fn ($td) => $td->text()));   // HT, TVA, TTC
         self::assertSelectorTextContains('.objet', "Acompte de 1\u{A0}000,00\u{A0}€ versé à la commande");
         self::assertSelectorTextContains('.reste', "2\u{A0}081,00\u{A0}€ TTC");
+    }
+
+    public function testDeliveryAndAssemblyOnTheDocuments(): void
+    {
+        $quote = $this->quote(QuoteStatus::Accepted)->setDeliveryFee('120.00')->setAssemblyFee('60.00');   // rien de coché
+        $invoice = new Invoice($quote);
+        $this->em->persist($invoice);
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+        $visibleTotals = fn ($crawler) => $crawler->filter('.totaux tr:not([hidden]) th')->each(fn ($th) => $th->text());
+
+        $crawler = $this->client->request('GET', '/admin/devis/' . $quote->getId());
+        self::assertSelectorTextContains('.parties', 'Retrait au showroom');
+        self::assertNotContains('Livraison', $visibleTotals($crawler));
+        self::assertNotContains('Montage', $visibleTotals($crawler));
+
+        // Livraison offerte et montage payant : une ligne chacun
+        $this->em->find(Quote::class, $quote->getId())->setDelivery(true)->setDeliveryFee('0.00')->setAssembly(true);
+        $this->em->flush();
+        $crawler = $this->client->request('GET', '/admin/devis/' . $quote->getId());
+        self::assertSelectorTextContains('.parties', 'Livraison et montage à cette adresse');
+        self::assertSame(['offerte', "60,00\u{A0}€"], $crawler->filter('[data-total=delivery], [data-total=assembly]')->each(fn ($td) => $td->text()));
+        self::assertContains('Montage', $visibleTotals($crawler));
+
+        $crawler = $this->client->request('GET', '/admin/facture/' . $invoice->getId());
+        self::assertSame(['Livraison offerte', 'Montage'], $crawler->filter('.lignes tbody tr td:first-child')->reduce(fn ($td) => in_array(explode(' ', $td->text())[0], ['Livraison', 'Montage'], true))->each(fn ($td) => $td->text()));
     }
 
     public function testAcceptedQuoteIsLocked(): void

@@ -43,13 +43,13 @@
             <p>{{ customer.email }}</p>
         </div>
         <div>
-            {% if quote.pickup %}
-                <h2 class="titre">Retrait</h2>
-                <p>Au showroom, {{ company.showroom }}</p>
-            {% else %}
+            {% if quote.delivery %}
                 <h2 class="titre">Livraison</h2>
                 <p>{{ customer.address ?: 'Adresse à préciser' }}</p>
-                <p>{{ totaux.assembly > 0 ? 'Livraison et montage à cette adresse' : 'Livraison à cette adresse' }}</p>
+                <p>{{ quote.assembly ? 'Livraison et montage à cette adresse' : 'Livraison à cette adresse' }}</p>
+            {% else %}
+                <h2 class="titre">Retrait</h2>
+                <p>Retrait au showroom, {{ company.showroom }}</p>
             {% endif %}
         </div>
     </section>
@@ -109,7 +109,7 @@
             <dl>
                 <dt>Délai de livraison</dt><dd>{{ quote.leadTime }}</dd>
                 <dt>Validité</dt><dd>Jusqu'au {{ quote.validUntil|date_longue }}</dd>
-                <dt>Paiement</dt><dd>Acompte de {{ quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) }} à la signature, solde {{ quote.pickup ? 'au retrait au showroom' : 'à la livraison' }}</dd>
+                <dt>Paiement</dt><dd>Acompte de {{ quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) }} à la signature, solde {{ quote.delivery ? 'à la livraison' : 'au retrait au showroom' }}</dd>
                 <dt>Moyens de paiement</dt><dd>{{ doc.info(company.payment_methods) }}</dd>
             </dl>
         </div>
@@ -120,7 +120,7 @@
         <h2 class="titre">Informations importantes</h2>
         <ul>
             <li><strong>Articles « Fabriqué selon vos choix » :</strong> ils sont fabriqués selon les spécifications du client (dimensions, tissu, coloris). Le droit de rétractation ne s'applique pas à ces articles (article L221-28, 3° du Code de la consommation).</li>
-            <li><strong>Acompte :</strong> les sommes versées à la commande sont des acomptes et non des arrhes (article L214-1 du Code de la consommation). Le devis signé vaut commande ferme.</li>
+            <li><strong>Acompte :</strong> les sommes versées à la commande sont des acomptes et non des arrhes (article L214-1 du Code de la consommation). Le devis signé vaut commande ferme ; la fabrication est lancée à l'encaissement de l'acompte.</li>
             <li><strong>Conditions générales de vente :</strong> consultables sur {{ company.website }}/cgv. Signer ce devis vaut acceptation de ces conditions.</li>
             <li>Prix en euros, TVA {{ doc.taux(quote.vatRate) }} incluse. Le délai de livraison court à partir de la réception de l'acompte.</li>
         </ul>

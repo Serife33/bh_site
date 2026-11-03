@@ -4,12 +4,13 @@
 <table class="totaux">
     <tr><th>Total des articles</th><td data-total="items">{{ totaux.items|prix(2) }}</td></tr>
     <tr><th>Remise globale</th><td data-total="discount">{{ totaux.discount > 0 ? '-' }}{{ totaux.discount|prix(2) }}</td></tr>
-    <tr><th>Livraison</th><td data-total="delivery">{{ totaux.delivery|prix(2) }}</td></tr>
-    <tr><th>Montage</th><td data-total="assembly">{{ totaux.assembly|prix(2) }}</td></tr>
+    {# Livraison et montage : une ligne seulement s'ils sont cochés (masquée sinon, l'écran de saisie la fait réapparaître) #}
+    <tr{{ quote.delivery ? '' : ' hidden' }}><th>Livraison</th><td data-total="delivery">{{ totaux.delivery > 0 ? totaux.delivery|prix(2) : 'offerte' }}</td></tr>
+    <tr{{ quote.assembly ? '' : ' hidden' }}><th>Montage</th><td data-total="assembly">{{ totaux.assembly > 0 ? totaux.assembly|prix(2) : 'offert' }}</td></tr>
     <tr><th>Total HT</th><td data-total="ht">{{ totaux.ht|prix(2) }}</td></tr>
     <tr><th>TVA {{ doc.taux(quote.vatRate) }}</th><td data-total="tva">{{ totaux.tva|prix(2) }}</td></tr>
     <tr class="ttc"><th>Total TTC</th><td data-total="ttc">{{ totaux.ttc|prix(2) }}</td></tr>
     {# La part du total : le taux du devis, ou celle de l'acompte saisi #}
     <tr class="acompte"><th>Acompte <span data-part-acompte>{{ doc.taux(totaux.depositShare) }}</span> à la commande</th><td data-total="deposit">{{ totaux.deposit|prix(2) }}</td></tr>
-    <tr class="solde"><th>Solde {{ quote.pickup ? 'au retrait' : 'à la livraison' }}</th><td data-total="balance">{{ totaux.balance|prix(2) }}</td></tr>
+    <tr class="solde"><th>Solde <span data-moment-solde>{{ quote.delivery ? 'à la livraison' : 'au retrait' }}</span></th><td data-total="balance">{{ totaux.balance|prix(2) }}</td></tr>
 </table>

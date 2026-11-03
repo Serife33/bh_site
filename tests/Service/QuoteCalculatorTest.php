@@ -18,7 +18,7 @@ final class QuoteCalculatorTest extends TestCase
             $this->line('1155.00', 1, '75.00', DiscountType::Amount),    // Lit coffre PARIS
             $this->line('480.00'),                                       // Tapis sur mesure, ligne libre
         )->setDiscountValue('90.00')->setDiscountType(DiscountType::Amount)
-            ->setDeliveryFee('120.00')->setAssemblyFee('60.00');
+            ->setDelivery(true)->setDeliveryFee('120.00')->setAssembly(true)->setAssemblyFee('60.00');
 
         $totals = (new QuoteCalculator())->totals($quote);
 
@@ -71,7 +71,7 @@ final class QuoteCalculatorTest extends TestCase
     public function testGlobalDiscountComesAfterLineDiscountsAndSparesFees(): void
     {
         $quote = $this->quote($this->line('1000.00', 1, '10.00', DiscountType::Percent))
-            ->setDiscountValue('10.00')->setDeliveryFee('100.00')->setAssemblyFee('50.00');
+            ->setDiscountValue('10.00')->setDelivery(true)->setDeliveryFee('100.00')->setAssembly(true)->setAssemblyFee('50.00');
 
         $totals = (new QuoteCalculator())->totals($quote);
 
@@ -97,7 +97,7 @@ final class QuoteCalculatorTest extends TestCase
     public function testGlobalDiscountComesAfterAFinalPrice(): void
     {
         $quote = $this->quote($this->line('2400.00', 1, '2000.00', DiscountType::FinalPrice), $this->line('500.00'))
-            ->setDiscountValue('10.00')->setDeliveryFee('100.00');
+            ->setDiscountValue('10.00')->setDelivery(true)->setDeliveryFee('100.00');
 
         $totals = (new QuoteCalculator())->totals($quote);
 
@@ -106,11 +106,21 @@ final class QuoteCalculatorTest extends TestCase
         self::assertSame('2350.00', $totals['ttc']);     // 2 500 - 250 + 100 de livraison
     }
 
-    public function testPickupIgnoresDeliveryAndAssembly(): void
+    // Livraison et montage sont des options : leur prix ne compte que s'ils sont cochés, et 0 veut dire offert
+    public function testDeliveryAndAssemblyAreOptions(): void
     {
-        $quote = $this->quote($this->line('500.00'))->setDeliveryFee('120.00')->setAssemblyFee('60.00')->setPickup(true);
+        $calculator = new QuoteCalculator();
+        $quote = $this->quote($this->line('500.00'))->setDeliveryFee('120.00')->setAssemblyFee('60.00');
 
-        self::assertSame('500.00', (new QuoteCalculator())->totals($quote)['ttc']);
+        $nothing = $calculator->totals($quote);   // rien de coché : retrait au showroom, les prix saisis ne comptent pas
+        self::assertSame(['0.00', '0.00', '500.00'], [$nothing['delivery'], $nothing['assembly'], $nothing['ttc']]);
+
+        $deliveryOnly = $calculator->totals($quote->setDelivery(true));
+        self::assertSame(['120.00', '0.00', '620.00'], [$deliveryOnly['delivery'], $deliveryOnly['assembly'], $deliveryOnly['ttc']]);
+
+        $offered = $calculator->totals($quote->setDeliveryFee('0.00')->setAssembly(true));   // livraison offerte, montage payant
+        self::assertSame(['0.00', '60.00', '560.00'], [$offered['delivery'], $offered['assembly'], $offered['ttc']]);
+        self::assertSame('168.00', $offered['deposit']);   // le montage compte dans l'acompte
     }
 
     public function testRoundsToTheNearestCent(): void
@@ -128,7 +138,7 @@ final class QuoteCalculatorTest extends TestCase
     public function testDiscountNeverExceedsWhatItReduces(): void
     {
         $quote = $this->quote($this->line('150.00', 1, '200.00', DiscountType::Amount), $this->line('80.00'))
-            ->setDiscountValue('500.00')->setDiscountType(DiscountType::Amount)->setDeliveryFee('40.00');
+            ->setDiscountValue('500.00')->setDiscountType(DiscountType::Amount)->setDelivery(true)->setDeliveryFee('40.00');
 
         $totals = (new QuoteCalculator())->totals($quote);
 

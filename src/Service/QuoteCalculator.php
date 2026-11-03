@@ -29,9 +29,9 @@ final class QuoteCalculator
         $items = array_reduce($lines, static fn (string $sum, array $line) => bcadd($sum, $line['total'], 2), '0.00');
         $discount = $this->reduction($items, $quote->getDiscountValue(), $quote->getDiscountType());
 
-        // Retrait au showroom : les prix saisis pour la livraison et le montage ne comptent pas
-        $delivery = $quote->isPickup() ? '0.00' : ($quote->getDeliveryFee() ?? '0.00');
-        $assembly = $quote->isPickup() ? '0.00' : ($quote->getAssemblyFee() ?? '0.00');
+        // Livraison et montage comptent seulement s'ils sont cochés
+        $delivery = $quote->isDelivery() ? ($quote->getDeliveryFee() ?? '0.00') : '0.00';
+        $assembly = $quote->isAssembly() ? ($quote->getAssemblyFee() ?? '0.00') : '0.00';
 
         $ttc = bcadd(bcsub($items, $discount, 2), bcadd($delivery, $assembly, 2), 2);
         $ht = $this->excludingVat($ttc, $quote->getVatRate());

@@ -429,9 +429,13 @@ function recalculerDevis(form) {
     const champ = (nom) => form.elements[`quote[${nom}]`];
     const articles = lignes.reduce((somme, total) => somme + total, 0);
     const remise = reduction(articles, centimes(champ('discountValue').value), champ('discountType').value);
-    const retrait = champ('pickup').checked;   // retrait au showroom : ni livraison ni montage
-    const livraison = retrait ? 0 : centimes(champ('deliveryFee').value);
-    const montage = retrait ? 0 : centimes(champ('assemblyFee').value);
+    // Livraison et montage : leur prix compte, et son champ apparaît, seulement si la case est cochée
+    const options = { delivery: 'offerte', assembly: 'offert' };
+    Object.keys(options).forEach((cle) => { champ(`${cle}Fee`).parentElement.hidden = !champ(cle).checked; });
+    const prixOption = (cle) => (champ(cle).checked ? centimes(champ(`${cle}Fee`).value) : 0);
+    const livraison = prixOption('delivery');
+    form.querySelector('[data-moment-solde]').textContent = champ('delivery').checked ? 'à la livraison' : 'au retrait';
+    const montage = prixOption('assembly');
     const ttc = articles - remise + livraison + montage;
     const ht = Math.round(ttc * 100 / (100 + Number(form.dataset.tva)));
     // L'acompte : le montant saisi, sinon le taux du devis ; l'indication sous le champ donne l'autre façon de le lire
@@ -445,7 +449,13 @@ function recalculerDevis(form) {
 
     const montants = { items: articles, discount: remise, delivery: livraison, assembly: montage, ttc, ht, tva: ttc - ht, deposit: acompte, balance: ttc - acompte };
     Object.entries(montants).forEach(([cle, montant]) => {
-        form.querySelector(`[data-total="${cle}"]`).textContent = (cle === 'discount' && montant ? '-' : '') + euros(montant);
+        const cellule = form.querySelector(`[data-total="${cle}"]`);
+        if (cle in options) {
+            cellule.parentElement.hidden = !champ(cle).checked;   // la ligne du récapitulatif, seulement pour une option cochée
+            cellule.textContent = montant ? euros(montant) : options[cle];
+            return;
+        }
+        cellule.textContent = (cle === 'discount' && montant ? '-' : '') + euros(montant);
     });
 }
 

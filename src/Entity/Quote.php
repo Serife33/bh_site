@@ -54,19 +54,21 @@ class Quote
     #[Assert\Count(min: 1, max: 50, minMessage: 'Ajoutez au moins une ligne.', maxMessage: '{{ limit }} lignes au plus.')]
     private Collection $lines;
 
-    // Retrait au showroom : ni livraison ni montage
+    // Livraison et montage sont des options : sans livraison, le client retire au showroom.
+    // Le montage se coche indépendamment de la livraison.
     #[ORM\Column]
-    private bool $pickup = false;
+    private bool $delivery = false;
 
-    // Jamais remisés, comptés dans l'acompte
+    #[ORM\Column]
+    private bool $assembly = false;
+
+    // Leurs prix, comptés seulement si l'option est cochée ; 0 : offert. Jamais remisés, compris dans l'acompte.
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotNull(message: 'Indiquez le prix de la livraison, 0 sinon.')]
     #[Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')]
     #[Assert\LessThanOrEqual(value: 5000, message: 'Prix invraisemblable : {{ compared_value }} € maximum.')]
     private ?string $deliveryFee = '0.00';
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotNull(message: 'Indiquez le prix du montage, 0 sinon.')]
     #[Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')]
     #[Assert\LessThanOrEqual(value: 5000, message: 'Prix invraisemblable : {{ compared_value }} € maximum.')]
     private ?string $assemblyFee = '0.00';
@@ -210,14 +212,26 @@ class Quote
         return $this;
     }
 
-    public function isPickup(): bool
+    public function isDelivery(): bool
     {
-        return $this->pickup;
+        return $this->delivery;
     }
 
-    public function setPickup(bool $pickup): static
+    public function setDelivery(bool $delivery): static
     {
-        $this->pickup = $pickup;
+        $this->delivery = $delivery;
+
+        return $this;
+    }
+
+    public function isAssembly(): bool
+    {
+        return $this->assembly;
+    }
+
+    public function setAssembly(bool $assembly): static
+    {
+        $this->assembly = $assembly;
 
         return $this;
     }

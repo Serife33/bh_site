@@ -614,7 +614,7 @@ tr.est-masque { opacity: .55; }
 .bloc { background: #fff; border: 1px solid #E7E2DC; border-radius: 10px; padding: 1rem 1.2rem 1.2rem; margin-bottom: 1.5rem; }
 .bloc h2 { margin: 0 0 .4rem; font-size: 1.1rem; }
 .champs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0 1rem; }
-.champs input, .champs select { max-width: none; }
+.champs input, .champs select { box-sizing: border-box; max-width: none; }
 /* Une case à cocher devant son libellé (Symfony écrit le libellé avant la case) */
 #form-devis div:has(> input[type=checkbox]) { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: .4rem; }
 #form-devis div:has(> input[type=checkbox]) label { margin: 0; font-weight: 400; }

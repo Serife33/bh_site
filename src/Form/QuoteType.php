@@ -25,6 +25,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class QuoteType extends AbstractType
 {
+    private const FEE_OPTIONS = ['required' => false, 'empty_data' => '0'] + QuoteLineType::PRICE_OPTIONS;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -51,12 +53,11 @@ class QuoteType extends AbstractType
             ])
             // Le prix final n'a de sens que sur une ligne
             ->add('discountType', EnumType::class, QuoteLineType::DISCOUNT_TYPE_OPTIONS + ['choices' => [DiscountType::Percent, DiscountType::Amount]])
-            ->add('pickup', CheckboxType::class, [
-                'label' => 'Retrait au showroom (ni livraison ni montage)',
-                'required' => false,
-            ])
-            ->add('deliveryFee', MoneyType::class, QuoteLineType::PRICE_OPTIONS + ['label' => 'Livraison TTC'])
-            ->add('assemblyFee', MoneyType::class, QuoteLineType::PRICE_OPTIONS + ['label' => 'Montage TTC'])
+            // Deux options, leur prix n'apparaît que si elles sont cochées (assets/admin.js). Prix vide : offert.
+            ->add('delivery', CheckboxType::class, ['label' => 'Livraison (sinon retrait au showroom)', 'required' => false])
+            ->add('deliveryFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix de la livraison TTC', 'help' => 'Vide ou 0 : livraison offerte.'])
+            ->add('assembly', CheckboxType::class, ['label' => 'Montage', 'required' => false])
+            ->add('assemblyFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix du montage TTC', 'help' => 'Vide ou 0 : montage offert.'])
             ->add('depositAmount', MoneyType::class, [
                 'label' => 'Acompte TTC',
                 'required' => false,
