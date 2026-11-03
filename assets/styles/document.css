@@ -18,9 +18,8 @@ h1, h2, p, dl, dd, ul { margin: 0; padding: 0; }
 ul { list-style: none; }
 
 /* Écran : la feuille A4 posée sur fond sable. Impression : la feuille seule. */
-.barre-ecran { padding: 12px 16px; font-size: 13px; text-align: center; color: var(--gris); }
+.barre-ecran { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; padding: 12px 16px; font-size: 13px; text-align: center; color: var(--gris); }
 .barre-ecran a { color: var(--brun); }
-.barre-ecran { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; }
 .barre-ecran form { margin: 0; }
 .barre-ecran .flash { flex-basis: 100%; color: var(--brun); font-weight: 500; }
 .barre-ecran button { padding: 4px 12px; border: 1px solid var(--brun); background: #fff; color: var(--brun); font: inherit; cursor: pointer; }

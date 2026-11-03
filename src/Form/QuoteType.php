@@ -55,7 +55,6 @@ class QuoteType extends AbstractType
             ->add('assemblyFee', MoneyType::class, QuoteLineType::PRICE_OPTIONS + ['label' => 'Montage TTC'])
             ->add('leadTime', TextType::class, [
                 'label' => 'Délai de livraison',
-                'required' => false,
                 'attr' => ['placeholder' => "6 à 10 semaines après réception de l'acompte"],
             ])
             ->add('validUntil', DateType::class, [

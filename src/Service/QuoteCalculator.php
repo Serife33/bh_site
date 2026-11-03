@@ -11,12 +11,10 @@ use App\Enum\DiscountType;
 // Le même calcul existe en JavaScript (assets/admin.js) pour l'affichage en direct ; celui-ci fait foi.
 final class QuoteCalculator
 {
-    public const VAT_RATE = '20';       // TVA en %
-    public const DEPOSIT_RATE = '30';   // acompte en % du total TTC, livraison et montage compris
-
     /**
      * Dans l'ordre : la remise de chaque ligne, puis la remise globale sur le total des articles.
      * Livraison et montage ne sont jamais remisés. Le HT et la TVA se tirent du total TTC.
+     * Les taux de TVA et d'acompte sont ceux enregistrés sur le devis.
      *
      * L'acompte et le solde ont aussi leur HT et leur TVA, pour la facture d'acompte.
      *
@@ -35,9 +33,9 @@ final class QuoteCalculator
         $assembly = $quote->isPickup() ? '0.00' : ($quote->getAssemblyFee() ?? '0.00');
 
         $ttc = bcadd(bcsub($items, $discount, 2), bcadd($delivery, $assembly, 2), 2);
-        $ht = $this->excludingVat($ttc);
-        $deposit = $this->percentOf($ttc, self::DEPOSIT_RATE);
-        $depositHt = $this->excludingVat($deposit);
+        $ht = $this->excludingVat($ttc, $quote->getVatRate());
+        $deposit = $this->percentOf($ttc, $quote->getDepositRate());
+        $depositHt = $this->excludingVat($deposit, $quote->getVatRate());
 
         // TVA et solde par différence : HT + TVA retombe toujours sur le TTC, acompte + solde sur le total
         $tva = bcsub($ttc, $ht, 2);
@@ -61,10 +59,10 @@ final class QuoteCalculator
         ];
     }
 
-    // Le HT d'un montant TTC : TTC ÷ 1,2, arrondi au centime
-    public function excludingVat(string $ttc): string
+    // Le HT d'un montant TTC : TTC ÷ 1,2 pour une TVA à 20 %, arrondi au centime
+    public function excludingVat(string $ttc, string $vatRate): string
     {
-        return $this->round(bcdiv(bcmul($ttc, '100', 10), bcadd('100', self::VAT_RATE, 0), 10));
+        return $this->round(bcdiv(bcmul($ttc, '100', 10), bcadd('100', $vatRate, 10), 10));
     }
 
     /**

@@ -52,13 +52,18 @@ final class InvoiceController extends AbstractController
     }
 
     // Le numéro et la facture dans la même transaction : si l'enregistrement échoue, le compteur revient en arrière
-    // et la numérotation reste sans trou
+    // et la numérotation reste sans trou. La facture relue sous verrou : un double clic n'émet qu'une fois.
     #[Route('/{id}/emettre', name: 'app_invoice_issue', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function issue(Request $request, Invoice $invoice, EntityManagerInterface $em, DocumentCounterRepository $counters): Response
+    public function issue(Request $request, Invoice $invoice, EntityManagerInterface $em, InvoiceRepository $invoiceRepository, DocumentCounterRepository $counters): Response
     {
-        if ($this->isCsrfTokenValid('issue' . $invoice->getId(), $request->getPayload()->getString('_token')) && !$invoice->isIssued()) {
-            $now = new \DateTimeImmutable();
-            $em->wrapInTransaction(fn () => $invoice->issue($counters->next(Invoice::NUMBER_PREFIX, $now), $now));
+        if ($this->isCsrfTokenValid('issue' . $invoice->getId(), $request->getPayload()->getString('_token'))) {
+            $em->wrapInTransaction(function () use ($invoice, $invoiceRepository, $counters) {
+                $invoiceRepository->lock($invoice);
+                if (!$invoice->isIssued()) {
+                    $now = new \DateTimeImmutable();
+                    $invoice->issue($counters->next(Invoice::NUMBER_PREFIX, $now), $now);
+                }
+            });
 
             $this->addFlash('success', sprintf('Facture %s émise.', $invoice->getNumber()));
         }
@@ -66,13 +71,18 @@ final class InvoiceController extends AbstractController
         return $this->redirectToRoute('app_invoice_print', ['id' => $invoice->getId()], Response::HTTP_SEE_OTHER);
     }
 
-    // Seul un brouillon se supprime : une facture émise reste, une erreur se corrigera par un avoir
+    // Seul un brouillon se supprime : une facture émise reste, une erreur se corrigera par un avoir.
+    // Relue sous verrou : une émission lancée en même temps passe avant ou après, jamais à moitié.
     #[Route('/{id}', name: 'app_invoice_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function delete(Request $request, Invoice $invoice, EntityManagerInterface $em): Response
+    public function delete(Request $request, Invoice $invoice, EntityManagerInterface $em, InvoiceRepository $invoiceRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $invoice->getId(), $request->getPayload()->getString('_token')) && !$invoice->isIssued()) {
-            $em->remove($invoice);
-            $em->flush();
+        if ($this->isCsrfTokenValid('delete' . $invoice->getId(), $request->getPayload()->getString('_token'))) {
+            $em->wrapInTransaction(function () use ($em, $invoice, $invoiceRepository) {
+                $invoiceRepository->lock($invoice);
+                if (!$invoice->isIssued()) {
+                    $em->remove($invoice);
+                }
+            });
         }
 
         return $this->redirectToRoute('app_quote_print', ['id' => $invoice->getQuote()->getId()], Response::HTTP_SEE_OTHER);

@@ -105,9 +105,9 @@
         <div class="conditions">
             <h2 class="titre">Conditions</h2>
             <dl>
-                {% if quote.leadTime %}<dt>Délai de livraison</dt><dd>{{ quote.leadTime }}</dd>{% endif %}
+                <dt>Délai de livraison</dt><dd>{{ quote.leadTime }}</dd>
                 <dt>Validité</dt><dd>Jusqu'au {{ quote.validUntil|date_longue }}</dd>
-                <dt>Paiement</dt><dd>Acompte de {{ constant('App\\Service\\QuoteCalculator::DEPOSIT_RATE') }} % à la signature, solde {{ quote.pickup ? 'au retrait au showroom' : 'à la livraison' }}</dd>
+                <dt>Paiement</dt><dd>Acompte de {{ doc.taux(quote.depositRate) }} à la signature, solde {{ quote.pickup ? 'au retrait au showroom' : 'à la livraison' }}</dd>
                 <dt>Moyens de paiement</dt><dd>{{ doc.info(company.payment_methods) }}</dd>
             </dl>
         </div>
@@ -121,7 +121,7 @@
             <li><strong>Acompte :</strong> les sommes versées à la commande sont des acomptes et non des arrhes (article L214-1 du Code de la consommation). Le devis signé vaut commande ferme.</li>
             <li><strong>Conditions générales de vente :</strong> consultables sur {{ company.website }}/cgv. Signer ce devis vaut acceptation de ces conditions.</li>
             <li><strong>Médiateur de la consommation :</strong> {{ doc.info(company.mediator) }}</li>
-            <li>Prix en euros, TVA {{ constant('App\\Service\\QuoteCalculator::VAT_RATE') }} % incluse. Le délai de livraison court à partir de la réception de l'acompte.</li>
+            <li>Prix en euros, TVA {{ doc.taux(quote.vatRate) }} incluse. Le délai de livraison court à partir de la réception de l'acompte.</li>
         </ul>
     </section>
 

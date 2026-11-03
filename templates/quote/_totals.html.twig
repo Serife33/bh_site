@@ -1,13 +1,14 @@
 {# Les montants du devis, au même format sur l'écran de saisie et sur le devis imprimé.
    data-total : la case que assets/admin.js remet à jour pendant la saisie. #}
+{% import 'document/macros.html.twig' as doc %}
 <table class="totaux">
     <tr><th>Total des articles</th><td data-total="items">{{ totaux.items|prix(2) }}</td></tr>
     <tr><th>Remise globale</th><td data-total="discount">{{ totaux.discount > 0 ? '-' }}{{ totaux.discount|prix(2) }}</td></tr>
     <tr><th>Livraison</th><td data-total="delivery">{{ totaux.delivery|prix(2) }}</td></tr>
     <tr><th>Montage</th><td data-total="assembly">{{ totaux.assembly|prix(2) }}</td></tr>
     <tr><th>Total HT</th><td data-total="ht">{{ totaux.ht|prix(2) }}</td></tr>
-    <tr><th>TVA {{ constant('App\\Service\\QuoteCalculator::VAT_RATE') }} %</th><td data-total="tva">{{ totaux.tva|prix(2) }}</td></tr>
+    <tr><th>TVA {{ doc.taux(quote.vatRate) }}</th><td data-total="tva">{{ totaux.tva|prix(2) }}</td></tr>
     <tr class="ttc"><th>Total TTC</th><td data-total="ttc">{{ totaux.ttc|prix(2) }}</td></tr>
-    <tr class="acompte"><th>Acompte {{ constant('App\\Service\\QuoteCalculator::DEPOSIT_RATE') }} % à la commande</th><td data-total="deposit">{{ totaux.deposit|prix(2) }}</td></tr>
+    <tr class="acompte"><th>Acompte {{ doc.taux(quote.depositRate) }} à la commande</th><td data-total="deposit">{{ totaux.deposit|prix(2) }}</td></tr>
     <tr class="solde"><th>Solde {{ quote.pickup ? 'au retrait' : 'à la livraison' }}</th><td data-total="balance">{{ totaux.balance|prix(2) }}</td></tr>
 </table>

@@ -2,8 +2,8 @@
 {% import 'document/macros.html.twig' as doc %}
 
 {% set quote = invoice.quote %}
-{% set tva = constant('App\\Service\\QuoteCalculator::VAT_RATE') %}
-{% set taux_acompte = constant('App\\Service\\QuoteCalculator::DEPOSIT_RATE') %}
+{% set tva = doc.taux(quote.vatRate) %}
+{% set taux_acompte = doc.taux(quote.depositRate) %}
 
 {% block title %}Facture d'acompte {{ invoice.number ?? 'brouillon' }}{% endblock %}
 
@@ -57,14 +57,14 @@
     <section class="objet">
         <div>
             <h2 class="titre">Objet</h2>
-            <p>Acompte de {{ taux_acompte }}&nbsp;% versé à la commande, selon le devis {{ quote.number }} accepté et signé le {{ quote.acceptedAt|date_longue }}.</p>
+            <p>Acompte de {{ taux_acompte }} versé à la commande, selon le devis {{ quote.number }} accepté et signé le {{ quote.acceptedAt|date_longue }}.</p>
             <p class="reste">Reste à payer {{ quote.pickup ? 'au retrait' : 'à la livraison' }} : <strong>{{ totaux.balance|prix(2) }} TTC</strong> ({{ totaux.balanceHt|prix(2) }} HT, TVA {{ totaux.balanceTva|prix(2) }}), sur la facture de solde.</p>
         </div>
         <div class="encadre-acompte">
-            <h2>Acompte facturé : {{ taux_acompte }}&nbsp;% du total TTC</h2>
+            <h2>Acompte facturé : {{ taux_acompte }} du total TTC</h2>
             <table>
                 <tr><th>Montant HT</th><td>{{ totaux.depositHt|prix(2) }}</td></tr>
-                <tr><th>TVA {{ tva }}&nbsp;%</th><td>{{ totaux.depositTva|prix(2) }}</td></tr>
+                <tr><th>TVA {{ tva }}</th><td>{{ totaux.depositTva|prix(2) }}</td></tr>
                 <tr class="ttc"><th>Montant TTC</th><td>{{ totaux.deposit|prix(2) }}</td></tr>
             </table>
             {% if invoice.issued %}<p class="acquittee">Facture acquittée le {{ invoice.issuedAt|date_longue }}</p>{% endif %}
@@ -93,15 +93,15 @@
                     {% if line.details %}<p class="detail">{{ line.details|nl2br }}</p>{% endif %}
                 </td>
                 <td>{{ line.quantity }}</td>
-                <td>{{ line.unitPrice|ht|prix(2) }}</td>
+                <td>{{ line.unitPrice|ht(quote.vatRate)|prix(2) }}</td>
                 <td>
                     {% if montants.discount > 0 %}
-                        -{{ montants.discount|ht|prix(2) }}
+                        -{{ montants.discount|ht(quote.vatRate)|prix(2) }}
                         {% if line.discountType.value == 'percent' %}<p class="detail">soit {{ doc.taux(line.discountValue) }}</p>{% endif %}
                     {% endif %}
                 </td>
-                <td>{{ montants.total|ht|prix(2) }}</td>
-                <td>{{ tva }}&nbsp;%</td>
+                <td>{{ montants.total|ht(quote.vatRate)|prix(2) }}</td>
+                <td>{{ tva }}</td>
             </tr>
         {% endfor %}
         {% if totaux.discount > 0 %}
@@ -109,9 +109,9 @@
                 <td>Remise globale sur les articles</td>
                 <td></td>
                 <td></td>
-                <td>-{{ totaux.discount|ht|prix(2) }}</td>
-                <td>-{{ totaux.discount|ht|prix(2) }}</td>
-                <td>{{ tva }}&nbsp;%</td>
+                <td>-{{ totaux.discount|ht(quote.vatRate)|prix(2) }}</td>
+                <td>-{{ totaux.discount|ht(quote.vatRate)|prix(2) }}</td>
+                <td>{{ tva }}</td>
             </tr>
         {% endif %}
         {% for libelle, montant in {'Livraison': totaux.delivery, 'Montage': totaux.assembly} %}
@@ -119,28 +119,30 @@
                 <tr>
                     <td>{{ libelle }}</td>
                     <td>1</td>
-                    <td>{{ montant|ht|prix(2) }}</td>
+                    <td>{{ montant|ht(quote.vatRate)|prix(2) }}</td>
                     <td></td>
-                    <td>{{ montant|ht|prix(2) }}</td>
-                    <td>{{ tva }}&nbsp;%</td>
+                    <td>{{ montant|ht(quote.vatRate)|prix(2) }}</td>
+                    <td>{{ tva }}</td>
                 </tr>
             {% endif %}
         {% endfor %}
         </tbody>
         <tfoot>
             <tr><th colspan="4">Total de la commande HT</th><td>{{ totaux.ht|prix(2) }}</td><td></td></tr>
-            <tr><th colspan="4">TVA {{ tva }}&nbsp;%</th><td>{{ totaux.tva|prix(2) }}</td><td></td></tr>
+            <tr><th colspan="4">TVA {{ tva }}</th><td>{{ totaux.tva|prix(2) }}</td><td></td></tr>
             <tr class="ttc"><th colspan="4">Total de la commande TTC</th><td>{{ totaux.ttc|prix(2) }}</td><td></td></tr>
         </tfoot>
     </table>
+    {# Texte à faire valider par la comptable #}
+    <p class="detail">Prix saisis TTC : les montants HT des lignes sont arrondis au centime. Le total HT et la TVA
+        sont calculés sur le total TTC, la somme des lignes peut en différer d'un centime.</p>
 
     <section class="bas egal">
         <div class="conditions">
             <h2 class="titre">Paiement</h2>
             <dl>
-                <dt>Conditions</dt><dd>Acompte de {{ taux_acompte }}&nbsp;% à la signature du devis. Solde à la livraison ou au retrait au showroom.</dd>
+                <dt>Conditions</dt><dd>Acompte de {{ taux_acompte }} à la signature du devis. Solde à la livraison ou au retrait au showroom.</dd>
                 {% if invoice.issued %}<dt>Date de paiement</dt><dd>Acompte réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}
-                <dt>Mode de paiement</dt><dd>{{ doc.info("[noté à l'encaissement]") }}</dd>
                 <dt>Escompte</dt><dd>{{ doc.info(company.early_payment) }}</dd>
                 <dt>Retard de paiement</dt><dd>{{ doc.info(company.late_payment) }}</dd>
             </dl>

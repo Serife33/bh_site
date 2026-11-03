@@ -66,7 +66,7 @@ class QuoteLineType extends AbstractType
             ->add('finish', TextType::class, [
                 'label' => 'Tissu et coloris, ou finition',
                 'required' => false,
-                'attr' => ['list' => 'finitions'],   // les coloris du nuancier, proposés à la frappe (quote/_form.html.twig)
+                'attr' => ['list' => 'finitions'],   // les coloris du nuancier, proposés à la frappe (quote/edit.html.twig)
             ])
             ->add('details', TextareaType::class, [
                 'label' => "Précisions (taille, sur-mesure, sens de l'angle…)",

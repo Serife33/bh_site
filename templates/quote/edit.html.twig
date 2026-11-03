@@ -23,12 +23,12 @@
         {% endfor %}
     </datalist>
 
-    {# Les taux du calcul en direct (assets/admin.js) : ceux de QuoteCalculator, jamais recopiés à la main #}
+    {# Les taux du calcul en direct (assets/admin.js) : ceux enregistrés sur le devis, jamais recopiés à la main #}
     {{ form_start(form, {attr: {
         id: 'form-devis',
         class: 'grille',
-        'data-tva': constant('App\\Service\\QuoteCalculator::VAT_RATE'),
-        'data-acompte': constant('App\\Service\\QuoteCalculator::DEPOSIT_RATE'),
+        'data-tva': quote.vatRate,
+        'data-acompte': quote.depositRate,
     }}) }}
         <div>
             {{ form_errors(form) }}

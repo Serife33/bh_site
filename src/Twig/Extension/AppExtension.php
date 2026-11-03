@@ -28,7 +28,7 @@ class AppExtension extends AbstractExtension
         ];
     }
 
-    // Le format des prix du site public : « 1 320 € ». Aucun prix en base n'a de centimes.
+    // Le format des prix du site public : « 1 320 € ». Aucun prix du catalogue n'a de centimes.
     // Les devis comptent au centime : prix(2) donne « 1 590,00 € » (affichage seulement, les calculs restent en chaînes).
     // Espaces insécables : un prix ne se coupe jamais en fin de ligne.
     public function prix(string|int|float $montant, int $decimales = 0): string

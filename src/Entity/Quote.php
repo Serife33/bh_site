@@ -69,13 +69,24 @@ class Quote
     #[Assert\LessThanOrEqual(value: 5000, message: 'Prix invraisemblable : {{ compared_value }} € maximum.')]
     private ?string $assemblyFee = '0.00';
 
+    // Les taux en % du jour de la création, gardés avec le devis : changer ces valeurs par défaut
+    // pour les nouveaux devis ne modifie ni un devis signé ni sa facture
+    #[ORM\Column(type: Types::DECIMAL, precision: 4, scale: 2)]
+    private string $vatRate = '20.00';
+
+    // L'acompte, en % du total TTC, livraison et montage compris
+    #[ORM\Column(type: Types::DECIMAL, precision: 4, scale: 2)]
+    private string $depositRate = '30.00';
+
     // Le total TTC recalculé à chaque enregistrement, pour la liste des devis.
     // 12 chiffres : 50 lignes au prix et à la quantité maximum tiennent encore.
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2)]
     private string $total = '0.00';
 
-    // Ex. « 6 à 10 semaines après réception de l'acompte »
+    // Ex. « 6 à 10 semaines après réception de l'acompte ». Obligatoire : la loi demande un délai de livraison
+    // quand la vente n'est pas exécutée tout de suite, et les CGV le promettent sur le récapitulatif de commande.
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\NotBlank(message: 'Indiquez le délai de livraison, ou « Disponible immédiatement ».')]
     #[Assert\Length(max: 255, maxMessage: 'Le délai ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $leadTime = null;
 
@@ -225,6 +236,16 @@ class Quote
         $this->assemblyFee = $assemblyFee;
 
         return $this;
+    }
+
+    public function getVatRate(): string
+    {
+        return $this->vatRate;
+    }
+
+    public function getDepositRate(): string
+    {
+        return $this->depositRate;
     }
 
     public function getTotal(): string

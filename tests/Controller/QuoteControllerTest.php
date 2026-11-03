@@ -5,6 +5,7 @@ namespace App\Tests\Controller;
 use App\Entity\AdminUser;
 use App\Entity\Category;
 use App\Entity\Customer;
+use App\Entity\Invoice;
 use App\Entity\Product;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
@@ -14,6 +15,7 @@ use App\Enum\QuoteStatus;
 use App\Repository\InvoiceRepository;
 use App\Service\QuoteCalculator;
 use App\Twig\Extension\AppExtension;
+use Doctrine\DBAL\Exception\LockWaitTimeoutException;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -76,7 +78,8 @@ final class QuoteControllerTest extends WebTestCase
             $this->line('Lit coffre PARIS', '1155.00', '75', 'amount', ['details' => 'Taille 160x200']),
             $this->line('Tapis sur mesure 200x300', '480.00', '0', 'percent', ['customMade' => '1']),
         ];
-        $values['quote'] = ['discountValue' => '90', 'discountType' => 'amount', 'deliveryFee' => '120.00', 'assemblyFee' => '60.00'] + $values['quote'];
+        $values['quote'] = ['discountValue' => '90', 'discountType' => 'amount', 'deliveryFee' => '120.00', 'assemblyFee' => '60.00',
+            'leadTime' => "6 à 10 semaines après réception de l'acompte"] + $values['quote'];
         $this->client->request('POST', $url, $values);
 
         $quote = $this->em->getRepository(Quote::class)->findOneBy(['customer' => $this->customer]);
@@ -115,6 +118,7 @@ final class QuoteControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('#form-devis', 'Le prix ne peut pas être négatif.');
         self::assertSelectorTextContains('#form-devis', 'Une remise ne peut pas dépasser 100 %.');
+        self::assertSelectorTextContains('#form-devis', 'Indiquez le délai de livraison');
     }
 
     public function testAcceptedQuoteIsLocked(): void
@@ -198,6 +202,38 @@ final class QuoteControllerTest extends WebTestCase
         // Le devis qui a une facture ne se supprime plus
         $this->client->submit($this->client->request('GET', '/admin/devis/' . $quote->getId())->selectButton('Supprimer')->form());
         self::assertNotNull($this->em->find(Quote::class, $quote->getId()));
+    }
+
+    // Double clic sur « Émettre la facture » : la seconde requête attend que la première ait fini,
+    // puis la relit déjà émise. Sans le verrou, chacune prenait un numéro et le premier était perdu.
+    public function testSecondIssueWaitsForTheFirstOne(): void
+    {
+        $invoice = new Invoice($this->quote(QuoteStatus::Accepted));
+        $this->em->persist($invoice);
+        $this->em->flush();
+        $invoices = self::getContainer()->get(InvoiceRepository::class);
+
+        // Première requête : la facture relue sous verrou et numérotée, transaction pas encore terminée
+        $this->em->wrapInTransaction(function () use ($invoices, $invoice) {
+            $invoices->lock($invoice);
+            $invoice->issue('BHF-2000-01-001', new \DateTimeImmutable());
+        });
+
+        // Seconde requête : une autre application, donc une autre connexion à la base
+        $other = self::createKernel();
+        $other->boot();
+        $connection = $other->getContainer()->get('doctrine')->getConnection();
+        $connection->executeStatement('SET SESSION innodb_lock_wait_timeout = 1');   // elle attend 1 seconde au lieu de 50
+        $connection->beginTransaction();
+
+        try {
+            $this->expectException(LockWaitTimeoutException::class);
+            $other->getContainer()->get('test.service_container')->get(InvoiceRepository::class)
+                ->lock($other->getContainer()->get('doctrine')->getManager()->getReference(Invoice::class, $invoice->getId()));
+        } finally {
+            $connection->rollBack();
+            $other->shutdown();
+        }
     }
 
     private function line(string $label, string $unitPrice, string $discount, string $type, array $more = []): array

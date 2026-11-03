@@ -19,9 +19,9 @@ class AppExtensionRuntime implements RuntimeExtensionInterface
         return $this->categoryRepository->findForMenu();
     }
 
-    // Le HT d'un montant TTC, pour les lignes de la facture : le calcul reste celui de QuoteCalculator
-    public function ht(string $ttc): string
+    // Le HT d'un montant TTC au taux du devis, pour les lignes de la facture : le calcul reste celui de QuoteCalculator
+    public function ht(string $ttc, string $vatRate): string
     {
-        return $this->quoteCalculator->excludingVat($ttc);
+        return $this->quoteCalculator->excludingVat($ttc, $vatRate);
     }
 }
