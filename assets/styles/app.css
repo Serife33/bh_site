@@ -488,7 +488,8 @@ b, strong, th { font-weight: 500; }
 }
 .nav.open { display: flex; }   /* affiché quand la classe "open" est là */
 .nav a { padding: 10px 0; font-size: 1.5rem; font-weight: 300; letter-spacing: -.02em; }
-.nav a:hover { text-decoration: underline; text-decoration-color: var(--accent2); text-underline-offset: 8px; }
+/* Souligné fin taupe clair : survol du menu, survol et page courante de la pagination */
+.nav a:hover, .pagination a:hover, .pagination [aria-current] { color: var(--txt); text-decoration: underline 1px var(--accent2); text-underline-offset: 8px; }
 
 /* ===== GRAND ÉCRAN : catégories en ligne, centrées entre le logo et les pictos ; burger caché =====
    1100 px : la largeur où tout tient sur une ligne (même seuil dans app.js) */
@@ -531,34 +532,15 @@ b, strong, th { font-weight: 500; }
 }
 
 /* ===== Pagination ===== */
-.pagination {
-    margin-top: 48px;
-    text-align: center;
-}
-.pagination a,
-.pagination span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 40px;
-    padding: 0 10px;
-    margin: 0 3px;
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    color: var(--txt);
-    text-decoration: none;
-    font-size: 14px;
-    transition: all .15s;
-}
-.pagination a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-.pagination .current {
-    background: var(--txt);
-    color: #fff;
-    border-color: var(--txt);
+/* front/_pagination.html.twig : chiffres sans cadre, cibles de 44 px ; souligné du survol et de la page courante avec le menu */
+.pagination { margin-top: 48px; font-size: .875rem; font-variant-numeric: tabular-nums; }
+.pagination ul { display: flex; flex-wrap: wrap; justify-content: center; }
+.pagination li > * { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 8px; color: var(--txt2); }
+.pagination svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+/* Petit écran : chevrons seuls (le texte reste lu par les lecteurs d'écran) et pages voisines de la courante */
+@media (max-width: 599px) {
+    .pagination-loin { display: none; }
+    .pagination-pas span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
 

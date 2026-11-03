@@ -23,7 +23,7 @@
                         {{ include('front/_product_card.html.twig', { product: product }) }}
                     {% endfor %}
                 </div>
-                <div class="pagination">{{ knp_pagination_render(pagination) }}</div>
+                {{ knp_pagination_render(pagination, 'front/_pagination.html.twig') }}
             {% else %}
                 <p class="empty">Aucun produit ne correspond à « {{ q }} ».</p>
             {% endif %}
