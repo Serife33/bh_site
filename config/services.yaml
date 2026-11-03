@@ -20,7 +20,7 @@ parameters:
         showroom: '12 bis rue Suffren, 33300 Bordeaux'
         phones: '07 81 07 10 71 · 06 95 32 41 51'
         website: 'brillancehome.fr'
-        email: '[À COMPLÉTER : e-mail]'
+        email: 'brillancehome@gmail.com'
         payment_methods: "Carte bancaire, virement, espèces dans la limite de 1 000 € par achat. Chèque accepté pour l'acompte uniquement."
         early_payment: "[À COMPLÉTER : conditions d'escompte pour paiement anticipé]"
         late_payment: '[À COMPLÉTER : pénalités de retard, à indiquer seulement pour un client professionnel]'
