@@ -349,6 +349,6 @@ document.addEventListener('click', (e) => {
 });
 
 
-
-// Au chargement : les libellés et le lien WhatsApp reflètent la pré-sélection
-refleterSelection();
+// À chaque page affichée, au premier chargement comme après un lien suivi par Turbo :
+// les libellés et le lien WhatsApp reflètent la pré-sélection
+document.addEventListener('turbo:load', refleterSelection);
