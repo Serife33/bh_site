@@ -20,7 +20,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Vich\UploaderBundle\FileAbstraction\ReplacingFile;
 
@@ -32,7 +31,7 @@ use Vich\UploaderBundle\FileAbstraction\ReplacingFile;
  * modeles.csv (nom, notes, photos), gammes.csv (finitions et vignettes), photos/ et finitions/.
  *
  * Relançable : un produit dont l'adresse existe déjà, une matière déjà en base ne sont pas recréés.
- * Tout ou rien : la moindre erreur arrête l'import avant toute écriture.
+ * Tout ou rien : tout est contrôlé avant la première copie de photo, puis la base est écrite en une seule transaction.
  */
 #[AsCommand(name: 'app:import-catalogue', description: 'Importe un catalogue fournisseur depuis son tableur de vente')]
 final class ImportCatalogueCommand
@@ -54,7 +53,7 @@ final class ImportCatalogueCommand
     public function __invoke(
         SymfonyStyle $io,
         #[Argument('Le tableur de vente, rangé dans le dossier de l\'extraction')] string $tableur,
-        #[Argument('Le fournisseur, enregistré sur les matières créées (ex. Masami)')] string $fournisseur,
+        #[Argument('Le fournisseur écrit comme dans l\'admin (ex. Masami) : il retrouve ses matières et signe les nouvelles')] string $fournisseur,
         #[Option('Affiche ce qui serait créé, sans rien écrire')] bool $dryRun = false,
     ): int {
         $dir = dirname($tableur);
@@ -70,41 +69,34 @@ final class ImportCatalogueCommand
             $finishes[$finish['gamme']][] = $finish;
         }
 
-        $sheet = $this->csv->read($tableur, self::COLUMNS);
         $rowsByModel = [];
-        foreach ($sheet as $row) {
+        foreach ($this->csv->read($tableur, self::COLUMNS) as $row) {
             $rowsByModel[$row['id_page'] . ';' . $row['nom_fournisseur']][] = $row;
         }
 
         $count = ['Produits' => 0, 'Variantes' => 0, 'Matières' => 0, 'Coloris' => 0, 'Photos' => 0, 'Produits déjà en base, ignorés' => 0];
         $new = [];   // tout ce qui sera enregistré, d'un coup, à la fin
 
-        // 1. Les matières, désignées par leur libellé dans l'admin : « Céramique (Premium) ».
+        // Les matières, désignées par leur libellé dans l'admin : « Céramique (Premium) ».
         // Une matière déjà en base garde ses coloris tels quels : ils ont pu être renommés dans l'admin.
         $fabrics = [];
         foreach ($this->fabricRepository->findBy(['supplier' => $fournisseur]) as $fabric) {
             $fabrics[(string) $fabric] = $fabric;
         }
 
-        foreach ($sheet as $row) {
-            if ($row['matiere'] === '' || isset($fabrics[$row['matiere']])) {
-                continue;
-            }
-
-            $fabric = $fabrics[$row['matiere']] = $this->newFabric($row['matiere'], $fournisseur, $finishes[$row['gamme']] ?? [], $dir);
-            $new = [...$new, $fabric, ...$fabric->getFabricColors()];
-            ++$count['Matières'];
-            $count['Coloris'] += $fabric->getFabricColors()->count();
-
-            $io->text(sprintf('+ matière %s, %d coloris', $row['matiere'], $fabric->getFabricColors()->count()));
-        }
-
-        // 2. Les produits, un par modèle
+        // Les produits, un par modèle
         $positions = [];
+        $slugs = [];
         foreach ($rowsByModel as $key => $rows) {
             $model = $models[$key] ?? throw new \RuntimeException("Modèle absent de modeles.csv : $key.");
             $name = $model['nom_propose_fr'];
-            $slug = (string) (new AsciiSlugger())->slug($name)->lower();   // la règle de Product::generateSlug()
+            $slug = Product::slugFrom($name);
+
+            // Refusé dès l'à-blanc : en base, l'adresse unique ferait échouer l'import après la copie des photos
+            if (isset($slugs[$slug])) {
+                throw new \RuntimeException("Deux modèles donnent l'adresse « $slug » : renommez-en un dans modeles.csv.");
+            }
+            $slugs[$slug] = true;
 
             if ($this->productRepository->findOneBy(['slug' => $slug]) !== null) {
                 ++$count['Produits déjà en base, ignorés'];
@@ -136,11 +128,22 @@ final class ImportCatalogueCommand
                     ?? throw new \RuntimeException("Sous-catégorie inconnue : $subCategoryName."));
             }
 
-            // Le stock reste à 0 : sur commande
+            // Une variante par ligne, stock à 0 : sur commande. Une matière absente de la base est créée à sa première variante.
+            $variantKeys = [];
             foreach ($rows as $index => $row) {
+                $variantKey = "{$row['taille']}, {$row['matiere']}";
+                if (isset($variantKeys[$variantKey])) {
+                    throw new \RuntimeException("$name : deux lignes pour la même variante ($variantKey).");
+                }
+                $variantKeys[$variantKey] = true;
+
+                $fabric = $row['matiere'] === ''
+                    ? null
+                    : ($fabrics[$row['matiere']] ??= $this->newFabric($row['matiere'], $fournisseur, $finishes[$row['gamme']] ?? [], $dir));
+
                 $product->addVariant((new ProductVariant())
                     ->setSize($row['taille'] ?: null)
-                    ->setFabric($fabrics[$row['matiere']] ?? null)
+                    ->setFabric($fabric)
                     ->setActualPrice($this->price($row, 'prix_ttc'))
                     ->setInitialPrice($this->price($row, $row['prix_barre_ttc'] !== '' ? 'prix_barre_ttc' : 'prix_ttc'))
                     ->setPosition($index + 1));
@@ -150,7 +153,7 @@ final class ImportCatalogueCommand
             // La principale d'abord : la première de la galerie sert de vignette au catalogue.
             foreach (array_values(array_filter([$model['fichier_photo'], ...explode(' ', $model['autres_photos'])])) as $index => $file) {
                 $media = (new Media())->setPosition($index + 1);
-                $media->setImageFile(new ReplacingFile("$dir/photos/$file"));
+                $media->setImageFile($this->image("$dir/photos", $file));
                 $product->addMedium($media);
             }
 
@@ -180,15 +183,25 @@ final class ImportCatalogueCommand
             ));
         }
 
+        // Les matières neuves : celles qui n'ont pas encore d'identifiant
+        foreach ($fabrics as $label => $fabric) {
+            if ($fabric->getId() === null) {
+                $new = [...$new, $fabric, ...$fabric->getFabricColors()];
+                ++$count['Matières'];
+                $count['Coloris'] += $fabric->getFabricColors()->count();
+                $io->text(sprintf('+ matière %s, %d coloris', $label, $fabric->getFabricColors()->count()));
+            }
+        }
+
         if (!$dryRun) {
             foreach ($new as $entity) {
-                $this->em->persist($entity);   // les variantes suivent leur produit
+                $this->em->persist($entity);   // Vich copie la photo ici ; les variantes suivent leur produit
             }
             $this->em->flush();
         }
 
         $io->newLine();
-        $io->definitionList(...array_map(static fn (string $label, int $total) => [$label => $total], array_keys($count), $count));
+        $io->definitionList(...array_chunk($count, 1, true));
         $dryRun ? $io->note('À blanc : rien n\'a été écrit.') : $io->success('Import terminé.');
 
         return Command::SUCCESS;
@@ -201,7 +214,7 @@ final class ImportCatalogueCommand
         $fabric = (new Fabric())->setName($name)->setSupplier($supplier);
 
         foreach ($finishes as $index => $finish) {
-            $image = new ReplacingFile("$dir/{$finish['fichier_vignette']}");
+            $image = $this->image($dir, $finish['fichier_vignette']);
             $color = (new FabricColor())
                 ->setName($finish['finition'])
                 ->setHex($this->averageHex($image->getPathname()))
@@ -211,6 +224,23 @@ final class ImportCatalogueCommand
         }
 
         return $fabric;
+    }
+
+    // Une image nommée dans un CSV, prise uniquement dans son dossier : un nom piégé (« ../../.env.local »)
+    // serait sinon copié dans public/uploads, à la vue de tous. Seules les photos JPEG, PNG et WebP passent.
+    private function image(string $folder, string $file): ReplacingFile
+    {
+        $path = realpath("$folder/$file");   // le chemin réel, liens symboliques suivis ; false si le fichier est absent
+
+        if (str_contains($file, '..') || str_starts_with($file, '/') || $path === false || !str_starts_with($path, realpath($folder) . '/')) {
+            throw new \RuntimeException("Image refusée, absente ou hors de son dossier : $file.");
+        }
+
+        $image = new ReplacingFile($path);
+
+        return in_array($image->getMimeType(), ['image/jpeg', 'image/png', 'image/webp'], true)
+            ? $image
+            : throw new \RuntimeException("Image refusée, ce n'est pas une photo JPEG, PNG ou WebP : $file.");
     }
 
     // La couleur moyenne d'une image : réduite à un seul pixel, elle donne la moyenne de tous les autres.

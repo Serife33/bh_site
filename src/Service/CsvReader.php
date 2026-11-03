@@ -23,6 +23,11 @@ final class CsvReader
         $rows = [];
 
         foreach ($file as $index => $fields) {
+            // Excel en « CSV (séparateur point-virgule) » écrit les accents dans un autre encodage
+            if (!mb_check_encoding(implode($fields), 'UTF-8')) {
+                throw new \RuntimeException(sprintf('%s, ligne %d : caractères illisibles, enregistrez le fichier en « CSV UTF-8 ».', basename($path), $index + 1));
+            }
+
             if ($header === null) {
                 // Excel ajoute une marque invisible (BOM) devant le premier nom de colonne en « CSV UTF-8 »
                 $header = [preg_replace('/^\xEF\xBB\xBF/', '', $fields[0]), ...array_slice($fields, 1)];
@@ -41,6 +46,7 @@ final class CsvReader
             $rows[] = array_combine($header, $fields);
         }
 
-        return $rows;
+        // Sans en-tête, les colonnes n'ont jamais été contrôlées
+        return $header !== null ? $rows : throw new \RuntimeException(basename($path) . ' : fichier vide.');
     }
 }

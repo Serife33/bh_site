@@ -32,6 +32,20 @@ final class CsvReaderTest extends TestCase
         (new CsvReader())->read($this->file("taille;prix_ttc\n90 X 190;1050\n100Q;470;oubli\n"), ['taille', 'prix_ttc']);
     }
 
+    public function testEmptyFileIsRefused(): void
+    {
+        $this->expectExceptionMessage('fichier vide');
+
+        (new CsvReader())->read($this->file(''), ['taille']);
+    }
+
+    public function testFileNotInUtf8IsRefused(): void
+    {
+        $this->expectExceptionMessage('ligne 2 : caractères illisibles');
+
+        (new CsvReader())->read($this->file("matiere\nLaqu\xE9\n"), ['matiere']);   // « Laqué » en Windows-1252
+    }
+
     // Le contenu passé en adresse data: : aucun fichier temporaire à nettoyer
     private function file(string $content): string
     {

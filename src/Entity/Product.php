@@ -187,9 +187,15 @@ class Product
     public function generateSlug(LifecycleEventArgs $args): void
     {
         if ($this->slug === null || trim($this->slug) === '') {
-            $base = (new AsciiSlugger())->slug($this->name ?? '')->lower();
+            $base = self::slugFrom($this->name ?? '');
             $this->slug = $args->getObjectManager()->getRepository(self::class)->uniqueSlug($base, $this->id);
         }
+    }
+
+    // L'adresse tirée d'un nom : partagée avec l'import de catalogue, qui reconnaît par elle un produit déjà importé
+    public static function slugFrom(string $name): string
+    {
+        return (string) (new AsciiSlugger())->slug($name)->lower();
     }
 
     // Prix et stock deviennent le résumé des variantes : prix de la moins chère (et son prix barré), somme des stocks.
