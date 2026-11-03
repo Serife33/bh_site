@@ -24,8 +24,10 @@
   --accent: #6B4C3B;   /* brun profond : boutons et accents (7,4:1 sur le fond) */
   --accent2:#C4A882;   /* taupe clair : soulignés et séparateurs, jamais pour du texte */
   --border: #E8E0D8;   /* filets discrets */
-  --wa:     #25D366;   /* vert WhatsApp : bouton flottant et pictogrammes */
+  --wa:     #25D366;   /* vert WhatsApp vif : bouton flottant et pictogrammes */
+  --wa-fonce:#157A3F;  /* vert WhatsApp foncé des boutons (blanc dessus : 5,4:1) */
   --promo:  #8C2F39;   /* bordeaux des promotions (7,8:1 sur le fond) */
+  --promo-clair:#F2A0A8; /* promotion sur fond encre, dans le bandeau (8,6:1) */
   --r:      0;         /* aucun arrondi */
   --marge:  clamp(16px, 4.5vw, 64px);       /* marges latérales */
   --gouttiere: clamp(12px, 1.8vw, 24px);    /* écart entre les cartes */
@@ -49,8 +51,8 @@ b, strong, th { font-weight: 500; }
 ::placeholder { color: var(--txt2); }
 /* Anneau encre, séparé de l'élément par un liseré clair */
 :focus-visible { outline: 2px solid var(--txt); outline-offset: 2px; box-shadow: 0 0 0 2px var(--bg); }
-/* Sur fond encre (bandeau cookies, visionneuse, bloc sombre), l'anneau passe en clair */
-.cookie-banner :focus-visible, .visionneuse :focus-visible, .dark :focus-visible { outline-color: var(--bg); box-shadow: 0 0 0 2px var(--txt); }
+/* Sur fond encre (bandeau défilant, bandeau cookies, visionneuse, bloc sombre), l'anneau passe en clair */
+.band :focus-visible, .cookie-banner :focus-visible, .visionneuse :focus-visible, .dark :focus-visible { outline-color: var(--bg); box-shadow: 0 0 0 2px var(--txt); }
 
 /* Conteneur centré, marges qui s'élargissent avec l'écran */
 .wrap {
@@ -88,6 +90,9 @@ b, strong, th { font-weight: 500; }
   white-space: nowrap;
 }
 .hdr-actions { display: flex; align-items: center; margin-left: auto; }
+/* Bloc et non flex : le picto reste en ligne, donc hors du soulignement. Affiché avec le menu en ligne. */
+.hdr-wa { display: none; margin-left: 12px; padding: 12px 0; font-size: .8125rem; }
+.hdr-wa i { margin-right: 8px; color: var(--wa); font-size: 18px; vertical-align: -3px; }
 /* Pictos de 44 px : la cible tactile minimale */
 .hdr-search, .burger, .fleche { display: grid; place-items: center; width: 44px; height: 44px; }
 .hdr-search svg, .fleche svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.4; }
@@ -166,7 +171,11 @@ b, strong, th { font-weight: 500; }
 }
 .btn:not(:disabled):hover { background: var(--txt); border-color: var(--txt); color: var(--bg); }
 .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-.btn-wa i { color: var(--wa); }   /* WhatsApp : le vert sur le pictogramme seulement */
+.btn-wa { background: var(--wa-fonce); border-color: var(--wa-fonce); color: #fff; }   /* WhatsApp : vert foncé, texte et picto blancs */
+
+/* ===== LIENS : souligné fin taupe clair, plein au survol (WhatsApp de l'en-tête, messages du bandeau) ===== */
+.hdr-wa, .band-track a { text-decoration: underline 1px var(--accent2); text-underline-offset: 6px; }
+.hdr-wa:hover, .band-track a:hover { text-decoration-color: currentColor; }
 
 /* ===== CHAMPS ===== */
 .search-form { display: flex; gap: 8px; margin: 24px 0 32px; }
@@ -234,6 +243,10 @@ b, strong, th { font-weight: 500; }
 .univers a { display: block; }
 .univers .cadre + span { display: block; margin-top: 14px; }
 .univers a:hover .cadre + span { text-decoration: underline; text-decoration-color: var(--accent2); text-underline-offset: 6px; }
+.cadre { display: block; background: var(--bg2); }
+.cadre-haut { aspect-ratio: 4 / 5; }
+/* Photo entière, jamais rognée ; le blanc des photos détourées prend la teinte sable du fond */
+.cadre img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; }
 @media (min-width: 600px) { .univers { grid-auto-columns: 40%; } }
 @media (min-width: 900px) {
   .univers { grid-auto-columns: calc((100% - 4 * var(--gouttiere)) / 4.4); }
@@ -252,16 +265,15 @@ b, strong, th { font-weight: 500; }
 @media (min-width: 640px)  { .grid-produits { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .grid-produits { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* ===== CARTE PRODUIT : sans bordure, la photo sur fond sable (cadre partagé avec « Nos univers ») ===== */
+/* ===== CARTE PRODUIT : sans bordure, la photo remplit son cadre ===== */
 .pcard { display: block; }
-.pcard-photo, .cadre { display: block; position: relative; aspect-ratio: 1; background: var(--bg2); }
-.cadre-haut { aspect-ratio: 4 / 5; }
-/* Photo entière, jamais rognée ; le blanc des photos détourées prend la teinte sable du fond */
-.pcard-photo img, .cadre img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; transition: opacity .35s ease; }
+/* 4:3 : le format qui rogne le moins les photos du catalogue (14 % en moyenne, contre 27 % en carré) */
+.pcard-photo { position: relative; aspect-ratio: 4 / 3; background: #fff; }
+.pcard-photo img { width: 100%; height: 100%; object-fit: cover; transition: opacity .35s ease; }
 /* Seconde photo, révélée au survol de la carte */
 .pcard-survol { position: absolute; inset: 0; opacity: 0; }
 .pcard:hover .pcard-survol { opacity: 1; }
-/* La première s'efface : entière et en multiply, la seconde la laisserait voir (souris seulement) */
+/* La première s'efface : une seconde photo détourée sur fond transparent la laisserait voir (souris seulement) */
 @media (hover: hover) { .pcard:hover img:has(+ .pcard-survol) { opacity: 0; } }
 /* Écrans tactiles : pas de survol, donc pas d'image à charger */
 @media (hover: none) { .pcard-survol { display: none; } }
@@ -416,7 +428,8 @@ b, strong, th { font-weight: 500; }
 /* ===== BANDEAU DÉFILANT ===== */
 .band {
   overflow: clip;            /* jamais défilé par le navigateur, même quand un lien reçoit le focus */
-  background: var(--bg2);
+  background: var(--txt);    /* encre : le bandeau se détache du fond clair de la page */
+  color: var(--bg);
   font-size: .75rem;
 }
 /* La liste y est deux fois. Chaque copie couvre au moins l'écran (200vw pour les deux) et les messages
@@ -445,12 +458,9 @@ b, strong, th { font-weight: 500; }
   content: "";
   width: 7px;
   height: 8px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 11'%3E%3Cpath d='M5 .5l4.5 2.6v5.2L5 10.9.5 8.3V3.1z' fill='none' stroke='%238B6F4E'/%3E%3C/svg%3E") center / contain no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 11'%3E%3Cpath d='M5 .5l4.5 2.6v5.2L5 10.9.5 8.3V3.1z' fill='none' stroke='%23C4A882'/%3E%3C/svg%3E") center / contain no-repeat;
 }
-.band-promo { color: var(--promo); font-weight: 500; }
-/* Message en lien : couleur du bandeau, souligné fin taupe clair, plein au survol (focus : l'anneau commun) */
-.band-track a { text-decoration: underline 1px var(--accent2); text-underline-offset: 4px; }
-.band-track a:hover { text-decoration-color: currentColor; }
+.band-promo { color: var(--promo-clair); font-weight: 500; }
 @keyframes band-scroll {
   to { transform: translateX(-50%); }
 }
@@ -480,35 +490,15 @@ b, strong, th { font-weight: 500; }
 .nav a { padding: 10px 0; font-size: 1.5rem; font-weight: 300; letter-spacing: -.02em; }
 .nav a:hover { text-decoration: underline; text-decoration-color: var(--accent2); text-underline-offset: 8px; }
 
-/* mobile : le burger affiche tout à plat, pas de déroulant */
-.nav-univers-menu { display: flex; flex-direction: column; padding-left: 16px; }
-.nav-univers-menu a { font-size: 1.125rem; font-weight: 400; letter-spacing: 0; }
-.nav-univers-btn i { display: none; }
-
-/* ===== DESKTOP : nav horizontal à côté du logo, burger caché ===== */
-@media (min-width: 768px) {
-  .hdr-in { height: 76px; gap: 48px; }
+/* ===== GRAND ÉCRAN : catégories en ligne, centrées entre le logo et les pictos ; burger caché =====
+   1100 px : la largeur où tout tient sur une ligne (même seuil dans app.js) */
+@media (min-width: 1100px) {
+  .hdr-in { display: grid; grid-template-columns: 1fr auto 1fr; gap: 32px; height: 76px; }   /* deux colonnes égales : le menu est au centre */
+  .logo { justify-self: start; }
   .burger { display: none; }
-  .nav { display: flex; align-items: center; position: static; flex-direction: row; height: auto; overflow: visible; background: none; padding: 0; gap: 28px; }
+  .nav { display: flex; position: static; flex-direction: row; height: auto; overflow: visible; background: none; padding: 0; gap: 28px; }
   .nav a { padding: 12px 0; font-size: .8125rem; font-weight: 400; letter-spacing: 0; }   /* 44 px de haut */
-
-  /* le menu déroulant « Nos univers » */
-  .nav-univers { position: relative; }
-  .nav-univers-btn i { display: inline; font-size: 10px; margin-left: 5px; }
-
-  .nav-univers-menu {
-    display: none;
-    position: absolute;
-    top: 100%; left: -20px;
-    min-width: 200px;
-    padding: 8px 20px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    flex-direction: column;
-  }
-
-  .nav-univers:hover .nav-univers-menu,
-  .nav-univers:focus-within .nav-univers-menu { display: flex; }
+  .hdr-wa { display: block; }
 }
 
 

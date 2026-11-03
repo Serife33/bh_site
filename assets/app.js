@@ -55,7 +55,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Passage en largeur bureau (tablette tournée) : le menu redevient la barre, la page ne doit pas rester inerte
-matchMedia('(min-width: 768px)').addEventListener('change', () => basculerMenu(false));
+matchMedia('(min-width: 1100px)').addEventListener('change', () => basculerMenu(false));   // même seuil que le CSS du menu
 
 
 // ===== Bande « Nos univers » : une flèche avance d'une carte, l'accroche (scroll-snap) cale la position =====

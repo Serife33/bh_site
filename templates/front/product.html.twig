@@ -326,7 +326,7 @@
                         </p>
                     {% endif %}
 
-                    <a class="btn btn-primary btn-wa btn-devis" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}"
+                    <a class="btn btn-wa btn-devis" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}"
                        href="https://wa.me/{{ whatsapp_number }}?text={{ ('Bonjour, je suis intéressée par le ' ~ product.name ~ '. Je souhaite le commander.')|url_encode }}"
                        target="_blank" rel="noopener">
                        <i class="fa-brands fa-whatsapp"></i> Commander sur WhatsApp
@@ -363,7 +363,7 @@
             <div class="custom-quote">
                 <p><strong>Une taille non listée ?</strong> Indiquez vos dimensions, on vous envoie un devis sous 24h.</p>
                 <input type="text" class="quote-dims" placeholder="Ex. L 250 × P 100 × H 85 cm">
-                <button type="button" class="btn btn-primary btn-wa btn-quote" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}">
+                <button type="button" class="btn btn-wa btn-quote" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}">
                     <i class="fa-brands fa-whatsapp"></i> Demander un devis
                 </button>
             </div>
@@ -422,7 +422,7 @@
                     <p class="compo-somme">Total : <strong class="compo-total">{{ 0|prix }}</strong></p>
                 </div>
                 <p class="compo-mention">Un conseiller valide avec vous la faisabilité de votre composition.</p>
-                <button type="button" class="btn btn-primary btn-wa compo-commander" data-wa="{{ whatsapp_number }}" disabled>
+                <button type="button" class="btn btn-wa compo-commander" data-wa="{{ whatsapp_number }}" disabled>
                     <i class="fa-brands fa-whatsapp"></i> Commander cette composition sur WhatsApp
                 </button>
             </div>
