@@ -12,6 +12,7 @@ use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
+use App\Enum\DiscountType;
 use App\Enum\ProductModular;
 use App\Enum\ProductSide;
 use App\Enum\QuoteStatus;
@@ -165,13 +166,35 @@ final class QuoteControllerTest extends WebTestCase
 
         $values = $this->client->request('GET', '/admin/devis/new')->filter('#form-devis')->form()->getPhpValues();
         $values['quote']['customer'] = $this->customer->getId();
-        $values['quote']['lines'] = [$this->line('Ligne test', '-5.00', '150', 'percent')];
+        $values['quote']['lines'] = [
+            $this->line('Ligne test', '-5.00', '150', 'percent'),
+            $this->line('Canapé', '2400.00', '2400.01', 'final'),   // prix final au-dessus du prix
+        ];
         $this->client->request('POST', '/admin/devis/new', $values);
 
         self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#form-devis', 'Le prix final ne peut pas dépasser le prix unitaire.');
+        self::assertSelectorNotExists('select[name="quote[discountType]"] option[value=final]');   // pas de prix final pour la remise globale
         self::assertSelectorTextContains('#form-devis', 'Le prix ne peut pas être négatif.');
         self::assertSelectorTextContains('#form-devis', 'Une remise ne peut pas dépasser 100 %.');
         self::assertSelectorTextContains('#form-devis', 'Indiquez le délai de livraison');
+    }
+
+    // Canapé à 2 400 € cédé 2 000 € : le client voit le prix d'origine, la remise en € et en %, et le total
+    public function testFinalPriceOnTheDocuments(): void
+    {
+        $quote = $this->quote(QuoteStatus::Accepted)->addLine((new QuoteLine())->setLabel('Canapé')->setUnitPrice('2400.00')
+            ->setDiscountType(DiscountType::FinalPrice)->setDiscountValue('2000.00'));
+        $invoice = new Invoice($quote);
+        $this->em->persist($invoice);
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+
+        $this->client->request('GET', '/admin/devis/' . $quote->getId());
+        self::assertSelectorTextContains('.lignes tbody tr:last-child', "2\u{A0}400,00\u{A0}€ -400,00\u{A0}€ soit -16,67\u{A0}% 2\u{A0}000,00\u{A0}€");
+
+        $this->client->request('GET', '/admin/facture/' . $invoice->getId());
+        self::assertSelectorTextContains('.lignes tbody tr:nth-child(2)', "2\u{A0}000,00\u{A0}€ -333,33\u{A0}€ soit 16,67\u{A0}% 1\u{A0}666,67\u{A0}€");
     }
 
     public function testAcceptedQuoteIsLocked(): void

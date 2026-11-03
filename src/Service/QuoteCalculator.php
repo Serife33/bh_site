@@ -18,7 +18,7 @@ final class QuoteCalculator
      *
      * L'acompte et le solde ont aussi leur HT et leur TVA, pour la facture d'acompte.
      *
-     * @return array{lines: array<int, array{discount: string, total: string}>, items: string, discount: string,
+     * @return array{lines: array<int, array{discount: string, rate: string, total: string}>, items: string, discount: string,
      *     delivery: string, assembly: string, ttc: string, ht: string, tva: string, deposit: string, depositHt: string,
      *     depositTva: string, balance: string, balanceHt: string, balanceTva: string}
      */
@@ -66,20 +66,32 @@ final class QuoteCalculator
     }
 
     /**
-     * @return array{discount: string, total: string}
+     * La remise en euros et en % du montant de la ligne (« soit -16,67 % » d'un prix final), et le total.
+     *
+     * @return array{discount: string, rate: string, total: string}
      */
     private function line(QuoteLine $line): array
     {
-        $gross = bcmul($line->getUnitPrice() ?? '0', (string) ($line->getQuantity() ?? 0), 2);
-        $discount = $this->reduction($gross, $line->getDiscountValue(), $line->getDiscountType());
+        $quantity = $line->getQuantity() ?? 0;
+        $gross = bcmul($line->getUnitPrice() ?? '0', (string) $quantity, 2);
+        $discount = $this->reduction($gross, $line->getDiscountValue(), $line->getDiscountType(), $quantity);
 
-        return ['discount' => $discount, 'total' => bcsub($gross, $discount, 2)];
+        return [
+            'discount' => $discount,
+            'rate'     => bccomp($gross, '0', 2) > 0 ? $this->round(bcdiv(bcmul($discount, '100', 10), $gross, 10)) : '0.00',
+            'total'    => bcsub($gross, $discount, 2),
+        ];
     }
 
-    // La remise en euros d'une remise saisie en % ou en € : jamais plus que le montant remisé
-    private function reduction(string $base, ?string $value, DiscountType $type): string
+    // La remise en euros d'une remise saisie en %, en € ou en prix final unitaire : jamais plus que le montant remisé
+    private function reduction(string $base, ?string $value, DiscountType $type, int $quantity = 1): string
     {
-        $reduction = $type === DiscountType::Percent ? $this->percentOf($base, $value ?? '0') : ($value ?? '0.00');
+        $value ??= '0';
+        $reduction = match ($type) {
+            DiscountType::Percent    => $this->percentOf($base, $value),
+            DiscountType::Amount     => $value,
+            DiscountType::FinalPrice => bcsub($base, bcmul($value, (string) $quantity, 2), 2),   // (prix unitaire - prix final) × quantité
+        };
 
         return bccomp($reduction, $base, 2) > 0 ? $base : $reduction;
     }

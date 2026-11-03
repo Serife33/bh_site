@@ -6,6 +6,7 @@ use App\Entity\AdminUser;
 use App\Entity\Customer;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
+use App\Enum\DiscountType;
 use App\Enum\QuoteStatus;
 use App\Repository\AdminUserRepository;
 use App\Repository\CustomerRepository;
@@ -48,7 +49,8 @@ class QuoteType extends AbstractType
                 'label' => 'Remise globale',
                 'help' => "Sur le total des articles, après les remises de ligne. Jamais sur la livraison ni le montage.",
             ])
-            ->add('discountType', EnumType::class, QuoteLineType::DISCOUNT_TYPE_OPTIONS)
+            // Le prix final n'a de sens que sur une ligne
+            ->add('discountType', EnumType::class, QuoteLineType::DISCOUNT_TYPE_OPTIONS + ['choices' => [DiscountType::Percent, DiscountType::Amount]])
             ->add('pickup', CheckboxType::class, [
                 'label' => 'Retrait au showroom (ni livraison ni montage)',
                 'required' => false,

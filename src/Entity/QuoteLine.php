@@ -13,6 +13,10 @@ use Symfony\Component\Validator\Constraints as Assert;
     'this.getVariant() === null or this.getVariant().getProduct() === this.getProduct()',
     message: "Cette variante n'appartient pas au produit choisi.",
 )]
+#[Assert\Expression(
+    'this.getDiscountType().value != "final" or this.getUnitPrice() === null or this.getDiscountValue() <= this.getUnitPrice()',
+    message: 'Le prix final ne peut pas dépasser le prix unitaire.',
+)]
 class QuoteLine
 {
     use DiscountTrait;   // porte sur le total de la ligne, pas sur chaque unité

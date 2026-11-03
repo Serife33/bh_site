@@ -27,7 +27,7 @@ class QuoteLineType extends AbstractType
 {
     // Partagées avec la remise globale de QuoteType. Montants en chaînes : ils vont tels quels au calcul bcmath.
     public const DISCOUNT_VALUE_OPTIONS = ['scale' => 2, 'html5' => true, 'input' => 'string', 'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01']];
-    public const DISCOUNT_TYPE_OPTIONS = ['label' => 'Type de remise', 'class' => DiscountType::class, 'choice_label' => 'symbol'];
+    public const DISCOUNT_TYPE_OPTIONS = ['label' => 'Type de remise', 'class' => DiscountType::class, 'choice_label' => 'label'];
     public const PRICE_OPTIONS = ProductType::PRICE_OPTIONS + ['input' => 'string'];
 
     public function __construct(private ProductRepository $productRepository)

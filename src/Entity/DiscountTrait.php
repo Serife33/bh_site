@@ -7,8 +7,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-// La remise d'une ligne de devis ou du devis entier : un pourcentage, ou un montant en euros TTC.
-// Le calcul est fait par QuoteCalculator.
+// La remise d'une ligne de devis ou du devis entier : un pourcentage, un montant en euros TTC,
+// ou pour une ligne son prix final unitaire (QuoteLine le borne au prix unitaire). Le calcul est fait par QuoteCalculator.
 trait DiscountTrait
 {
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]

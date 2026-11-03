@@ -97,7 +97,7 @@
                 <td>
                     {% if montants.discount > 0 %}
                         -{{ montants.discount|ht(quote.vatRate)|prix(2) }}
-                        {% if line.discountType.value == 'percent' %}<p class="detail">soit {{ doc.taux(line.discountValue) }}</p>{% endif %}
+                        {% if line.discountType.value != 'amount' %}<p class="detail">soit {{ doc.taux(line.discountType.value == 'percent' ? line.discountValue : montants.rate) }}</p>{% endif %}
                     {% endif %}
                 </td>
                 <td>{{ montants.total|ht(quote.vatRate)|prix(2) }}</td>

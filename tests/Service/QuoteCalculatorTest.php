@@ -23,9 +23,9 @@ final class QuoteCalculatorTest extends TestCase
         $totals = (new QuoteCalculator())->totals($quote);
 
         self::assertSame([
-            ['discount' => '159.00', 'total' => '1431.00'],
-            ['discount' => '75.00', 'total' => '1080.00'],
-            ['discount' => '0.00', 'total' => '480.00'],
+            ['discount' => '159.00', 'rate' => '10.00', 'total' => '1431.00'],
+            ['discount' => '75.00', 'rate' => '6.49', 'total' => '1080.00'],
+            ['discount' => '0.00', 'rate' => '0.00', 'total' => '480.00'],
         ], $totals['lines']);
         self::assertSame('2991.00', $totals['items']);
         self::assertSame('90.00', $totals['discount']);
@@ -57,6 +57,33 @@ final class QuoteCalculatorTest extends TestCase
 
         self::assertSame('90.00', $totals['discount']);   // 10 % des 900 € remisés, pas des 1 000 €
         self::assertSame('960.00', $totals['ttc']);       // 900 - 90 + 100 + 50
+    }
+
+    // Le vendeur cède le canapé à 2 000 € au lieu de 2 400 € : la remise se calcule seule, par canapé
+    public function testFinalPriceGivesTheDiscount(): void
+    {
+        $calculator = new QuoteCalculator();
+
+        $one = $calculator->totals($this->quote($this->line('2400.00', 1, '2000.00', DiscountType::FinalPrice)))['lines'][0];
+        self::assertSame(['discount' => '400.00', 'rate' => '16.67', 'total' => '2000.00'], $one);
+
+        $two = $calculator->totals($this->quote($this->line('2400.00', 2, '2000.00', DiscountType::FinalPrice)))['lines'][0];
+        self::assertSame(['discount' => '800.00', 'rate' => '16.67', 'total' => '4000.00'], $two);
+
+        $same = $calculator->totals($this->quote($this->line('2400.00', 1, '2400.00', DiscountType::FinalPrice)))['lines'][0];
+        self::assertSame(['discount' => '0.00', 'rate' => '0.00', 'total' => '2400.00'], $same);
+    }
+
+    public function testGlobalDiscountComesAfterAFinalPrice(): void
+    {
+        $quote = $this->quote($this->line('2400.00', 1, '2000.00', DiscountType::FinalPrice), $this->line('500.00'))
+            ->setDiscountValue('10.00')->setDeliveryFee('100.00');
+
+        $totals = (new QuoteCalculator())->totals($quote);
+
+        self::assertSame('2500.00', $totals['items']);   // 2 000 + 500
+        self::assertSame('250.00', $totals['discount']); // 10 % des articles déjà remisés
+        self::assertSame('2350.00', $totals['ttc']);     // 2 500 - 250 + 100 de livraison
     }
 
     public function testPickupIgnoresDeliveryAndAssembly(): void

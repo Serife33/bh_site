@@ -87,11 +87,13 @@
                 <td>{{ line.quantity }}</td>
                 <td>{{ line.unitPrice|prix(2) }}</td>
                 <td>
+                    {# Une remise en % montre aussi les euros ; un prix final montre la remise qu'il donne, en euros et en % #}
                     {% if montants.discount > 0 %}
                         {% if line.discountType.value == 'percent' %}
                             -{{ doc.taux(line.discountValue) }}<span class="remise-detail">soit -{{ montants.discount|prix(2) }}</span>
                         {% else %}
                             -{{ montants.discount|prix(2) }}
+                            {% if line.discountType.value == 'final' %}<span class="remise-detail">soit -{{ doc.taux(montants.rate) }}</span>{% endif %}
                         {% endif %}
                     {% endif %}
                 </td>

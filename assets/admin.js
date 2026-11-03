@@ -398,15 +398,26 @@ document.addEventListener('change', (e) => {
 
 // ===== Écran d'un devis : les montants se recalculent pendant la saisie =====
 // Le calcul de src/Service/QuoteCalculator.php, pour l'affichage seulement : le serveur recalcule tout à l'enregistrement.
-// Remise en % (centièmes de %) ou en centimes d'euro, jamais plus que le montant remisé
-const reduction = (base, valeur, type) => Math.min(base, type === 'percent' ? Math.round(base * valeur / 10000) : valeur);
+// Remise en % (centièmes de %), en centimes d'euro, ou par le prix final unitaire d'une ligne (en centimes,
+// fois la quantité) ; jamais plus que le montant remisé
+const reduction = (base, valeur, type, quantite = 1) => Math.min(base,
+    type === 'percent' ? Math.round(base * valeur / 10000) : type === 'final' ? base - valeur * quantite : valeur);
 
 function recalculerDevis(form) {
     const lignes = [...form.querySelectorAll('.collection-ligne')].map((ligne) => {
-        const brut = (parseInt(champDe(ligne, 'quantity').value, 10) || 0) * centimes(champDe(ligne, 'unitPrice').value);
-        const total = brut - reduction(brut, centimes(champDe(ligne, 'discountValue').value), champDe(ligne, 'discountType').value);
-        champDe(ligne, 'total').value = euros(total);
-        return total;
+        const quantite = parseInt(champDe(ligne, 'quantity').value, 10) || 0;
+        const brut = quantite * centimes(champDe(ligne, 'unitPrice').value);
+        const type = champDe(ligne, 'discountType').value;
+        const remise = reduction(brut, centimes(champDe(ligne, 'discountValue').value), type, quantite);
+        champDe(ligne, 'total').value = euros(brut - remise);
+
+        // Un prix final affiche à côté la remise qu'il donne : « soit -400,00 € (-16,67 %) »
+        const soit = ligne.querySelector('.soit')
+            ?? champDe(ligne, 'discountType').parentElement.appendChild(Object.assign(document.createElement('p'), { className: 'aide soit' }));
+        const taux = brut ? Math.round(remise * 10000 / brut) / 100 : 0;
+        soit.hidden = type !== 'final';
+        soit.textContent = `soit ${euros(-remise)} (${(-taux).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} %)`;
+        return brut - remise;
     });
 
     const champ = (nom) => form.elements[`quote[${nom}]`];
