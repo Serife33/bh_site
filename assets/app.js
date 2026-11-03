@@ -17,9 +17,9 @@ function activerSeul(element, selecteur, racine = document, classe = 'is-active'
 }
 
 // Une option choisie derrière un « +N » doit rester visible sur la fiche.
-// Une seule à la fois, et seulement si elle fait partie des masquées.
+// Une seule à la fois dans sa rangée, et seulement si elle fait partie des masquées.
 function rendreVisible(element, selecteur) {
-    document.querySelectorAll(selecteur + '.swatch-shown').forEach(e => e.classList.remove('swatch-shown'));
+    element.parentElement.querySelectorAll(selecteur + '.swatch-shown').forEach(e => e.classList.remove('swatch-shown'));
     if (element.classList.contains('swatch-extra')) element.classList.add('swatch-shown');
 }
 
@@ -170,7 +170,7 @@ document.addEventListener('click', (e) => {
     button.parentElement.replaceChildren(iframe);
 });
 
-// ===== Configurateur : taille, matière, tissu, coloris, message WhatsApp =====
+// ===== Configurateur : taille, matière, finition, tissu, coloris, message WhatsApp =====
 
 // Les variantes écrites sur la fiche (aucune hors d'une fiche à variantes). Prix déjà au format du site.
 function variantes() {
@@ -197,19 +197,21 @@ function refleterSelection() {
     if (!btn) return;
 
     // Les options choisies, dans l'ordre du message ; chacune porte sa valeur dans data-choix.
-    // Une matière masquée n'existe pas dans la taille choisie ; le coloris est celui du nuancier visible.
+    // Une matière masquée n'existe pas dans la taille choisie ; finition et coloris sont ceux du nuancier visible.
     const choix = {
         taille: document.querySelector('.taille-opt.is-active'),
         matière: document.querySelector('.matiere-opt.is-active:not([hidden])'),
+        finition: document.querySelector('[data-finitions].is-visible .col-dot.is-active'),
         tissu: document.querySelector('.mat-opt.is-active'),
-        coloris: document.querySelector('.nuancier-group.is-visible .col-dot.is-active'),
+        coloris: document.querySelector('.nuancier-group.is-visible:not([data-finitions]) .col-dot.is-active'),
     };
 
     let message = 'Bonjour, je suis intéressée par le ' + btn.dataset.product;
     for (const [nom, option] of Object.entries(choix)) {
         if (!option) continue;
         option.closest('.cfg-group').querySelector('.cfg-choice').textContent = option.dataset.choix;
-        message += ', ' + nom + ' ' + option.dataset.choix;
+        // Les tailles sont en centimètres, comme l'annonce le libellé « Taille (cm) »
+        message += ', ' + nom + ' ' + option.dataset.choix + (nom === 'taille' ? ' cm' : '');
     }
     message += '. Je souhaite le commander.';
 
@@ -227,7 +229,18 @@ function choisirTaille(bouton) {
         matiere.hidden = !liste.some(v => v.taille === bouton.dataset.choix && v.matiere === matiere.dataset.choix);
     });
     const premiere = document.querySelector('.matiere-opt:not([hidden])');
-    if (premiere && !document.querySelector('.matiere-opt.is-active:not([hidden])')) activerSeul(premiere, '.matiere-opt');
+    if (premiere && !document.querySelector('.matiere-opt.is-active:not([hidden])')) choisirMatiere(premiere);
+    else refleterSelection();
+}
+
+// Applique une matière : seul son nuancier de finitions reste visible, sur la finition déjà choisie
+// (la première au départ), comme les coloris d'un tissu. Une matière sans finition n'en a pas : l'étape disparaît.
+function choisirMatiere(bouton) {
+    activerSeul(bouton, '.matiere-opt', bouton.parentElement);
+
+    document.querySelectorAll('[data-finitions]').forEach((groupe) => {
+        groupe.classList.toggle('is-visible', groupe.dataset.finitions === bouton.dataset.choix);
+    });
 
     refleterSelection();
 }
@@ -246,12 +259,20 @@ function choisirTissu(bouton) {
     refleterSelection();
 }
 
-// Applique un coloris
+// Applique un coloris ou une finition. Le panneau du nuancier, s'il y en a un, coche la même teinte.
 function choisirColoris(pastille) {
     if (!pastille) return;
 
     rendreVisible(pastille, '.col-dot');
     activerSeul(pastille, '.col-dot', pastille.parentElement);
+
+    const groupe = pastille.closest('.nuancier-group');
+    const option = groupe.querySelector('.panneau-opt[data-index="' + pastille.dataset.index + '"]');
+    if (option) {
+        activerSeul(option, '.panneau-opt', groupe);
+        groupe.querySelector('.panneau-courant strong').textContent = option.dataset.color;
+    }
+
     refleterSelection();
 }
 
@@ -261,7 +282,7 @@ document.addEventListener('click', (e) => {
     if (taille) { choisirTaille(taille); return; }
 
     const matiere = e.target.closest('.matiere-opt');
-    if (matiere) { activerSeul(matiere, '.matiere-opt', matiere.parentElement); refleterSelection(); return; }
+    if (matiere) { choisirMatiere(matiere); return; }
 
     const tissu = e.target.closest('.mat-opt');
     if (tissu) { choisirTissu(tissu); return; }
@@ -291,17 +312,12 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Panneau coloris : on reste dans le panneau pour comparer, la fiche suit
+// Panneau coloris ou finitions : on reste dans le panneau pour comparer, la fiche suit
 document.addEventListener('click', (e) => {
     const option = e.target.closest('.panneau-opt');
     if (!option) return;
 
-    const panneau = option.closest('.nuancier-panneau');
-    activerSeul(option, '.panneau-opt', panneau);
-    panneau.querySelector('.panneau-courant strong').textContent = option.dataset.color;
-
-    const groupe = panneau.closest('.nuancier-group');
-    choisirColoris(groupe?.querySelector('.col-dot[data-index="' + option.dataset.index + '"]'));
+    choisirColoris(option.closest('.nuancier-group').querySelector('.col-dot[data-index="' + option.dataset.index + '"]'));
 });
 
 // Panneau tissus : on applique et on ferme

@@ -191,7 +191,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     // La fiche publique : le produit visible et ce qu'elle affiche autour, une collection par requête
-    // (jointes ensemble, variantes, tissus et coloris multiplieraient les lignes).
+    // (jointes ensemble, variantes, finitions, tissus et coloris multiplieraient les lignes).
     // Les photos arrivent au premier accès, en une requête.
     public function findActiveBySlug(string $slug): ?Product
     {
@@ -207,16 +207,31 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
 
+        if ($product === null) {
+            return null;
+        }
+
         // Les tissus et leurs coloris : Doctrine remplit les collections du produit déjà chargé,
         // au lieu d'une requête pour les tissus puis d'une par tissu.
-        if ($product !== null) {
-            $this->createQueryBuilder('p')
-                ->leftJoin('p.fabrics', 'fa')
-                ->leftJoin('fa.fabricColors', 'fc')
-                ->addSelect('fa', 'fc')
-                ->andWhere('p = :product')
-                ->setParameter('product', $product)
-                ->orderBy('fa.id', 'ASC')   // l'ordre de la table de liaison, celui du chargement au premier accès
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.fabrics', 'fa')
+            ->leftJoin('fa.fabricColors', 'fc')
+            ->addSelect('fa', 'fc')
+            ->andWhere('p = :product')
+            ->setParameter('product', $product)
+            ->orderBy('fa.id', 'ASC')   // l'ordre de la table de liaison, celui du chargement au premier accès
+            ->getQuery()
+            ->getResult();
+
+        // Les finitions des matières de ses variantes, de la même façon
+        $matieres = array_filter($product->getVariants()->map(fn ($variant) => $variant->getFabric())->toArray());
+        if ($matieres) {
+            $this->getEntityManager()->createQueryBuilder()
+                ->select('m', 'fi')
+                ->from(Fabric::class, 'm')
+                ->leftJoin('m.fabricColors', 'fi')
+                ->andWhere('m IN (:matieres)')
+                ->setParameter('matieres', $matieres)
                 ->getQuery()
                 ->getResult();
         }
