@@ -612,7 +612,8 @@ document.addEventListener('input', (e) => {
 
 document.addEventListener('change', (e) => {
     const cible = e.target;
-    if (!cible.closest('#form-devis') || cible.matches('[role="combobox"]')) return;
+    // Un champ caché ne change que par ce fichier, ou par le jeton CSRF de Symfony à l'envoi : pas une modification
+    if (!cible.closest('#form-devis') || cible.matches('[role="combobox"], [type="hidden"]')) return;
     effacerErreur(cible);
     const article = cible.closest('.article');
     if (cible.matches('.c-remise input[type=radio]')) cible.closest('.c-remise').querySelector('.c-rv input').value = valeurNeutre(cible.closest('.c-remise'));

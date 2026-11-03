@@ -644,7 +644,7 @@ tr.est-masque { opacity: .55; }
 #form-devis .unite { position: relative; }
 #form-devis .unite input { padding-right: 2rem; }
 #form-devis .unite span { position: absolute; right: .7rem; top: 50%; transform: translateY(-50%); color: #6B6560; pointer-events: none; }
-#form-devis .case { display: flex; align-items: center; gap: .6rem; min-height: 44px; margin: 0; font-weight: 400; cursor: pointer; }
+#form-devis .case, #form-devis .champ > label.case { display: flex; align-items: center; gap: .6rem; min-height: 44px; margin: 0; font-size: 15px; font-weight: 400; cursor: pointer; }
 
 /* Aides et résultats : une ligne réservée, deux dans les colonnes étroites ; attention et erreur avec une pastille « ! » */
 #form-devis .aide, #form-devis .resultat { min-height: 1.45em; margin: .25rem 0 0; font-size: 13px; line-height: 1.45; color: #6B6560; }
