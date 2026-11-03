@@ -24,7 +24,7 @@
   --accent: #6B4C3B;   /* brun profond : boutons et accents (7,4:1 sur le fond) */
   --accent2:#C4A882;   /* taupe clair : soulignés et séparateurs, jamais pour du texte */
   --border: #E8E0D8;   /* filets discrets */
-  --wa:     #25D366;   /* vert WhatsApp, pour le pictogramme seulement */
+  --wa:     #25D366;   /* vert WhatsApp : bouton flottant et pictogrammes */
   --promo:  #8C2F39;   /* bordeaux des promotions (7,8:1 sur le fond) */
   --r:      0;         /* aucun arrondi */
   --marge:  clamp(16px, 4.5vw, 64px);       /* marges latérales */
@@ -93,22 +93,22 @@ b, strong, th { font-weight: 500; }
 .hdr-search svg, .fleche svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.4; }
 
 
-/* ===== BOUTON WHATSAPP FLOTTANT : discret, pictogramme vert sur brun ===== */
+/* ===== BOUTON WHATSAPP FLOTTANT : le rond vert reconnaissable (choix de la cliente) ===== */
 .wa-float {
   position: fixed;               /* fixe par rapport à l'écran (suit le scroll) */
   bottom: 16px;
   right: 16px;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   display: grid;
   place-items: center;
-  background: var(--accent);
-  color: var(--wa);
-  box-shadow: 0 6px 20px rgb(26 26 24 / .12);
+  background: var(--wa);
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 6px 20px rgb(37 211 102 / .4);
   z-index: 150;                  /* au-dessus de tout */
 }
-.wa-float:hover { background: var(--txt); }
-.wa-float i { font-size: 24px; }
+.wa-float i { font-size: 30px; }
 
 
 /* ===== FOOTER ===== */
