@@ -64,20 +64,18 @@ function marquerMiniature(gallery, index) {
 
     const bande = gallery.querySelector('.gal-thumbs');
     if (bande) {
-        bande.scrollTo({
-            left: active.offsetLeft - (bande.clientWidth - active.clientWidth) / 2,
-            behavior: 'smooth',
-        });
+        bande.scrollTo({ left: active.offsetLeft - (bande.clientWidth - active.clientWidth) / 2 });
     }
 }
 
-// Affiche une photo, en bouclant aux extrémités
-function afficherPhoto(gallery, voulu) {
+// Affiche une photo, en bouclant aux extrémités. Elle glisse comme le veut le CSS
+// (scroll-behavior), sauf si on la veut tout de suite.
+function afficherPhoto(gallery, voulu, instantane) {
     const viewport = gallery.querySelector('.gal-viewport');
     const photos = [...viewport.children];
     const index = ((voulu % photos.length) + photos.length) % photos.length;
 
-    viewport.scrollTo({ left: photos[index].offsetLeft, behavior: 'smooth' });
+    viewport.scrollTo({ left: photos[index].offsetLeft, behavior: instantane ? 'instant' : 'auto' });
     marquerMiniature(gallery, index);
 }
 
@@ -107,6 +105,54 @@ document.addEventListener('scroll', (e) => {
         marquerMiniature(viewport.closest('.gallery'), photoCourante(viewport));
     }, 120));
 }, true);
+
+// ===== Visionneuse plein écran =====
+// Le <dialog> est lui-même une .gallery : flèches, glissé du doigt et défilement viennent de la
+// galerie, ci-dessus. Échap et le piège du focus sont natifs.
+
+// Double la photo, ou lui rend sa taille. Sa largeur affichée dépend de l'écran :
+// on la lit avant que la classe ne lève ses bornes.
+function basculerZoom(photo) {
+    const largeur = 2 * photo.offsetWidth;
+    photo.style.width = photo.classList.toggle('is-zoomed') ? largeur + 'px' : '';
+}
+
+// Clic sur une photo de la galerie : la visionneuse s'ouvre sur elle, d'un coup, photos à leur taille
+document.addEventListener('click', (e) => {
+    const photo = e.target.closest('.gal-photo');
+    if (!photo) return;
+
+    const visionneuse = document.querySelector('.visionneuse');
+    visionneuse.querySelectorAll('.is-zoomed').forEach(basculerZoom);
+    visionneuse.showModal();
+    afficherPhoto(visionneuse, [...document.querySelectorAll('.gal-photo')].indexOf(photo), true);
+});
+
+// Dans la visionneuse, les flèches mises à part : un clic sur la photo la double ou la remet à
+// sa taille (sur ordinateur ; au doigt, c'est le pincement natif), un clic ailleurs ferme.
+document.addEventListener('click', (e) => {
+    const visionneuse = e.target.closest('.visionneuse');
+    if (!visionneuse || e.target.closest('.gal-arrow')) return;
+
+    const photo = e.target.closest('.vis-cadre img');
+    if (!photo) { visionneuse.close(); return; }
+    if (!matchMedia('(pointer: fine)').matches) return;
+
+    // Le point cliqué reste sous les yeux : sa position double avec la photo
+    basculerZoom(photo);
+    const cadre = photo.parentElement;
+    cadre.scrollTo(2 * e.offsetX - cadre.clientWidth / 2, 2 * e.offsetY - cadre.clientHeight / 2);
+});
+
+// Touches ← →, visionneuse ouverte : elles actionnent ses flèches
+document.addEventListener('keydown', (e) => {
+    const fleche = { ArrowLeft: '.gal-prev', ArrowRight: '.gal-next' }[e.key];
+    const bouton = fleche && document.querySelector('.visionneuse[open] ' + fleche);
+    if (!bouton) return;
+
+    e.preventDefault();   // sinon le cadre défile en plus, de quelques pixels
+    bouton.click();
+});
 
 // ===== Façades : vidéo YouTube, carte Google Maps =====
 // Rien n'est chargé depuis Google tant que personne ne clique. Le bouton porte l'adresse de

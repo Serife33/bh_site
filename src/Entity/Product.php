@@ -617,7 +617,7 @@ class Product
      *
      * @return list<Media>
      */
-    private function getPhotos(): array
+    public function getPhotos(): array
     {
         return array_values(
             $this->media->filter(static fn (Media $media) => $media->isPhoto())->toArray(),
