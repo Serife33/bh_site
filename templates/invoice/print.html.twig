@@ -112,7 +112,7 @@
                 <td>{{ tva }}</td>
             </tr>
             {% for composition in totaux.compositions|filter(c => c.last == key) %}
-                <tr class="compo-total"><td colspan="{{ colonnes - 2 }}">Sous-total de la composition</td><td>{{ composition.total|ht(quote.vatRate)|prix(2) }}</td><td></td></tr>
+                <tr class="compo-total"><td colspan="{{ colonnes - 2 }}">Sous-total de la composition</td><td>{{ composition.ht|prix(2) }}</td><td></td></tr>
             {% endfor %}
         {% endfor %}
         {% if totaux.discount > 0 %}

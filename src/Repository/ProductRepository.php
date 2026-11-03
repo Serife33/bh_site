@@ -371,7 +371,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     // Les modules actifs d'une gamme, dans leur ordre d'affichage, avec leurs photos, tissus et finitions : un nombre fixe
-    // de requêtes, quel que soit le nombre de modules. Pour composer un canapé, dans un devis et sur la fiche du site.
+    // de requêtes, quel que soit le nombre de modules. Pour composer un canapé dans un devis.
     public function findActiveModulesOfFamily(Family $family): array
     {
         $modules = $this->createQueryBuilder('p')

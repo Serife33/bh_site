@@ -37,7 +37,7 @@
                 {{ form_row(ligne.discountType) }}
                 <div class="champ c-total">
                     <span class="libelle lib2" id="{{ id }}_total_libelle">Total de l'article</span>
-                    <output id="{{ id }}_total" aria-labelledby="{{ id }}_total_libelle" data-total-article></output>
+                    <output id="{{ id }}_total" aria-labelledby="{{ id }}_total_libelle" aria-live="off" data-total-article></output>
                 </div>
             </div>
             <div class="article-pied">

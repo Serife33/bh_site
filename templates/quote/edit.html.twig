@@ -23,8 +23,9 @@
 
 {% block title %}{{ titre }}{% endblock %}
 
-{# Une vraie page, hors de Turbo : le bouton Retour du navigateur avertit d'une saisie non enregistrée, et aucune copie
-   en cache ne réaffiche une saisie abandonnée (ni celle de Turbo, ni les champs remis par le navigateur : autocomplete off) #}
+{# Une vraie page, hors de Turbo : le bouton Retour du navigateur avertit d'une saisie non enregistrée. Turbo ne garde
+   pas de copie, le navigateur ne remet pas les champs (autocomplete off). Son cache peut réafficher la page telle qu'on
+   l'a quittée : la saisie y reste signalée non enregistrée, et un nouveau devis déjà envoyé revient vide (assets/devis.js). #}
 {% block head %}
     <meta name="turbo-visit-control" content="reload">
     <meta name="turbo-cache-control" content="no-cache">

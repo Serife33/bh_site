@@ -129,8 +129,12 @@ document.addEventListener('submit', (e) => {
     verrouillageConfirme = false;
     modifiee = false;
 });
-// Retour sur la page depuis le cache du navigateur : elle peut de nouveau être envoyée
-window.addEventListener('pageshow', () => delete formulaire()?.dataset.envoi);
+// Retour depuis le cache du navigateur sur un nouveau devis déjà envoyé : rechargé vide, jamais un second devis
+// (replace et non reload : une page refusée vient d'un envoi). Un devis existant peut de nouveau être envoyé.
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted && formulaire()?.dataset.envoi && location.pathname.endsWith('/new')) location.replace(location.href);
+    else delete formulaire()?.dataset.envoi;
+});
 
 document.addEventListener('click', (e) => {
     const bouton = e.target.closest('#dialogue-accepte [data-dialogue]');
@@ -270,7 +274,7 @@ function choisirProduit(article, produit) {
 function quitterArticle(input) {
     const article = input.closest('.article');
     const produit = produitDe(article);
-    if (!produit || [produit.name, input.defaultValue.trim()].includes(input.value.trim())) return;
+    if (!produit || (input.value.trim() && [produit.name, input.defaultValue.trim()].includes(input.value.trim()))) return;
 
     article.dataset.ancienProduit = article.dataset.produit;
     article.dataset.ancienneVariante = champ(article, 'variant').value;

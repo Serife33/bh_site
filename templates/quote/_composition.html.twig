@@ -16,7 +16,7 @@
             <p class="compo-prix">{{ module.produit.actualPrice|prix(2) }}</p>
             <div class="compo-qte">
                 <button type="button" data-pas="-1" aria-label="Retirer {{ module.produit.name }}" aria-disabled="{{ module.nombre ? 'false' : 'true' }}">−</button>
-                <output data-nombre>{{ module.nombre }}</output>
+                <output aria-live="off" data-nombre>{{ module.nombre }}</output>
                 <button type="button" data-pas="1" aria-label="Ajouter {{ module.produit.name }}" aria-disabled="false">+</button>
             </div>
         </li>

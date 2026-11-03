@@ -168,9 +168,23 @@ final class QuoteCalculatorTest extends TestCase
         );
 
         self::assertSame([
-            ['family' => 'LUMA', 'first' => 0, 'last' => 1, 'total' => '1629.00'],
-            ['family' => 'MADRID', 'first' => 5, 'last' => 6, 'total' => '800.00'],
+            ['family' => 'LUMA', 'first' => 0, 'last' => 1, 'total' => '1629.00', 'ht' => '1357.50'],
+            ['family' => 'MADRID', 'first' => 5, 'last' => 6, 'total' => '800.00', 'ht' => '666.67'],
         ], (new QuoteCalculator())->totals($quote)['compositions']);
+    }
+
+    // Le sous-total HT d'une composition est la somme des HT de ses lignes, imprimés sur la facture d'acompte :
+    // 690,83 + 520,83 + 516,75 + 708,33 = 2 436,74 €, alors que le HT du sous-total TTC (2 924,10 €) ferait 2 436,75 €
+    public function testCompositionHtIsTheSumOfItsLines(): void
+    {
+        $luma = (new Family())->setName('LUMA');
+        $module = fn (string $price, int $quantity = 1, string $discount = '0.00') => $this->line($price, $quantity, $discount)
+            ->setProduct((new Product())->setFamily($luma)->setIsModular(ProductModular::Module));
+        $quote = $this->quote($module('829.00'), $module('625.00'), $module('689.00', 1, '10.00'), $module('425.00', 2));
+
+        $composition = (new QuoteCalculator())->totals($quote)['compositions'][0];
+        self::assertSame('2924.10', $composition['total']);
+        self::assertSame('2436.74', $composition['ht']);
     }
 
     private function quote(QuoteLine ...$lines): Quote

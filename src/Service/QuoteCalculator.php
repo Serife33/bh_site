@@ -19,10 +19,10 @@ final class QuoteCalculator
      *
      * L'acompte est le montant saisi sur le devis, sinon son taux appliqué au total TTC ; sa part du total
      * l'accompagne (« 32,46 % »). L'acompte et le solde ont aussi leur HT et leur TVA, pour la facture d'acompte.
-     * Les compositions (canapés composés module par module) ont leur sous-total, pour les documents.
+     * Les compositions (canapés composés module par module) ont leur sous-total TTC et HT, pour les documents.
      *
      * @return array{lines: array<int, array{discount: string, rate: string, total: string}>,
-     *     compositions: list<array{family: string, first: int, last: int, total: string}>, items: string, discount: string,
+     *     compositions: list<array{family: string, first: int, last: int, total: string, ht: string}>, items: string, discount: string,
      *     delivery: string, assembly: string, ttc: string, ht: string, tva: string, deposit: string, depositShare: string,
      *     depositHt: string, depositTva: string, balance: string, balanceHt: string, balanceTva: string}
      */
@@ -72,9 +72,10 @@ final class QuoteCalculator
 
     /**
      * Les modules d'une même gamme qui se suivent, deux au moins : un canapé composé dans le devis, regroupé sur les
-     * documents sous son titre, avec son sous-total. Déduit des produits des lignes et de leur ordre.
+     * documents sous son titre, avec son sous-total. Déduit des produits des lignes et de leur ordre. Le HT est la somme des
+     * HT des lignes, tels que la facture d'acompte les imprime : la colonne s'additionne au centime.
      *
-     * @return list<array{family: string, first: int, last: int, total: string}>
+     * @return list<array{family: string, first: int, last: int, total: string, ht: string}>
      */
     private function compositions(Quote $quote, array $lines): array
     {
@@ -84,12 +85,13 @@ final class QuoteCalculator
             $product = $line->getProduct();
             $family = $product?->getIsModular() === ProductModular::Module ? $product->getFamily() : null;
             if ($family !== null && $family !== $previous) {
-                $groups[] = ['family' => $family->getName(), 'first' => $key, 'last' => $key, 'total' => '0.00'];
+                $groups[] = ['family' => $family->getName(), 'first' => $key, 'last' => $key, 'total' => '0.00', 'ht' => '0.00'];
             }
             if ($family !== null) {
                 $last = count($groups) - 1;
                 $groups[$last]['last'] = $key;
                 $groups[$last]['total'] = bcadd($groups[$last]['total'], $lines[$key]['total'], 2);
+                $groups[$last]['ht'] = bcadd($groups[$last]['ht'], $this->excludingVat($lines[$key]['total'], $quote->getVatRate()), 2);
             }
             $previous = $family;
         }
