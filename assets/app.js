@@ -64,21 +64,18 @@ function marquerMiniature(gallery, index) {
 
     const bande = gallery.querySelector('.gal-thumbs');
     if (bande) {
-        bande.scrollTo({
-            left: active.offsetLeft - (bande.clientWidth - active.clientWidth) / 2,
-            behavior: 'smooth',
-        });
+        bande.scrollTo({ left: active.offsetLeft - (bande.clientWidth - active.clientWidth) / 2 });
     }
 }
 
-// Affiche une photo, en bouclant aux extrémités. Elle glisse jusqu'à sa place, sauf si on
-// la veut tout de suite ou si le visiteur a demandé à son appareil de réduire les animations.
-function afficherPhoto(gallery, voulu, instantane = matchMedia('(prefers-reduced-motion: reduce)').matches) {
+// Affiche une photo, en bouclant aux extrémités. Elle glisse comme le veut le CSS
+// (scroll-behavior), sauf si on la veut tout de suite.
+function afficherPhoto(gallery, voulu, instantane) {
     const viewport = gallery.querySelector('.gal-viewport');
     const photos = [...viewport.children];
     const index = ((voulu % photos.length) + photos.length) % photos.length;
 
-    viewport.scrollTo({ left: photos[index].offsetLeft, behavior: instantane ? 'instant' : 'smooth' });
+    viewport.scrollTo({ left: photos[index].offsetLeft, behavior: instantane ? 'instant' : 'auto' });
     marquerMiniature(gallery, index);
 }
 
