@@ -50,6 +50,21 @@ final class ProductTest extends TestCase
         self::assertSame(['variants[1].size', 'variants[2].actualPrice', 'variants[3]'], $paths);
     }
 
+    public function testNewMaterialsAreComparedAsObjects(): void
+    {
+        // Cas de l'import : deux matières créées dans le même lot, donc encore sans id
+        $laque = new Fabric();
+        $distinct = $this->product()
+            ->addVariant($this->variant('90x190')->setFabric($laque))
+            ->addVariant($this->variant('90x190')->setFabric(new Fabric()));
+        $doublon = $this->product()
+            ->addVariant($this->variant('90x190')->setFabric($laque))
+            ->addVariant($this->variant('90x190')->setFabric($laque));
+
+        self::assertCount(0, $this->validator()->validateProperty($distinct, 'variants'));
+        self::assertCount(1, $this->validator()->validateProperty($doublon, 'variants'));
+    }
+
     public function testVariantsShareTheSameCriteria(): void
     {
         $product = $this->product()

@@ -18,7 +18,7 @@
         {% endif %}
 
         {% if product.actualPrice < product.initialPrice %}
-            <span class="pcard-badge promo">Promo</span>
+            <span class="pcard-badge promo">-{{ product|remise }}&nbsp;%</span>
         {% elseif product.stock > 0 %}
             <span class="pcard-badge stock">En stock</span>
         {% endif %}
