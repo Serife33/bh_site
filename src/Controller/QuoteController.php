@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
 use App\Enum\QuoteStatus;
@@ -9,14 +11,15 @@ use App\Form\QuoteType;
 use App\Repository\AdminUserRepository;
 use App\Repository\CustomerRepository;
 use App\Repository\DocumentCounterRepository;
-use App\Repository\FabricColorRepository;
 use App\Repository\InvoiceRepository;
+use App\Repository\ProductRepository;
 use App\Repository\QuoteRepository;
 use App\Service\QuoteCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -25,6 +28,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class QuoteController extends AbstractController
 {
     private const QUOTES_PER_PAGE = 20;
+    private const PRODUCT_RESULTS = 20;
 
     public function __construct(private QuoteCalculator $calculator)
     {
@@ -55,7 +59,7 @@ final class QuoteController extends AbstractController
 
     // ?client=12 : le devis d'un client choisi dans le fichier client
     #[Route('/new', name: 'app_quote_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, CustomerRepository $customerRepository, DocumentCounterRepository $counters, FabricColorRepository $fabricColorRepository): Response
+    public function new(Request $request, EntityManagerInterface $em, CustomerRepository $customerRepository, DocumentCounterRepository $counters): Response
     {
         $customerId = $request->query->getInt('client');
         $quote = (new Quote())
@@ -77,11 +81,33 @@ final class QuoteController extends AbstractController
             return $this->saved($quote);
         }
 
-        return $this->renderEdit($quote, $form, $fabricColorRepository);
+        return $this->renderEdit($quote, $form);
+    }
+
+    // La recherche de produit d'une ligne de devis (assets/admin.js) : à partir de 2 lettres, 20 produits au plus,
+    // avec ce qu'il faut pour pré-remplir la ligne
+    #[Route('/produits', name: 'app_quote_products', methods: ['GET'])]
+    public function products(Request $request, ProductRepository $productRepository): JsonResponse
+    {
+        $search = trim($request->query->getString('q'));
+        $products = mb_strlen($search) < 2 ? [] : $productRepository->findForQuoteSearch($search, self::PRODUCT_RESULTS);
+
+        return $this->json(array_map(static fn (Product $product) => [
+            'id'         => $product->getId(),
+            'name'       => $product->getName(),
+            'price'      => $product->getActualPrice(),
+            'customMade' => $product->isCustomMade(),
+            'variants'   => $product->getVariants()->map(static fn (ProductVariant $variant) => [
+                'id'    => $variant->getId(),
+                'label' => $variant->getLabel(),
+                'price' => $variant->getActualPrice(),
+            ])->getValues(),
+            'finishes'   => $product->getFinishes(),
+        ], $products));
     }
 
     #[Route('/{id}/edit', name: 'app_quote_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Request $request, Quote $quote, EntityManagerInterface $em, FabricColorRepository $fabricColorRepository): Response
+    public function edit(Request $request, Quote $quote, EntityManagerInterface $em): Response
     {
         if ($quote->isLocked()) {
             $this->addFlash('warning', sprintf('Le devis %s est accepté : il ne se modifie plus.', $quote->getNumber()));
@@ -99,7 +125,7 @@ final class QuoteController extends AbstractController
             return $this->saved($quote);
         }
 
-        return $this->renderEdit($quote, $form, $fabricColorRepository);
+        return $this->renderEdit($quote, $form);
     }
 
     // Le devis au format A4 : « Imprimer » puis « Enregistrer au format PDF » dans le navigateur
@@ -141,13 +167,12 @@ final class QuoteController extends AbstractController
         return $this->redirectToRoute($quote->isLocked() ? 'app_quote_print' : 'app_quote_edit', ['id' => $quote->getId()], Response::HTTP_SEE_OTHER);
     }
 
-    private function renderEdit(Quote $quote, FormInterface $form, FabricColorRepository $fabricColorRepository): Response
+    private function renderEdit(Quote $quote, FormInterface $form): Response
     {
         return $this->render('quote/edit.html.twig', [
-            'quote'     => $quote,
-            'form'      => $form,
-            'totaux'    => $this->calculator->totals($quote),
-            'finitions' => $fabricColorRepository->findForIndex(),
+            'quote'  => $quote,
+            'form'   => $form,
+            'totaux' => $this->calculator->totals($quote),
         ]);
     }
 }

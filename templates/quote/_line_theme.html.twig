@@ -1,0 +1,37 @@
+{# Les champs d'une ligne de devis qui dépendent du produit choisi (QuoteLineType). Ils sont remplis ici pour
+   une ligne déjà enregistrée, puis par assets/admin.js quand on choisit un autre produit.
+   « produit » : celui de la ligne, aucun pour une ligne ajoutée ou libre. #}
+
+{# Le produit : on tape une partie de son nom, la liste des produits trouvés s'ouvre sous le champ (motif « combobox »).
+   Son identifiant part dans le champ caché ; champ vide : ligne libre. #}
+{% block quote_product_widget %}
+    {% set produit = form.parent.vars.data.product ?? null %}
+    <div class="recherche-produit">
+        <input type="text" id="{{ id }}" value="{{ produit ? produit.name }}" autocomplete="off"
+               placeholder="Ligne libre, ou tapez le nom d'un produit"
+               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="{{ id }}_resultats"
+               data-url="{{ path('app_quote_products') }}">
+        <input type="hidden" name="{{ full_name }}" value="{{ value }}">
+        <ul id="{{ id }}_resultats" role="listbox" aria-label="Produits trouvés" class="resultats" hidden></ul>
+    </div>
+{% endblock %}
+
+{# Les variantes du produit choisi seulement : leur prix et leur libellé suivent le choix #}
+{% block quote_variant_widget %}
+    {% set produit = form.parent.vars.data.product ?? null %}
+    <select id="{{ id }}" name="{{ full_name }}"{{ produit and produit.variants is not empty ? '' : ' disabled' }}>
+        <option value="">- Aucune -</option>
+        {% for variante in produit ? produit.variants : [] %}
+            <option value="{{ variante.id }}" data-prix="{{ variante.actualPrice }}" data-precision="{{ variante.label }}"{{ variante.id == value ? ' selected' }}>{{ variante.label }} : {{ variante.actualPrice|prix(2) }}</option>
+        {% endfor %}
+    </select>
+{% endblock %}
+
+{# Le tissu, le coloris ou la finition : ceux du produit choisi sont proposés à la frappe #}
+{% block quote_finish_widget %}
+    {% set produit = form.parent.vars.data.product ?? null %}
+    <input type="text" id="{{ id }}" name="{{ full_name }}" value="{{ value }}" list="{{ id }}_suggestions">
+    <datalist id="{{ id }}_suggestions">
+        {% for finition in produit ? produit.finishes : [] %}<option value="{{ finition }}">{% endfor %}
+    </datalist>
+{% endblock %}

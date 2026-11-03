@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {# Création et modification d'un devis : le même écran #}
+{% form_theme form 'quote/_line_theme.html.twig' %}
 {% set titre = quote.number ? 'Devis ' ~ quote.number : 'Nouveau devis' %}
 
 {% block title %}{{ titre }}{% endblock %}
@@ -15,13 +16,6 @@
             Le numéro est attribué au premier enregistrement et ne change plus.
         </p>
     </div>
-
-    {# Les coloris du nuancier, proposés à la frappe dans le champ « Tissu et coloris, ou finition » de chaque ligne #}
-    <datalist id="finitions">
-        {% for coloris in finitions %}
-            <option value="{{ [coloris.fabric.name, coloris.fabric.reference]|filter(v => v)|join(' ') }}, {{ coloris.name }}">
-        {% endfor %}
-    </datalist>
 
     {# Les taux du calcul en direct (assets/admin.js) : ceux enregistrés sur le devis, jamais recopiés à la main #}
     {{ form_start(form, {attr: {

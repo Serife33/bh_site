@@ -657,6 +657,25 @@ class Product
         );
     }
 
+    /**
+     * Les tissus et coloris proposés, les finitions des matières de ses variantes et ses autres finitions,
+     * tels qu'on les écrit sur un devis : « Chenille Monica, Terra Cota - 1012 ». Suggérés à la saisie d'une ligne.
+     *
+     * @return list<string>
+     */
+    public function getFinishes(): array
+    {
+        $fabrics = [...$this->fabrics, ...array_filter($this->variants->map(static fn (ProductVariant $variant) => $variant->getFabric())->toArray())];
+        $finishes = $this->colors->map(static fn (Color $color) => $color->getName())->toArray();
+        foreach ($fabrics as $fabric) {
+            foreach ($fabric->getFabricColors() as $fabricColor) {
+                $finishes[] = trim($fabric->getName() . ' ' . $fabric->getReference()) . ', ' . $fabricColor->getName();
+            }
+        }
+
+        return array_values(array_unique($finishes));
+    }
+
     // Représentation texte de l'entité — utilisée dans les listes de choix
     // (le champ « Modules » d'un ensemble modulable, notamment).
     public function __toString(): string

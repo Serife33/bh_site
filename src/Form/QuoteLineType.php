@@ -7,20 +7,22 @@ use App\Entity\ProductVariant;
 use App\Entity\QuoteLine;
 use App\Enum\DiscountType;
 use App\Repository\ProductRepository;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 // Une ligne du bloc « Lignes du devis » de QuoteType. Choisir un produit ou une variante pré-remplit
 // la ligne (assets/admin.js) : désignation, précision, prix et fabrication sur mesure restent modifiables.
+// Les champs du produit, de la variante et du tissu ont leur gabarit : quote/_line_theme.html.twig.
 class QuoteLineType extends AbstractType
 {
     // Partagées avec la remise globale de QuoteType. Montants en chaînes : ils vont tels quels au calcul bcmath.
@@ -35,38 +37,26 @@ class QuoteLineType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('product', EntityType::class, [
+            // Un champ de recherche, la liste des produits trouvés et l'identifiant du produit choisi
+            ->add('product', TextType::class, [
                 'label' => 'Produit du catalogue',
-                'class' => Product::class,
                 'required' => false,
-                'placeholder' => 'Ligne libre (hors catalogue)',
-                'query_builder' => fn (ProductRepository $repository) => $repository->createForQuoteQueryBuilder(),
-                'choice_attr' => fn (Product $product) => [
-                    'data-prix' => $product->getActualPrice(),
-                    'data-sur-mesure' => (int) $product->isCustomMade(),
-                ],
+                'block_prefix' => 'quote_product',
+                'invalid_message' => "Ce produit n'existe plus dans le catalogue.",
             ])
-            // Une aide à la saisie, pas une donnée de la ligne : sa taille et son prix y sont recopiés
-            ->add('variant', EntityType::class, [
+            // Les variantes du produit choisi seulement : sa taille et son prix sont recopiés dans la ligne
+            ->add('variant', TextType::class, [
                 'label' => 'Variante',
-                'class' => ProductVariant::class,
-                'mapped' => false,
                 'required' => false,
-                'placeholder' => '- Aucune -',
-                'query_builder' => $this->productRepository->createVariantsForQuoteQueryBuilder(),
-                'group_by' => fn (ProductVariant $variant) => $variant->getProduct()->getName(),
-                'choice_label' => fn (ProductVariant $variant) => self::describe($variant) . ' : ' . $variant->getActualPrice() . ' €',
-                'choice_attr' => fn (ProductVariant $variant) => [
-                    'data-produit' => $variant->getProduct()->getId(),
-                    'data-prix' => $variant->getActualPrice(),
-                    'data-precision' => self::describe($variant),
-                ],
+                'block_prefix' => 'quote_variant',
+                'invalid_message' => "Cette variante n'existe plus dans le catalogue.",
             ])
             ->add('label', TextType::class, ['label' => 'Désignation'])
+            // Les tissus, coloris et finitions du produit choisi, proposés à la frappe
             ->add('finish', TextType::class, [
                 'label' => 'Tissu et coloris, ou finition',
                 'required' => false,
-                'attr' => ['list' => 'finitions'],   // les coloris du nuancier, proposés à la frappe (quote/edit.html.twig)
+                'block_prefix' => 'quote_finish',
             ])
             ->add('details', TextareaType::class, [
                 'label' => "Précisions (taille, sur-mesure, sens de l'angle…)",
@@ -84,6 +74,10 @@ class QuoteLineType extends AbstractType
                 'required' => false,
             ])
         ;
+
+        // Produit et variante arrivent par leur identifiant : le repository les retrouve, sinon le champ est refusé
+        $builder->get('product')->addModelTransformer($this->byId($this->productRepository->findForQuoteLine(...)));
+        $builder->get('variant')->addModelTransformer($this->byId($this->productRepository->findVariantForQuoteLine(...)));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -93,12 +87,11 @@ class QuoteLineType extends AbstractType
         ]);
     }
 
-    // « Taille 160x200, matière Céramique (Premium) »
-    private static function describe(ProductVariant $variant): string
+    private function byId(callable $find): CallbackTransformer
     {
-        return ucfirst(implode(', ', array_filter([
-            $variant->getSize() ? 'taille ' . $variant->getSize() : null,
-            $variant->getFabric() ? 'matière ' . $variant->getFabric() : null,
-        ])));
+        return new CallbackTransformer(
+            static fn (Product|ProductVariant|null $entity) => $entity?->getId(),
+            static fn (?string $id) => $id ? ($find((int) $id) ?? throw new TransformationFailedException()) : null,
+        );
     }
 }

@@ -246,57 +246,175 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// ===== Écran d'un devis : pré-remplir une ligne depuis le catalogue =====
-// Choisir un produit ou une de ses variantes reprend sa désignation, sa taille, son prix et
-// « fabriqué selon les choix du client » pour un produit sur mesure. Tout reste modifiable ensuite.
-function preRemplirLigne(select) {
-    const option = select.selectedOptions[0];
-    if (!option?.value) return;   // « Ligne libre » ou « Aucune » : rien à reprendre
+// ===== Écran d'un devis : les champs d'une ligne =====
+const ligneDe = (element) => element.closest('.collection-ligne');
+const champDe = (ligne, nom) => ligne.querySelector(`[name$="[${nom}]"]`);
 
-    const ligne = select.closest('.collection-ligne');
-    const champ = (nom) => ligne.querySelector(`[name$="[${nom}]"]`);
+// Les montants en centimes, pour éviter les erreurs d'arrondi des nombres à virgule
+const centimes = (valeur) => Math.round((parseFloat(valeur) || 0) * 100);
+const euros = (montant) => (montant / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 
-    if (select === champ('variant')) {
-        champ('product').value = option.dataset.produit;
-        champ('details').value = option.dataset.precision;
-    } else {
-        champ('variant').value = '';   // la variante d'un autre produit ne vaut plus
-    }
 
-    const produit = champ('product').selectedOptions[0];
-    champ('label').value = produit.text;
-    champ('customMade').checked = produit.dataset.surMesure === '1';
-    champ('unitPrice').value = option.dataset.prix;
+// ===== Écran d'un devis : chercher le produit d'une ligne =====
+// Motif « combobox » : on tape 2 lettres au moins, la liste des produits trouvés s'ouvre sous le champ ;
+// flèches haut et bas pour s'y déplacer, Entrée pour choisir, Échap pour fermer. Les produits viennent de
+// QuoteController::products(). Le gabarit des champs est dans templates/quote/_line_theme.html.twig.
+const listeDe = (recherche) => document.getElementById(recherche.getAttribute('aria-controls'));
+
+function fermerListe(recherche) {
+    listeDe(recherche).hidden = true;
+    recherche.setAttribute('aria-expanded', 'false');
+    recherche.removeAttribute('aria-activedescendant');
 }
 
+function afficherProduits(recherche, produits) {
+    const liste = listeDe(recherche);
+    liste.produits = produits;   // le produit d'une option se retrouve par son rang
+    liste.replaceChildren(...produits.map((produit, rang) => {
+        const option = document.createElement('li');
+        option.id = `${liste.id}_${rang}`;
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', 'false');
+        option.dataset.rang = rang;
+        option.textContent = `${produit.name} · ${euros(centimes(produit.price))}`;
+        return option;
+    }));
+    if (!produits.length) {
+        const vide = document.createElement('li');
+        vide.setAttribute('role', 'option');
+        vide.setAttribute('aria-disabled', 'true');
+        vide.textContent = 'Aucun produit trouvé : ligne libre.';
+        liste.append(vide);
+    }
+    liste.hidden = false;
+    recherche.setAttribute('aria-expanded', 'true');
+}
+
+function deplacer(recherche, pas) {
+    const options = [...listeDe(recherche).querySelectorAll('[data-rang]')];
+    if (!options.length) return;
+
+    const actuelle = options.findIndex((option) => option.id === recherche.getAttribute('aria-activedescendant'));
+    const suivante = options[actuelle === -1 ? (pas > 0 ? 0 : options.length - 1) : (actuelle + pas + options.length) % options.length];
+    options.forEach((option) => option.setAttribute('aria-selected', String(option === suivante)));
+    recherche.setAttribute('aria-activedescendant', suivante.id);
+    suivante.scrollIntoView({ block: 'nearest' });
+}
+
+// Les variantes et les tissus proposés : ceux du produit choisi, aucun pour une ligne libre
+function remplirVariantes(ligne, produit) {
+    const variantes = produit?.variants ?? [];
+    const select = champDe(ligne, 'variant');
+    select.replaceChildren(new Option('- Aucune -', ''), ...variantes.map((variante) => {
+        const option = new Option(`${variante.label} : ${euros(centimes(variante.price))}`, variante.id);
+        option.dataset.prix = variante.price;
+        option.dataset.precision = variante.label;
+        return option;
+    }));
+    select.disabled = !variantes.length;
+    champDe(ligne, 'finish').list.replaceChildren(...(produit?.finishes ?? []).map((finition) => new Option(finition)));
+}
+
+// Le produit choisi reprend sa désignation, son prix et « fabriqué selon les choix du client » : tout reste modifiable
+function choisirProduit(recherche, produit) {
+    const ligne = ligneDe(recherche);
+    fermerListe(recherche);
+    recherche.value = produit.name;
+    champDe(ligne, 'product').value = produit.id;
+    champDe(ligne, 'label').value = produit.name;
+    champDe(ligne, 'customMade').checked = produit.customMade;
+    champDe(ligne, 'unitPrice').value = produit.price;
+    remplirVariantes(ligne, produit);
+    champDe(ligne, 'unitPrice').dispatchEvent(new Event('input', { bubbles: true }));   // les montants suivent
+}
+
+// Taper efface le produit choisi (le texte ne lui correspond plus : ligne libre tant qu'on n'a pas rechoisi),
+// puis cherche après une courte pause dans la frappe
+let pauseFrappe;
+document.addEventListener('input', (e) => {
+    const recherche = e.target.closest('#form-devis [role="combobox"]');
+    if (!recherche) return;
+
+    champDe(ligneDe(recherche), 'product').value = '';
+    remplirVariantes(ligneDe(recherche), null);
+    clearTimeout(pauseFrappe);
+    const texte = recherche.value.trim();
+    if (texte.length < 2) {
+        fermerListe(recherche);
+        return;
+    }
+
+    pauseFrappe = setTimeout(async () => {
+        try {
+            const produits = await (await fetch(`${recherche.dataset.url}?q=${encodeURIComponent(texte)}`)).json();
+            if (recherche.value.trim() === texte) afficherProduits(recherche, produits);   // une réponse dépassée ne remplace pas la suivante
+        } catch {
+            fermerListe(recherche);   // session expirée ou réseau coupé : la ligne reste libre
+        }
+    }, 250);
+});
+
+document.addEventListener('keydown', (e) => {
+    const recherche = e.target.closest('#form-devis [role="combobox"]');
+    if (!recherche || recherche.getAttribute('aria-expanded') !== 'true') return;
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        deplacer(recherche, e.key === 'ArrowDown' ? 1 : -1);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();   // Entrée choisit, sans envoyer le formulaire
+        const active = document.getElementById(recherche.getAttribute('aria-activedescendant'));
+        if (active) choisirProduit(recherche, listeDe(recherche).produits[active.dataset.rang]);
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        fermerListe(recherche);
+    }
+});
+
+// Un clic sur un produit le choisit. mousedown et non click : le champ garde le focus, la liste ne se ferme pas avant.
+document.addEventListener('mousedown', (e) => {
+    const option = e.target.closest('#form-devis [role="listbox"] [data-rang]');
+    if (!option) return;
+
+    e.preventDefault();
+    const liste = option.closest('[role="listbox"]');
+    choisirProduit(document.querySelector(`[aria-controls="${liste.id}"]`), liste.produits[option.dataset.rang]);
+});
+
+document.addEventListener('focusout', (e) => {
+    if (e.target.matches('#form-devis [role="combobox"]')) fermerListe(e.target);
+});
+
+// Une variante choisie reprend son prix et sa taille
 document.addEventListener('change', (e) => {
-    if (e.target.matches('#form-devis [name$="[product]"], #form-devis [name$="[variant]"]')) preRemplirLigne(e.target);
+    const option = e.target.matches('#form-devis [name$="[variant]"]') && e.target.selectedOptions[0];
+    if (!option?.value) return;
+
+    const ligne = ligneDe(e.target);
+    champDe(ligne, 'unitPrice').value = option.dataset.prix;
+    champDe(ligne, 'details').value = option.dataset.precision;
 });
 
 
 // ===== Écran d'un devis : les montants se recalculent pendant la saisie =====
-// Le calcul de src/Service/QuoteCalculator.php, en centimes pour éviter les erreurs d'arrondi des nombres à virgule.
-// Pour l'affichage seulement : le serveur recalcule tout à l'enregistrement.
-const centimes = (champ) => Math.round((parseFloat(champ.value) || 0) * 100);
-const euros = (montant) => (montant / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+// Le calcul de src/Service/QuoteCalculator.php, pour l'affichage seulement : le serveur recalcule tout à l'enregistrement.
 // Remise en % (centièmes de %) ou en centimes d'euro, jamais plus que le montant remisé
 const reduction = (base, valeur, type) => Math.min(base, type === 'percent' ? Math.round(base * valeur / 10000) : valeur);
 
 function recalculerDevis(form) {
     const lignes = [...form.querySelectorAll('.collection-ligne')].map((ligne) => {
-        const champ = (nom) => ligne.querySelector(`[name$="[${nom}]"]`);
-        const brut = (parseInt(champ('quantity').value, 10) || 0) * centimes(champ('unitPrice'));
-        const total = brut - reduction(brut, centimes(champ('discountValue')), champ('discountType').value);
-        champ('total').value = euros(total);
+        const brut = (parseInt(champDe(ligne, 'quantity').value, 10) || 0) * centimes(champDe(ligne, 'unitPrice').value);
+        const total = brut - reduction(brut, centimes(champDe(ligne, 'discountValue').value), champDe(ligne, 'discountType').value);
+        champDe(ligne, 'total').value = euros(total);
         return total;
     });
 
     const champ = (nom) => form.elements[`quote[${nom}]`];
     const articles = lignes.reduce((somme, total) => somme + total, 0);
-    const remise = reduction(articles, centimes(champ('discountValue')), champ('discountType').value);
+    const remise = reduction(articles, centimes(champ('discountValue').value), champ('discountType').value);
     const retrait = champ('pickup').checked;   // retrait au showroom : ni livraison ni montage
-    const livraison = retrait ? 0 : centimes(champ('deliveryFee'));
-    const montage = retrait ? 0 : centimes(champ('assemblyFee'));
+    const livraison = retrait ? 0 : centimes(champ('deliveryFee').value);
+    const montage = retrait ? 0 : centimes(champ('assemblyFee').value);
     const ttc = articles - remise + livraison + montage;
     const ht = Math.round(ttc * 100 / (100 + Number(form.dataset.tva)));
     const acompte = Math.round(ttc * Number(form.dataset.acompte) / 100);

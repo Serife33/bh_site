@@ -6,9 +6,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-// Une ligne de devis : un produit du catalogue ou une ligne libre. Le produit ne sert qu'à pré-remplir
-// la ligne et à montrer sa photo : libellé, précisions et prix sont recopiés et restent modifiables à la main.
+// Une ligne de devis : un produit du catalogue, avec sa variante, ou une ligne libre. Produit et variante
+// pré-remplissent la ligne et donnent sa photo : libellé, précisions et prix sont recopiés et restent modifiables à la main.
 #[ORM\Entity]
+#[Assert\Expression(
+    'this.getVariant() === null or this.getVariant().getProduct() === this.getProduct()',
+    message: "Cette variante n'appartient pas au produit choisi.",
+)]
 class QuoteLine
 {
     use DiscountTrait;   // porte sur le total de la ligne, pas sur chaque unité
@@ -27,6 +31,11 @@ class QuoteLine
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Product $product = null;
+
+    // Sa taille ou sa matière, qui fixe le prix proposé
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?ProductVariant $variant = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'La désignation est obligatoire.')]
@@ -83,6 +92,18 @@ class QuoteLine
     public function setProduct(?Product $product): static
     {
         $this->product = $product;
+
+        return $this;
+    }
+
+    public function getVariant(): ?ProductVariant
+    {
+        return $this->variant;
+    }
+
+    public function setVariant(?ProductVariant $variant): static
+    {
+        $this->variant = $variant;
 
         return $this;
     }

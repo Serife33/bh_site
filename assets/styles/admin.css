@@ -629,6 +629,13 @@ tr.est-masque { opacity: .55; }
 #form-devis .collection-ligne input:disabled { width: 110px; font-weight: 700; color: #1A1A18; }
 #form-devis .collection-ligne textarea { min-height: 0; }
 
+/* La recherche de produit d'une ligne : les produits trouvés s'ouvrent sous le champ (quote/_line_theme.html.twig) */
+.recherche-produit { position: relative; }
+.resultats { position: absolute; z-index: 10; left: 0; right: 0; max-height: 280px; overflow-y: auto; margin: 2px 0 0; padding: 0; list-style: none; background: #fff; border: 1px solid #C9C2BA; border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, .08); }
+.resultats li { padding: .45rem .6rem; font-size: 14px; cursor: pointer; }
+.resultats li[aria-selected="true"], .resultats li[data-rang]:hover { background: #F2EDE8; }
+.resultats li[aria-disabled] { color: #6B6560; cursor: default; }
+
 /* Le récapitulatif : même tableau que sur le devis imprimé (quote/_totals.html.twig) */
 .admin-content .totaux { margin: 0; font-variant-numeric: tabular-nums; }
 .admin-content .totaux th, .admin-content .totaux td { padding: .25rem 0; border: 0; background: none; }

@@ -42,8 +42,7 @@ class ProductRepository extends ServiceEntityRepository
             ->addOrderBy('p.id', 'ASC');    // départage : sans clé finale unique, la pagination oublie des lignes
 
         if ($search !== null && $search !== '') {
-            $qb->andWhere('p.name LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+            $this->andWhereNameContains($qb, $search);
         }
 
         if ($category !== null) {
@@ -212,20 +211,43 @@ class ProductRepository extends ServiceEntityRepository
             return null;
         }
 
-        // Les tissus et leurs coloris : Doctrine remplit les collections du produit déjà chargé,
-        // au lieu d'une requête pour les tissus puis d'une par tissu.
+        $this->loadFinishes([$product]);
+
+        return $product;
+    }
+
+    // Les tissus et leurs coloris, les finitions et celles des matières des variantes de ces produits :
+    // Doctrine remplit les collections des produits déjà chargés, une requête par collection
+    // au lieu d'une par produit et par tissu au premier accès.
+    private function loadFinishes(array $products): void
+    {
+        if ($products === []) {
+            return;
+        }
+
         $this->createQueryBuilder('p')
             ->leftJoin('p.fabrics', 'fa')
             ->leftJoin('fa.fabricColors', 'fc')
             ->addSelect('fa', 'fc')
-            ->andWhere('p = :product')
-            ->setParameter('product', $product)
+            ->andWhere('p IN (:products)')
+            ->setParameter('products', $products)
             ->orderBy('fa.id', 'ASC')   // l'ordre de la table de liaison, celui du chargement au premier accès
             ->getQuery()
             ->getResult();
 
-        // Les finitions des matières de ses variantes, de la même façon
-        $matieres = array_filter($product->getVariants()->map(fn ($variant) => $variant->getFabric())->toArray());
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.colors', 'co')
+            ->addSelect('co')
+            ->andWhere('p IN (:products)')
+            ->setParameter('products', $products)
+            ->getQuery()
+            ->getResult();
+
+        // Les matières des variantes et leurs finitions
+        $matieres = array_filter(array_merge(...array_map(
+            static fn (Product $product) => $product->getVariants()->map(static fn ($variant) => $variant->getFabric())->toArray(),
+            $products,
+        )));
         if ($matieres) {
             $this->getEntityManager()->createQueryBuilder()
                 ->select('m', 'fi')
@@ -236,8 +258,6 @@ class ProductRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
         }
-
-        return $product;
     }
 
     public function findSimilar(Product $product, int $limit = 4): array
@@ -333,25 +353,39 @@ class ProductRepository extends ServiceEntityRepository
         return $qb;
     }
 
-    // Le catalogue proposé dans une ligne de devis : tous les produits, masqués et modules compris (le showroom les vend aussi)
-    public function createForQuoteQueryBuilder(): QueryBuilder
+    // La recherche de produit d'une ligne de devis : les premiers par ordre alphabétique, masqués et modules
+    // compris (le showroom les vend aussi), avec leurs variantes (chargées ensemble, en une requête) et leurs finitions
+    public function findForQuoteSearch(string $search, int $limit): array
     {
-        return $this->createQueryBuilder('p')
+        $products = $this->andWhereNameContains($this->createQueryBuilder('p'), $search)
             ->orderBy('p.name', 'ASC')
-            ->addOrderBy('p.id', 'ASC');
+            ->addOrderBy('p.id', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        $this->loadFinishes($products);
+
+        return $products;
     }
 
-    // Leurs variantes, rangées par produit, avec la matière qui les décrit
-    public function createVariantsForQuoteQueryBuilder(): QueryBuilder
+    // Le produit et la variante d'une ligne de devis, reçus par leur identifiant
+    public function findForQuoteLine(int $id): ?Product
     {
-        return $this->getEntityManager()->createQueryBuilder()
-            ->select('v', 'p', 'f')
-            ->from(ProductVariant::class, 'v')
-            ->join('v.product', 'p')
-            ->leftJoin('v.fabric', 'f')
-            ->orderBy('p.name', 'ASC')
-            ->addOrderBy('v.position', 'ASC')
-            ->addOrderBy('v.id', 'ASC');
+        return $this->find($id);
+    }
+
+    public function findVariantForQuoteLine(int $id): ?ProductVariant
+    {
+        return $this->getEntityManager()->find(ProductVariant::class, $id);
+    }
+
+    // La recherche par nom des listes de l'admin, partagée par la liste des produits et les lignes de devis.
+    // Les % et _ tapés sont cherchés tels quels, pas comme des jokers.
+    private function andWhereNameContains(QueryBuilder $qb, string $search): QueryBuilder
+    {
+        return $qb->andWhere('p.name LIKE :search')
+            ->setParameter('search', '%' . addcslashes($search, '%_\\') . '%');
     }
 
     // Les produits dont une variante est dans cette matière : tant qu'il y en a, elle ne se supprime pas.

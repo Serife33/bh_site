@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\AdminUser;
 use App\Entity\Customer;
 use App\Entity\Quote;
+use App\Entity\QuoteLine;
 use App\Enum\QuoteStatus;
 use App\Repository\AdminUserRepository;
 use App\Repository\CustomerRepository;
@@ -36,6 +37,7 @@ class QuoteType extends AbstractType
             ->add('lines', CollectionType::class, [
                 'label' => 'Lignes du devis',
                 'entry_type' => QuoteLineType::class,
+                'prototype_data' => new QuoteLine(),   // une ligne ajoutée part de quantité 1 et remise 0, comme la première
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false,   // passe par addLine()/removeLine(), qui relient la ligne au devis

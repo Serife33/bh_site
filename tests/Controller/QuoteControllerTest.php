@@ -5,8 +5,11 @@ namespace App\Tests\Controller;
 use App\Entity\AdminUser;
 use App\Entity\Category;
 use App\Entity\Customer;
+use App\Entity\Fabric;
+use App\Entity\FabricColor;
 use App\Entity\Invoice;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
 use App\Enum\ProductModular;
@@ -63,6 +66,7 @@ final class QuoteControllerTest extends WebTestCase
         yield 'liste des devis' => ['/admin/devis'];
         yield 'nouveau devis' => ['/admin/devis/new'];
         yield 'fichier client' => ['/admin/client'];
+        yield 'recherche de produit' => ['/admin/devis/produits?q=madrid'];
     }
 
     // Le devis BHD-2026-11-001 de la maquette, saisi dans le formulaire, puis sa page imprimable
@@ -104,6 +108,55 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorCount(2, '.choix');                            // « Fabriqué selon vos choix » : canapé et tapis
         self::assertSelectorTextContains('.doc', 'vendeur-test@example.com');   // « Votre conseiller »
         self::assertSelectorTextContains('.pied .ac', '[À COMPLÉTER');     // l'identité légale reste à fournir
+    }
+
+    // « Je tape Madrid et je retrouve tous les Madrid » : 20 au plus, avec leurs variantes et leurs tissus
+    public function testProductSearchForQuoteLines(): void
+    {
+        $fabric = (new Fabric())->setName('Chenille')->setReference('Essai')->addFabricColor((new FabricColor())->setName('Terra')->setHex('#B16042'));
+        $this->em->persist($fabric);
+        $first = $this->product('Canapé ESSAIMADRID 01')->addFabric($fabric)
+            ->addVariant((new ProductVariant())->setSize('160x200')->setInitialPrice('1155.00')->setActualPrice('1155.00'));
+        for ($i = 2; $i <= 25; ++$i) {
+            $this->product(sprintf('Canapé ESSAIMADRID %02d', $i));
+        }
+        $this->client->loginUser($this->seller);
+
+        $products = $this->searchProducts('essaimadrid');
+        self::assertCount(20, $products);
+        self::assertSame(['id' => $first->getId(), 'name' => 'Canapé ESSAIMADRID 01', 'price' => '1155.00', 'customMade' => true,
+            'variants' => [['id' => $first->getVariants()->first()->getId(), 'label' => 'Taille 160x200', 'price' => '1155.00']],
+            'finishes' => ['Chenille Essai, Terra']], $products[0]);
+        self::assertSame('Canapé ESSAIMADRID 20', $products[19]['name']);   // par ordre alphabétique
+        self::assertCount(20, $this->searchProducts('madrid'));
+        foreach ($this->searchProducts('madrid') as $product) {
+            self::assertStringContainsStringIgnoringCase('madrid', $product['name']);
+        }
+
+        // Trop court, ou des caractères spéciaux cherchés tels quels : rien, et pas d'erreur
+        self::assertSame([], $this->searchProducts('m'));
+        self::assertSame([], $this->searchProducts("%' OR 1=1 -- "));
+        self::assertSame([], $this->searchProducts('%%'));
+    }
+
+    public function testForeignVariantIsRefused(): void
+    {
+        $sofa = $this->product('Canapé essai');
+        $bed = $this->product('Lit essai')->addVariant((new ProductVariant())->setSize('160x200')->setInitialPrice('900.00')->setActualPrice('900.00'));
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+
+        $values = $this->client->request('GET', '/admin/devis/new')->filter('#form-devis')->form()->getPhpValues();
+        $values['quote']['customer'] = $this->customer->getId();
+        $values['quote']['lines'] = [
+            $this->line('Canapé essai', '1590.00', '0', 'percent', ['product' => $sofa->getId(), 'variant' => $bed->getVariants()->first()->getId()]),
+            $this->line('Produit disparu', '100.00', '0', 'percent', ['product' => '999999999']),
+        ];
+        $this->client->request('POST', '/admin/devis/new', $values);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#form-devis', "Cette variante n'appartient pas au produit choisi.");
+        self::assertSelectorTextContains('#form-devis', "Ce produit n'existe plus dans le catalogue.");
     }
 
     public function testInvalidAmountsAreRefused(): void
@@ -234,6 +287,14 @@ final class QuoteControllerTest extends WebTestCase
             $connection->rollBack();
             $other->shutdown();
         }
+    }
+
+    private function searchProducts(string $search): array
+    {
+        $this->client->request('GET', '/admin/devis/produits?q=' . urlencode($search));
+        self::assertResponseIsSuccessful();
+
+        return json_decode($this->client->getResponse()->getContent(), true);
     }
 
     private function line(string $label, string $unitPrice, string $discount, string $type, array $more = []): array
