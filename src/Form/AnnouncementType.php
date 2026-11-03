@@ -18,6 +18,7 @@ class AnnouncementType extends AbstractType
         $builder
             ->add('text', TextType::class, [
                 'label' => 'Message',
+                'empty_data' => '',   // vidé ou que des espaces : « obligatoire » s'affiche au lieu d'une erreur 500
                 'attr' => ['maxlength' => 120, 'placeholder' => 'Livraison partout en France'],
                 'help' => '120 caractères maximum.',
             ])

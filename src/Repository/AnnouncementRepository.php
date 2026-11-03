@@ -27,7 +27,7 @@ class AnnouncementRepository extends ServiceEntityRepository
     }
 
     // Le bandeau d'un jour donné : les messages visibles, permanents ou dans leur période (jours de début et de fin inclus).
-    // Le type DATE ne garde que le jour de $day, dans son propre fuseau.
+    // Le type DATE ne garde que le jour de $day, dans son propre fuseau. Même règle que Announcement::getStatus().
     public function findVisibleOn(\DateTimeImmutable $day): array
     {
         return $this->createBandQueryBuilder()

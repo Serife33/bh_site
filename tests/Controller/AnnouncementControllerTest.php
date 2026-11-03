@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Entity\AdminUser;
+use App\Entity\Announcement;
 use App\Repository\AnnouncementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -51,6 +52,8 @@ final class AnnouncementControllerTest extends WebTestCase
         // Un lien vers un autre site : nouvel onglet, sans accès à la page d'origine. Deux fois, pour la boucle sans couture.
         $this->client->request('GET', '/');
         self::assertSelectorCount(2, '.band-track span a[href="https://www.instagram.com/brillancehome"][target="_blank"][rel="noopener"]');
+        // La copie est ignorée par les lecteurs d'écran et par le clavier
+        self::assertSelectorCount(1, '.band-track span[aria-hidden="true"] a[href="https://www.instagram.com/brillancehome"][tabindex="-1"]');
     }
 
     public function testJavascriptLinkIsRefused(): void
@@ -64,6 +67,18 @@ final class AnnouncementControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('form', 'Le lien doit commencer par « / »');
+    }
+
+    public function testEmptiedMessageIsRefused(): void
+    {
+        $announcement = (new Announcement())->setText('Message à vider');
+        $this->em->persist($announcement);
+        $this->logIn();
+        $this->client->request('GET', '/admin/announcement/'.$announcement->getId().'/edit');
+        $this->client->submitForm('Enregistrer', ['announcement[text]' => '']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form', 'Le message est obligatoire.');
     }
 
     public function testNoVisibleMessageNoBand(): void

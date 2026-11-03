@@ -5,13 +5,13 @@
 {% if annonces %}
     <div class="band">
         <div class="band-track">
-            {# le second passage est la duplication pour la boucle sans couture #}
+            {# le second passage est la duplication pour la boucle sans couture : lecteurs d'écran et clavier l'ignorent #}
             {% for passage in 1..2 %}
                 {% for annonce in annonces %}
-                    <span class="{{ annonce.isPromo ? 'band-promo' : '' }}">
+                    <span class="{{ annonce.isPromo ? 'band-promo' : '' }}"{% if passage == 2 %} aria-hidden="true"{% endif %}>
                         {%- if annonce.link -%}
-                            {# un lien https mène hors du site : nouvel onglet, sans accès à cette page #}
-                            <a href="{{ annonce.link }}"{% if annonce.link starts with 'https://' %} target="_blank" rel="noopener"{% endif %}>{{ annonce.text }}</a>
+                            {#- un lien https mène hors du site : nouvel onglet, sans accès à cette page -#}
+                            <a href="{{ annonce.link }}"{% if passage == 2 %} tabindex="-1"{% endif %}{% if annonce.link starts with 'https://' %} target="_blank" rel="noopener"{% endif %}>{{ annonce.text }}</a>
                         {%- else -%}
                             {{ annonce.text }}
                         {%- endif -%}

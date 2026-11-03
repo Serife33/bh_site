@@ -2,6 +2,7 @@
 
 namespace App\Twig\Runtime;
 
+use App\Entity\Announcement;
 use App\Repository\AnnouncementRepository;
 use App\Repository\CategoryRepository;
 use Twig\Extension\RuntimeExtensionInterface;
@@ -19,9 +20,8 @@ class AppExtensionRuntime implements RuntimeExtensionInterface
         return $this->categoryRepository->findForMenu();
     }
 
-    // Les messages du bandeau ce jour, à l'heure de Paris (le projet ne fixe aucun fuseau)
     public function getBandAnnouncements(): array
     {
-        return $this->announcementRepository->findVisibleOn(new \DateTimeImmutable('today', new \DateTimeZone('Europe/Paris')));
+        return $this->announcementRepository->findVisibleOn(Announcement::today());
     }
 }

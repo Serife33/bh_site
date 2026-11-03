@@ -142,6 +142,12 @@ class Announcement
         return $this;
     }
 
+    // Le jour du bandeau : celui de Paris, quel que soit le fuseau du serveur (le projet n'en fixe aucun)
+    public static function today(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('today', new \DateTimeZone('Europe/Paris'));
+    }
+
     // L'état affiché dans la liste de l'admin, selon la même règle que AnnouncementRepository::findVisibleOn.
     // Les dates se comparent au format Y-m-d : seul le jour compte, pas l'heure ni le fuseau.
     public function getStatus(\DateTimeImmutable $today): string

@@ -19,8 +19,7 @@ final class AnnouncementController extends AbstractController
     {
         return $this->render('announcement/index.html.twig', [
             'announcements' => $announcementRepository->findForIndex(),
-            // l'état de chaque message se juge au jour de Paris, comme le bandeau
-            'today' => new \DateTimeImmutable('today', new \DateTimeZone('Europe/Paris')),
+            'today' => Announcement::today(),
         ]);
     }
 

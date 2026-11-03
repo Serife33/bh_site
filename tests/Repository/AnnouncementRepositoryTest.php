@@ -26,15 +26,17 @@ final class AnnouncementRepositoryTest extends KernelTestCase
 
     public function testVisibleOnTheSeventhPromosFirst(): void
     {
-        $this->announcement('Test sans dates', null, null);
-        $this->announcement('Test pendant, un seul jour', '2026-11-07', '2026-11-07')->setIsPromo(true)->setPosition(99);
-        $this->announcement('Test avant', '2026-11-08', null);
-        $this->announcement('Test après', null, '2026-11-06');
-        $this->announcement('Test masqué', null, null)->setIsVisible(false);
+        $day = new \DateTimeImmutable('2026-11-07', new \DateTimeZone('Europe/Paris'));
+        $created = [
+            $this->announcement('Test sans dates', null, null),
+            $this->announcement('Test pendant, un seul jour', '2026-11-07', '2026-11-07')->setIsPromo(true)->setPosition(99),
+            $this->announcement('Test avant', '2026-11-08', null),
+            $this->announcement('Test après', null, '2026-11-06'),
+            $this->announcement('Test masqué', null, null)->setIsVisible(false),
+        ];
         $this->em->flush();
 
-        $announcements = self::getContainer()->get(AnnouncementRepository::class)
-            ->findVisibleOn(new \DateTimeImmutable('2026-11-07', new \DateTimeZone('Europe/Paris')));
+        $announcements = self::getContainer()->get(AnnouncementRepository::class)->findVisibleOn($day);
         // Les messages déjà en base restent : on ne regarde que ceux du test
         $texts = array_values(array_filter(
             array_map(static fn (Announcement $announcement) => $announcement->getText(), $announcements),
@@ -42,6 +44,11 @@ final class AnnouncementRepositoryTest extends KernelTestCase
         ));
 
         self::assertSame(['Test pendant, un seul jour', 'Test sans dates'], $texts);
+
+        // La règle SQL du site et l'état de l'admin (getStatus) disent la même chose pour chaque message
+        foreach ($created as $announcement) {
+            self::assertSame(in_array($announcement, $announcements, true), $announcement->getStatus($day) === 'En ligne', $announcement->getText());
+        }
     }
 
     private function announcement(string $text, ?string $start, ?string $end): Announcement
