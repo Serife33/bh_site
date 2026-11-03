@@ -328,7 +328,7 @@ document.addEventListener('click', (e) => {
 
 
 // ===== Composition d'un canapé modulable =====
-// Les quantités sont écrites dans la page : chaque fiche affichée part de zéro.
+// Les quantités sont écrites dans la page : chaque fiche affichée part des modules de sa photo.
 const MODULES_MAX = 9;
 
 // Même format que le filtre Twig `prix` : « 2 847 € », espaces insécables, sans décimales
@@ -378,12 +378,15 @@ document.addEventListener('click', (e) => {
     window.open(lienWhatsApp(btn.dataset.wa, message), '_blank');
 });
 
-// Turbo garde une copie de la page pour le retour arrière : on la garde sans composition
+// Le récapitulatif de la composition de départ
+document.addEventListener('turbo:load', () => document.querySelectorAll('.composition').forEach(afficherComposition));
+
+// Turbo garde une copie de la page pour le retour arrière : on la remet comme sur la photo
 document.addEventListener('turbo:before-cache', () => {
     const composition = document.querySelector('.composition');
     if (!composition) return;
 
-    composition.querySelectorAll('.compo-nb').forEach((nb) => { nb.textContent = 0; });
+    composition.querySelectorAll('.compo-nb').forEach((nb) => { nb.textContent = nb.dataset.initial; });
     afficherComposition(composition);
 });
 
