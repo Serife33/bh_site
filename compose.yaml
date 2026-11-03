@@ -1,18 +1,18 @@
 services:
 
-  # 1. La base de données — MySQL 8.4 LTS
+  # 1. La base de données : MariaDB 11.4, le même moteur que la prod o2switch
   database:
-    image: mysql:8.4
+    image: mariadb:11.4
     container_name: bh_database
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: bh_site
-      MYSQL_USER: bh_user
-      MYSQL_PASSWORD: bh_pass
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: bh_site
+      MARIADB_USER: bh_user
+      MARIADB_PASSWORD: bh_pass
     ports:
       - "3306:3306"
     volumes:
-      - database_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
 
   # 2. PHP — c'est ici que ton code Symfony s'exécute
   php:
@@ -48,4 +48,4 @@ services:
       - database
 
 volumes:
-  database_data:
+  mariadb_data:
