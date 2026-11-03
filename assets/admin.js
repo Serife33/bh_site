@@ -128,10 +128,82 @@ function activerGlisser() {
     });
 }
 
+// Ce que chaque page doit brancher : les listes glissables et les champs de recherche des pastilles.
+function brancherPage() {
+    activerGlisser();
+    ajouterRecherches();
+}
+
 // Turbo remplace le <body> sans relancer le script : on rebranche à chaque navigation.
-document.addEventListener('turbo:load', activerGlisser);
+document.addEventListener('turbo:load', brancherPage);
 // Filet de sécurité si Turbo est coupé un jour.
-document.addEventListener('DOMContentLoaded', activerGlisser);
+document.addEventListener('DOMContentLoaded', brancherPage);
+
+
+// ===== Groupes de pastilles : un champ « Rechercher » au-dessus des longues listes =====
+// Les mêmes groupes que « GROUPES DE CHOIX EN PASTILLES » dans admin.css. Le filtre ne fait que
+// masquer des pastilles déjà dans la page : aucune requête. Une pastille cochée reste toujours visible.
+const GROUPES_PASTILLES = '[id$="_modules"], [id$="_products"], [id$="_fabrics"], [id$="_colors"], [id$="_subCategories"]';
+const SEUIL_RECHERCHE = 12;
+
+// « canape » trouve « Canapé » : minuscules, accents retirés
+const normaliser = (texte) => texte.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+const pluriel = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;
+
+function ajouterRecherches() {
+    document.querySelectorAll(GROUPES_PASTILLES).forEach((groupe) => {
+        if (groupe.querySelectorAll('input[type=checkbox]').length <= SEUIL_RECHERCHE) return;
+        if (groupe.previousElementSibling.matches('.pastilles-recherche')) return;   // déjà ajouté (Turbo et DOMContentLoaded)
+
+        const barre = document.createElement('div');
+        barre.className = 'pastilles-recherche';
+        barre.innerHTML = '<input type="search" placeholder="Rechercher"><span class="pastilles-compte" aria-live="polite"></span>';
+        // Le titre du groupe (« Tissus disponibles »…) est le libellé de sa ligne de formulaire
+        barre.firstChild.setAttribute('aria-label', `Rechercher dans « ${groupe.parentElement.querySelector(':scope > label').textContent.trim()} »`);
+        groupe.before(barre);
+        filtrerPastilles(groupe);
+    });
+}
+
+// Affiche les pastilles qui contiennent tous les mots cherchés, plus celles déjà cochées, et les compte.
+function filtrerPastilles(groupe) {
+    const barre = groupe.previousElementSibling;
+    const mots = normaliser(barre.querySelector('input').value).split(/\s+/).filter(Boolean);
+    let cochees = 0;
+    let affichees = 0;
+
+    groupe.querySelectorAll('input[type=checkbox]').forEach((caseACocher) => {
+        const pastille = caseACocher.nextElementSibling;   // Symfony écrit chaque libellé juste après sa case
+        const visible = caseACocher.checked || mots.every((mot) => normaliser(pastille.textContent).includes(mot));
+        caseACocher.hidden = pastille.hidden = !visible;
+        cochees += caseACocher.checked ? 1 : 0;
+        affichees += visible ? 1 : 0;
+    });
+
+    barre.querySelector('.pastilles-compte').textContent = `${pluriel(cochees, 'coché')} · ${pluriel(affichees, 'affiché')}`;
+}
+
+document.addEventListener('input', (e) => {
+    if (e.target.matches('.pastilles-recherche input')) filtrerPastilles(e.target.parentElement.nextElementSibling);
+});
+
+// Cocher ou décocher met le compte à jour
+document.addEventListener('change', (e) => {
+    const groupe = e.target.closest(GROUPES_PASTILLES);
+    if (groupe?.previousElementSibling.matches('.pastilles-recherche')) filtrerPastilles(groupe);
+});
+
+// Échap vide le champ ; Entrée ne doit pas envoyer tout le formulaire
+document.addEventListener('keydown', (e) => {
+    if (!e.target.matches('.pastilles-recherche input')) return;
+
+    if (e.key === 'Enter') e.preventDefault();
+    if (e.key === 'Escape' && e.target.value) {
+        e.preventDefault();
+        e.target.value = '';
+        filtrerPastilles(e.target.parentElement.nextElementSibling);
+    }
+});
 
 
 // ===== Page « Ajouter des photos » : une vignette et un champ alt par fichier choisi =====

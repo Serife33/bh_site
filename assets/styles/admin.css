@@ -85,6 +85,7 @@
 .admin-content input[type=number],
 .admin-content input[type=email],
 .admin-content input[type=password],
+.admin-content input[type=search],
 .admin-content select,
 .admin-content textarea {
   width: 100%;
@@ -327,6 +328,19 @@
   outline: 2px solid #8B6F4E;
   outline-offset: 2px;
 }
+
+/* Le champ « Rechercher » qu'admin.js ajoute au-dessus des groupes de plus d'une douzaine de pastilles */
+.pastilles-recherche {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  margin-bottom: 0.5rem;
+}
+.pastilles-compte { font-size: 13px; color: #6B6560; }
+
+/* Une pastille écartée par la recherche : hidden doit l'emporter sur le display des pastilles */
+.admin-content [hidden] { display: none !important; }
 
 
 /* ===== PAGE « ORDRE D'AFFICHAGE » ===== */
