@@ -156,6 +156,30 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSame('[]', $this->client->getResponse()->getContent());   // 2 lettres au moins
     }
 
+    // Le client se cherche mot par mot, et par son téléphone tapé sans séparateurs
+    public function testCustomerSearchByWordsAndPhoneDigits(): void
+    {
+        $this->em->persist((new Customer())->setLastName('Martin')->setFirstName('Claire')->setPhone('06.12.34.56.78'));
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+        $names = function (string $search): array {
+            $this->client->request('GET', '/admin/devis/clients?q=' . urlencode($search));
+
+            return array_column(json_decode($this->client->getResponse()->getContent(), true), 'name');
+        };
+
+        // Prénom et nom dans les deux ordres, chaque mot n'importe où ; téléphone tapé sans ses espaces ni ses points
+        self::assertSame(['Claire Martin'], $names('Claire Martin'));
+        self::assertSame(['Claire Martin'], $names('martin  CLAIRE'));
+        self::assertSame([], $names('Claire Exemple'));
+        self::assertSame(['Client Exemple'], $names('0600'));
+        self::assertSame(['Claire Martin'], $names('martin 0612'));
+        // La liste des clients cherche de la même façon
+        $this->client->request('GET', '/admin/client?q=' . urlencode('Martin Claire'));
+        self::assertSelectorTextContains('tbody', 'Martin');
+        self::assertSelectorTextNotContains('tbody', 'Exemple');
+    }
+
     // Une ligne libre : le nom tapé dans le champ « Article », sans produit choisi, est le nom imprimé
     public function testFreeLineByTheArticleField(): void
     {

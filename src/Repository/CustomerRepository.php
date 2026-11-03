@@ -53,11 +53,18 @@ class CustomerRepository extends ServiceEntityRepository
         return $this->find($id);
     }
 
-    // La recherche du fichier client, partagée par sa liste et le devis : nom, prénom, téléphone ou e-mail.
-    // Les % et _ tapés sont cherchés tels quels, pas comme des jokers.
+    // La recherche du fichier client, partagée par sa liste et le devis : chaque mot tapé doit se trouver dans le nom,
+    // le prénom, l'e-mail ou le téléphone (« Claire Martin » comme « Martin Claire »). Le téléphone est comparé sans ses
+    // séparateurs : « 0600 » trouve « 06 00 00 00 01 ». Les % et _ tapés sont cherchés tels quels, pas comme des jokers.
     private function andWhereMatches(QueryBuilder $qb, string $search): QueryBuilder
     {
-        return $qb->andWhere('c.lastName LIKE :search OR c.firstName LIKE :search OR c.phone LIKE :search OR c.email LIKE :search')
-            ->setParameter('search', '%' . addcslashes($search, '%_\\') . '%');
+        $like = static fn (string $text) => '%' . addcslashes($text, '%_\\') . '%';
+        foreach (preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) as $i => $word) {
+            $qb->andWhere("c.lastName LIKE :word$i OR c.firstName LIKE :word$i OR c.email LIKE :word$i OR REPLACE(REPLACE(REPLACE(c.phone, ' ', ''), '.', ''), '-', '') LIKE :digits$i")
+                ->setParameter("word$i", $like($word))
+                ->setParameter("digits$i", $like(str_replace(['.', '-'], '', $word)));
+        }
+
+        return $qb;
     }
 }
