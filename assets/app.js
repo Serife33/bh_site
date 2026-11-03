@@ -327,6 +327,70 @@ document.addEventListener('click', (e) => {
 });
 
 
+// ===== Composition d'un canapé modulable =====
+// Les quantités sont écrites dans la page : chaque fiche affichée part des modules de sa photo.
+const MODULES_MAX = 9;
+
+// Même format que le filtre Twig `prix` : « 2 847 € », espaces insécables, sans décimales
+function formaterPrix(montant) {
+    return Math.round(montant).toString().replace(/\B(?=(\d{3})+$)/g, ' ') + ' €';
+}
+
+// Le récapitulatif (modules choisis et total) et l'état des boutons − et +, d'après les quantités
+function afficherComposition(composition) {
+    let total = 0;
+    const lignes = [];
+    composition.querySelectorAll('.compo-module').forEach((module) => {
+        const nombre = +module.querySelector('.compo-nb').textContent;
+        module.querySelector('.compo-moins').setAttribute('aria-disabled', nombre === 0);
+        module.querySelector('.compo-plus').setAttribute('aria-disabled', nombre === MODULES_MAX);
+        if (!nombre) return;
+
+        total += nombre * module.dataset.prix;
+        lignes.push(Object.assign(document.createElement('li'), { textContent: nombre + ' × ' + module.dataset.nom }));
+    });
+
+    composition.querySelector('.compo-liste').replaceChildren(...lignes);
+    composition.querySelector('.compo-total').textContent = formaterPrix(total);
+    composition.querySelector('.compo-commander').disabled = !lignes.length;
+}
+
+// − et + : une quantité entre 0 et MODULES_MAX
+document.addEventListener('click', (e) => {
+    const bouton = e.target.closest('.compo-moins, .compo-plus');
+    if (!bouton) return;
+
+    const nb = bouton.parentElement.querySelector('.compo-nb');
+    nb.textContent = Math.min(MODULES_MAX, Math.max(0, +nb.textContent + (bouton.classList.contains('compo-plus') ? 1 : -1)));
+    afficherComposition(bouton.closest('.composition'));
+});
+
+// Le message reprend le récapitulatif affiché
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.compo-commander');
+    if (!btn) return;
+
+    const composition = btn.closest('.composition');
+    const lignes = [...composition.querySelectorAll('.compo-liste li')].map(li => '\n- ' + li.textContent);
+    const message = 'Bonjour, je souhaite commander cette composition ' + composition.dataset.gamme + ' :'
+        + lignes.join('') + '\nTotal : ' + composition.querySelector('.compo-total').textContent;
+
+    window.open(lienWhatsApp(btn.dataset.wa, message), '_blank');
+});
+
+// Le récapitulatif de la composition de départ
+document.addEventListener('turbo:load', () => document.querySelectorAll('.composition').forEach(afficherComposition));
+
+// Turbo garde une copie de la page pour le retour arrière : on la remet comme sur la photo
+document.addEventListener('turbo:before-cache', () => {
+    const composition = document.querySelector('.composition');
+    if (!composition) return;
+
+    composition.querySelectorAll('.compo-nb').forEach((nb) => { nb.textContent = nb.dataset.initial; });
+    afficherComposition(composition);
+});
+
+
 // ===== Bandeau cookies =====
 // Google Analytics ne se charge qu'après « Accepter » : en prod, le bandeau porte son identifiant.
 // Le choix est gardé six mois avec sa date, puis le bandeau revient.
