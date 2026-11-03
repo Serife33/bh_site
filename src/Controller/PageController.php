@@ -20,6 +20,18 @@ final class PageController extends AbstractController
         return $this->render('front/legal/confidentialite.html.twig');
     }
 
+    #[Route('/cgv', name: 'front_cgv', methods: ['GET'])]
+    public function cgv(): Response
+    {
+        return $this->render('front/legal/cgv.html.twig');
+    }
+
+    #[Route('/offres', name: 'front_offres', methods: ['GET'])]
+    public function offres(): Response
+    {
+        return $this->render('front/offres.html.twig');
+    }
+
     #[Route('/contact', name: 'front_contact', methods: ['GET'])]
     public function contact(): Response
     {

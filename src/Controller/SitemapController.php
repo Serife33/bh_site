@@ -19,7 +19,7 @@ final class SitemapController extends AbstractController
         $urls = [];
 
         // Pages statiques
-        foreach (['front_home', 'front_contact', 'front_mentions_legales', 'front_confidentialite'] as $route) {
+        foreach (['front_home', 'front_contact', 'front_offres', 'front_mentions_legales', 'front_cgv', 'front_confidentialite'] as $route) {
             $urls[] = ['loc' => $this->generateUrl($route, [], $abs)];
         }
 

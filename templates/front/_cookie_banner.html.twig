@@ -1,9 +1,12 @@
-<div class="cookie-banner" id="cookie-banner">
-    <p>Ce site utilise des cookies et des services tiers (carte, polices, icônes) pour améliorer votre expérience.
+{# data-ga : identifiant Google Analytics, en prod uniquement. Le JS ne le charge qu'après « Accepter ».
+   data-turbo-permanent : Turbo garde ce bandeau tel quel d'une page à l'autre, affiché ou masqué. #}
+<div class="cookie-banner" id="cookie-banner" role="region" aria-label="Cookies" data-turbo-permanent{% if app.environment == 'prod' %} data-ga="G-MSSLTD451N"{% endif %}>
+    <p>Avec votre accord, nous mesurons l'audience du site avec Google Analytics, qui dépose des cookies.
+       La carte du showroom (Google Maps) ne se charge que si vous cliquez dessus.
+       Vous pouvez changer d'avis à tout moment avec « Gérer les cookies », en bas de page.
        <a href="{{ path('front_confidentialite') }}">En savoir plus</a>.</p>
     <div class="cookie-actions">
-        <button type="button" class="cookie-refuse" data-cookie="refuse">Refuser</button>
-        <button type="button" class="cookie-accept" data-cookie="accept">Accepter</button>
+        <button type="button" data-cookie="refuse">Refuser</button>
+        <button type="button" data-cookie="accept">Accepter</button>
     </div>
 </div>
-
