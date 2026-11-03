@@ -210,7 +210,8 @@ function refleterSelection() {
     for (const [nom, option] of Object.entries(choix)) {
         if (!option) continue;
         option.closest('.cfg-group').querySelector('.cfg-choice').textContent = option.dataset.choix;
-        message += ', ' + nom + ' ' + option.dataset.choix;
+        // Les tailles sont en centimètres, comme l'annonce le libellé « Taille (cm) »
+        message += ', ' + nom + ' ' + option.dataset.choix + (nom === 'taille' ? ' cm' : '');
     }
     message += '. Je souhaite le commander.';
 

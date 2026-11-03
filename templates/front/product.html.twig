@@ -174,7 +174,7 @@
                     })|json_encode }}">
                         {% if tailles|length %}
                             <div class="cfg-group">
-                                <h3 class="cfg-title">Taille : <span class="cfg-choice">{{ offre.size }}</span></h3>
+                                <h3 class="cfg-title">Taille (cm) : <span class="cfg-choice">{{ offre.size }}</span></h3>
                                 <div class="variant-row">
                                     {% for taille in tailles %}
                                         <button type="button" class="variant-chip taille-opt{{ taille == offre.size ? ' is-active' }}" data-choix="{{ taille }}">
