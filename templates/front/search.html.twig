@@ -12,7 +12,7 @@
 
         <form action="{{ path('front_search') }}" method="get" class="search-form" role="search">
             <input type="search" name="q" value="{{ q }}" placeholder="Rechercher un produit…" aria-label="Rechercher">
-            <button type="submit">Rechercher</button>
+            <button type="submit" class="btn btn-primary">Rechercher</button>
         </form>
 
         {% if q %}

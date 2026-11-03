@@ -13,8 +13,6 @@
                      src="{{ vich_uploader_asset(survol, 'imageFile') | imagine_filter('vignette') }}"
                      alt="" aria-hidden="true" loading="lazy">
             {% endif %}
-        {% else %}
-            <div class="pcard-noimg"></div>
         {% endif %}
 
         {% if product.actualPrice < product.initialPrice %}
