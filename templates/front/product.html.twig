@@ -120,22 +120,24 @@
 
                     {# Visionneuse plein écran, photos seules. Elle reprend les classes de la galerie :
                        flèches et défilement fonctionnent sans code en plus. #}
-                    {% set photos = product.media|filter(m => not m.video) %}
-                    <dialog class="gallery visionneuse" aria-label="Photos en grand">
-                        <button type="button" class="panneau-close" aria-label="Fermer">✕</button>
-                        <div class="gal-viewport">
-                            {% for media in photos %}
-                                <div class="vis-cadre">
-                                    <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
-                                         alt="{{ media.alt ?? product.name }}">
-                                </div>
-                            {% endfor %}
-                        </div>
-                        {% if photos|length > 1 %}
-                            <button type="button" class="gal-arrow gal-prev" aria-label="Photo précédente">‹</button>
-                            <button type="button" class="gal-arrow gal-next" aria-label="Photo suivante">›</button>
-                        {% endif %}
-                    </dialog>
+                    {% set photos = product.photos %}
+                    {% if photos %}
+                        <dialog class="gallery visionneuse" aria-label="Photos en grand">
+                            <button type="button" class="panneau-close" aria-label="Fermer">✕</button>
+                            <div class="gal-viewport">
+                                {% for media in photos %}
+                                    <div class="vis-cadre">
+                                        <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
+                                             alt="{{ media.alt ?? product.name }}">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if photos|length > 1 %}
+                                <button type="button" class="gal-arrow gal-prev" aria-label="Photo précédente">‹</button>
+                                <button type="button" class="gal-arrow gal-next" aria-label="Photo suivante">›</button>
+                            {% endif %}
+                        </dialog>
+                    {% endif %}
                 {% endif %}
             </div>
 

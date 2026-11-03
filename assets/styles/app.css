@@ -684,6 +684,10 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .gal-thumbs::-webkit-scrollbar {
     display: none;
 }
+/* Le seul réglage du mouvement : les défilements du script suivent cette règle */
+@media (prefers-reduced-motion: reduce) {
+    .gal-viewport, .gal-thumbs { scroll-behavior: auto; }
+}
 .gal-thumb {
     flex: 0 0 72px;
     padding: 0;
@@ -832,9 +836,10 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     flex: 0 0 100%;
     scroll-snap-align: start;
     display: flex;
-    overflow: auto;                 /* la photo doublée défile dans son cadre, */
-    overscroll-behavior: contain;   /* sans entraîner la photo voisine */
+    overflow: auto;   /* la photo doublée défile dans son cadre */
 }
+/* Doublée, son défilement n'entraîne pas la voisine ; à sa taille, le glissé doit passer à la voisine */
+.vis-cadre:has(.is-zoomed) { overscroll-behavior: contain; }
 .vis-cadre img {
     flex: none;
     margin: auto;   /* centrée, et une fois doublée, atteignable jusqu'aux bords */
@@ -1068,6 +1073,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     font-size: 14px;
 }
 .cookie-banner.show { display: flex; }   /* rendu visible par le JS */
+body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsApp cachait « Accepter » sur mobile */
 .cookie-banner a { color: #fff; }
 .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .cookie-actions button {
