@@ -160,48 +160,6 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Les derniers produits actifs (pour la grille "Nouveautés" de l'accueil).
-    public function findLatestActive(int $limit = 8): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.isActive = true')   // seulement les produits publiés
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.createdAt', 'DESC')   // les plus récents d'abord
-            ->setMaxResults($limit)            // "limit" produits max
-            ->getQuery()
-            ->getResult();
-    }
-
-    // Produits en promo (prix actuel < prix initial)
-    public function findOnSale(int $limit = 8): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.isActive = true')
-            ->andWhere('p.actualPrice < p.initialPrice')   // ← la promo
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.updatedAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-    }
-
-    //Produits disponibles immédiatement (stock > 0)
-    public function findInStock(int $limit = 8): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.isActive = true')
-            ->andWhere('p.stock > 0')                       // ← en stock
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.position', 'ASC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-    }
-
-
     public function findActiveByCategoryQuery(Category $category, ?SubCategory $subCategory = null): Query
     {
         $qb = $this->createQueryBuilder('p')
