@@ -53,7 +53,7 @@ class QuoteType extends AbstractType
             ])
             // Le prix final n'a de sens que sur une ligne
             ->add('discountType', EnumType::class, QuoteLineType::DISCOUNT_TYPE_OPTIONS + ['choices' => [DiscountType::Percent, DiscountType::Amount]])
-            // Deux options, leur prix n'apparaît que si elles sont cochées (assets/admin.js). Prix vide : offert.
+            // Deux options : leur prix ne compte que si elles sont cochées. Prix vide : offert.
             ->add('delivery', CheckboxType::class, ['label' => 'Livraison (sinon retrait au showroom)', 'required' => false])
             ->add('deliveryFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix de la livraison TTC', 'help' => 'Vide ou 0 : livraison offerte.'])
             ->add('assembly', CheckboxType::class, ['label' => 'Montage', 'required' => false])

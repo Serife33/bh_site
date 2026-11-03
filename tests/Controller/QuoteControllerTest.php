@@ -248,7 +248,7 @@ final class QuoteControllerTest extends WebTestCase
         $this->em->persist($invoice);
         $this->em->flush();
         $this->client->loginUser($this->seller);
-        $visibleTotals = fn ($crawler) => $crawler->filter('.totaux tr:not([hidden]) th')->each(fn ($th) => $th->text());
+        $visibleTotals = fn ($crawler) => $crawler->filter('.totaux th')->each(fn ($th) => $th->text());
 
         $crawler = $this->client->request('GET', '/admin/devis/' . $quote->getId());
         self::assertSelectorTextContains('.parties', 'Retrait au showroom');

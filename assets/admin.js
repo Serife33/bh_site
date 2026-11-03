@@ -429,30 +429,28 @@ function recalculerDevis(form) {
     const champ = (nom) => form.elements[`quote[${nom}]`];
     const articles = lignes.reduce((somme, total) => somme + total, 0);
     const remise = reduction(articles, centimes(champ('discountValue').value), champ('discountType').value);
-    // Livraison et montage : leur prix compte, et son champ apparaît, seulement si la case est cochée
-    const options = { delivery: 'offerte', assembly: 'offert' };
-    Object.keys(options).forEach((cle) => { champ(`${cle}Fee`).parentElement.hidden = !champ(cle).checked; });
+    // Livraison et montage : leur prix ne compte que si la case est cochée. Rien n'apparaît ni ne disparaît :
+    // le récapitulatif dit « offerte » à 0 et « non comprise » sans la case.
+    const options = { delivery: ['offerte', 'non comprise'], assembly: ['offert', 'non compris'] };
     const prixOption = (cle) => (champ(cle).checked ? centimes(champ(`${cle}Fee`).value) : 0);
     const livraison = prixOption('delivery');
     form.querySelector('[data-moment-solde]').textContent = champ('delivery').checked ? 'à la livraison' : 'au retrait';
     const montage = prixOption('assembly');
     const ttc = articles - remise + livraison + montage;
     const ht = Math.round(ttc * 100 / (100 + Number(form.dataset.tva)));
-    // L'acompte : le montant saisi, sinon le taux du devis ; l'indication sous le champ donne l'autre façon de le lire
+    // L'acompte : le montant saisi, sinon le taux du devis, montré en indication dans le champ vide
     const taux = Number(form.dataset.acompte);
     const calcule = Math.round(ttc * taux / 100);
     const saisi = champ('depositAmount').value !== '';
     const acompte = saisi ? centimes(champ('depositAmount').value) : calcule;
-    const part = saisi ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR');
-    indication(champ('depositAmount'), saisi ? `soit ${part} % du total` : `${part} % = ${euros(calcule)}`);
-    form.querySelector('[data-part-acompte]').textContent = `${part}\u00a0%`;
+    champ('depositAmount').placeholder = `${taux.toLocaleString('fr-FR')} % = ${euros(calcule)}`;
+    form.querySelector('[data-part-acompte]').textContent = `${saisi ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR')}\u00a0%`;
 
     const montants = { items: articles, discount: remise, delivery: livraison, assembly: montage, ttc, ht, tva: ttc - ht, deposit: acompte, balance: ttc - acompte };
     Object.entries(montants).forEach(([cle, montant]) => {
         const cellule = form.querySelector(`[data-total="${cle}"]`);
         if (cle in options) {
-            cellule.parentElement.hidden = !champ(cle).checked;   // la ligne du récapitulatif, seulement pour une option cochée
-            cellule.textContent = montant ? euros(montant) : options[cle];
+            cellule.textContent = !champ(cle).checked ? options[cle][1] : (montant ? euros(montant) : options[cle][0]);
             return;
         }
         cellule.textContent = (cle === 'discount' && montant ? '-' : '') + euros(montant);
