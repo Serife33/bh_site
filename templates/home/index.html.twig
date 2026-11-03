@@ -39,30 +39,19 @@
         </div>
     </section>
 
-    {# ===== 3 · PRODUITS : Nouveautés ===== #}
-    {{ include('front/_product_section.html.twig', {
-        titre: 'Nouveautés',
-        sous_titre: 'Nos dernières pièces arrivées',
-        products: nouveautes
-    }) }}
+    {# ===== PRODUITS : les sections choisies dans l'admin, entrecoupées des blocs fixes ===== #}
+    {# Réassurance après la 1re section, expertise après la 2e. Avec moins de sections, les blocs restants suivent. #}
+    {% set blocs = ['front/_reassurance.html.twig', 'front/_expertise.html.twig'] %}
+    {% for section in sections %}
+        {{ include('front/_product_section.html.twig', {
+            titre: section.title,
+            sous_titre: section.subtitle,
+            products: section.products
+        }) }}
 
-    {{ include('front/_reassurance.html.twig') }}
-
-    {# ===== 5 · PRODUITS : Promotions ===== #}
-    {{ include('front/_product_section.html.twig', {
-        titre: 'Promotions',
-        sous_titre: 'Nos offres du moment',
-        products: promos
-    }) }}
-
-    {{ include('front/_expertise.html.twig') }}
-
-    {# ===== 7 · PRODUITS : Disponible immédiatement ===== #}
-    {{ include('front/_product_section.html.twig', {
-        titre: 'Disponible immédiatement',
-        sous_titre: 'En stock, livraison rapide',
-        products: enStock
-    }) }}
+        {% if blocs[loop.index0] is defined %}{{ include(blocs[loop.index0]) }}{% endif %}
+    {% endfor %}
+    {% for bloc in blocs|slice(sections|length) %}{{ include(bloc) }}{% endfor %}
 
     {{ include('front/_showroom.html.twig') }}
 

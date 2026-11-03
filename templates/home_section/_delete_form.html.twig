@@ -1,0 +1,6 @@
+{# Formulaire POST : une suppression ne se fait jamais par un simple lien #}
+<form method="post" action="{{ path('app_home_section_delete', {'id': home_section.id}) }}"
+      onsubmit="return confirm('Supprimer cette section ?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ home_section.id) }}">
+    <button type="submit">Supprimer</button>
+</form>

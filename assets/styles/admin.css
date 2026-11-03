@@ -249,10 +249,11 @@
 
 
 
-/* ===== GROUPES DE CHOIX EN PASTILLES (tissus, couleurs, sous-catégories) ===== */
+/* ===== GROUPES DE CHOIX EN PASTILLES (modules, produits d'une section, tissus, couleurs, sous-catégories) ===== */
 
 /* Le conteneur : pastilles alignées, hauteur limitée, défilement au-delà */
 .admin-content [id$="_modules"],
+.admin-content [id$="_products"],
 .admin-content [id$="_fabrics"],
 .admin-content [id$="_colors"],
 .admin-content [id$="_subCategories"] {
@@ -270,6 +271,7 @@
 /* La case elle-même disparaît de la vue — mais reste dans le document,
    donc utilisable au clavier et lisible par un lecteur d'écran. */
 .admin-content [id$="_modules"] input[type=checkbox],
+.admin-content [id$="_products"] input[type=checkbox],
 .admin-content [id$="_fabrics"] input[type=checkbox],
 .admin-content [id$="_colors"] input[type=checkbox],
 .admin-content [id$="_subCategories"] input[type=checkbox] {
@@ -280,6 +282,7 @@
 
 /* Le libellé devient la pastille */
 .admin-content [id$="_modules"] label,
+.admin-content [id$="_products"] label,
 .admin-content [id$="_fabrics"] label,
 .admin-content [id$="_colors"] label,
 .admin-content [id$="_subCategories"] label {
@@ -297,6 +300,7 @@
 }
 
 .admin-content [id$="_modules"] label:hover,
+.admin-content [id$="_products"] label:hover,
 .admin-content [id$="_fabrics"] label:hover,
 .admin-content [id$="_colors"] label:hover,
 .admin-content [id$="_subCategories"] label:hover {
@@ -305,6 +309,7 @@
 
 /* ⭐ SÉLECTIONNÉE → fond foncé */
 .admin-content [id$="_modules"] input:checked + label,
+.admin-content [id$="_products"] input:checked + label,
 .admin-content [id$="_fabrics"] input:checked + label,
 .admin-content [id$="_colors"] input:checked + label,
 .admin-content [id$="_subCategories"] input:checked + label {
@@ -315,6 +320,7 @@
 
 /* Contour visible quand on navigue au clavier (accessibilité) */
 .admin-content [id$="_modules"] input:focus-visible + label,
+.admin-content [id$="_products"] input:focus-visible + label,
 .admin-content [id$="_fabrics"] input:focus-visible + label,
 .admin-content [id$="_colors"] input:focus-visible + label,
 .admin-content [id$="_subCategories"] input:focus-visible + label {
@@ -340,6 +346,7 @@
 
 .ordre-ligne {
   display: flex;
+  flex-wrap: wrap;          /* sur petit écran, les liens passent à la ligne au lieu de sortir du cadre */
   align-items: center;
   gap: .8rem;
   background: #fff;

@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <h1>Sections de l'accueil</h1>
+    <p>Les sections de produits de la page d'accueil, dans cet ordre. Faites glisser une section par sa poignée pour la déplacer :
+       l'enregistrement est automatique. Une section sans produit visible n'apparaît pas.</p>
+
+    <p><a class="btn" href="{{ path('app_home_section_new') }}">+ Nouvelle section</a></p>
+
+    {% if home_sections|length %}
+        {{ include('admin/_order_list.html.twig', {
+            url: path('app_home_section_order_save'),
+            lignes: home_sections|map(s => {
+                id: s.id, nom: s.title, masque: not s.isVisible,
+                liens: {Voir: path('app_home_section_show', {id: s.id}), Modifier: path('app_home_section_edit', {id: s.id})},
+            }),
+        }) }}
+    {% else %}
+        <p>Aucune section : l'accueil n'affiche aucun produit.</p>
+    {% endif %}
+{% endblock %}

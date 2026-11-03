@@ -131,22 +131,6 @@ class ProductRepository extends ServiceEntityRepository
         return $this->count(['slug' => $slug]) > 0;
     }
 
-    // Accueil : tous les produits visibles hors modules, avec leurs photos (pour les cartes).
-    // Le service HomeSectionsBuilder applique ensuite les règles des trois sections.
-    public function findActiveForHome(): array
-    {
-        return $this->createQueryBuilder('p')
-            ->leftJoin('p.media', 'm')
-            ->addSelect('m')    // les photos arrivent avec les produits : pas une requête par carte
-            ->andWhere('p.isActive = true')
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.position', 'ASC')
-            ->addOrderBy('p.id', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
     public function findActiveByCategoryQuery(Category $category, ?SubCategory $subCategory = null): Query
     {
         $qb = $this->createQueryBuilder('p')
@@ -310,6 +294,16 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $qb;
+    }
+
+    // Les produits proposables dans une section de l'accueil : tous sauf les modules,
+    // qui ne s'affichent que sur la fiche de leur ensemble. Masqués compris : ils attendent leur mise en ligne.
+    public function createForHomeSectionQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.isModular != :module')
+            ->setParameter('module', ProductModular::Module)
+            ->orderBy('p.name', 'ASC');
     }
 
     // Les produits dont une variante est dans cette matière : tant qu'il y en a, elle ne se supprime pas.

@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ home_section.title }}{% endblock %}
+
+{% block body %}
+    <h1>{{ home_section.title }}</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Sous-titre</th>
+                <td>{{ home_section.subtitle ?: 'Aucun' }}</td>
+            </tr>
+            <tr>
+                <th>État</th>
+                <td>{{ home_section.isVisible ? 'Visible' : 'Masquée' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Produits</h2>
+
+    {% if home_section.items is empty %}
+        <p class="empty">Aucun produit : la section n'apparaît pas sur l'accueil.</p>
+    {% else %}
+        <p>Faites glisser les produits par leur poignée pour changer leur ordre dans la section. L'enregistrement est automatique.
+           Un produit masqué n'apparaît pas sur l'accueil.</p>
+
+        {{ include('admin/_order_list.html.twig', {
+            url: path('app_home_section_products_order_save'),
+            lignes: home_section.items|map(i => {
+                id: i.id, nom: i.product.name, masque: not i.product.isActive,
+                liens: {Modifier: path('app_product_edit', {id: i.product.id})},
+            }),
+        }) }}
+    {% endif %}
+
+    <a href="{{ path('app_home_section_index') }}">Retour à la liste</a>
+
+    <a href="{{ path('app_home_section_edit', {'id': home_section.id}) }}">Modifier</a>
+
+    {{ include('home_section/_delete_form.html.twig') }}
+{% endblock %}
