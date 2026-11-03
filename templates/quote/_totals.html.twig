@@ -19,5 +19,5 @@
     <tr class="ttc"><th>Total TTC</th><td data-total="ttc">{{ totaux.ttc|prix(2) }}</td></tr>
     {# La part du total : le taux du devis, ou celle de l'acompte saisi #}
     <tr class="acompte"><th>Acompte <span data-part-acompte>{{ doc.taux(totaux.depositShare) }}</span> à la commande</th><td data-total="deposit">{{ totaux.deposit|prix(2) }}</td></tr>
-    <tr class="solde"><th>Solde <span data-moment-solde>{{ quote.delivery ? 'à la livraison' : 'au retrait' }}</span></th><td data-total="balance">{{ totaux.balance|prix(2) }}</td></tr>
+    <tr class="solde"><th>Reste à payer <span data-moment-solde>{{ quote.delivery ? 'à la livraison' : 'au retrait' }}</span></th><td data-total="balance">{{ totaux.balance|prix(2) }}</td></tr>
 </table>

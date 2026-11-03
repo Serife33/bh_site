@@ -149,7 +149,7 @@
         <div class="conditions">
             <h2 class="titre">Paiement</h2>
             <dl>
-                <dt>Conditions</dt><dd>Acompte de {{ acompte_demande }} à la signature du devis. Solde à la livraison ou au retrait au showroom.</dd>
+                <dt>Conditions</dt><dd>Acompte de {{ acompte_demande }} à la signature du devis. Reste à payer à la livraison ou au retrait au showroom.</dd>
                 {% if invoice.issued %}<dt>Date de paiement</dt><dd>Acompte réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}
                 <dt>Escompte</dt><dd>{{ doc.info(company.early_payment) }}</dd>
                 <dt>Retard de paiement</dt><dd>{{ doc.info(company.late_payment) }}</dd>

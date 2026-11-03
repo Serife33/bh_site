@@ -113,7 +113,7 @@
             <dl>
                 <dt>Délai de livraison</dt><dd>{{ quote.leadTime }}</dd>
                 <dt>Validité</dt><dd>Jusqu'au {{ quote.validUntil|date_longue }}</dd>
-                <dt>Paiement</dt><dd>Acompte de {{ quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) }} à la signature, solde {{ quote.delivery ? 'à la livraison' : 'au retrait au showroom' }}</dd>
+                <dt>Paiement</dt><dd>Acompte de {{ quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) }} à la signature, reste à payer {{ quote.delivery ? 'à la livraison' : 'au retrait au showroom' }}</dd>
                 <dt>Moyens de paiement</dt><dd>{{ doc.info(company.payment_methods) }}</dd>
             </dl>
         </div>
