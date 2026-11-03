@@ -122,7 +122,7 @@ final class CatalogController extends AbstractController
     public function product(string $slug, Request $request, ProductRepository $productRepository): Response
     {
         // Retrouver le produit ACTIF par son slug (ou 404)
-        $product = $productRepository->findOneBy(['slug' => $slug, 'isActive' => true]);
+        $product = $productRepository->findOneActiveBySlug($slug);
         if (!$product) {
             throw $this->createNotFoundException('Ce produit n\'existe pas.');
         }

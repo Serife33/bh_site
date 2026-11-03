@@ -149,7 +149,7 @@
                 {# Variante affichée : celle du lien ?taille=…&matiere=…, sinon la première. Une valeur
                    inconnue est ignorée. Sans variante, prix et stock sont ceux du produit. #}
                 {% set demandees = product.variants|filter(v => v.size == tailleDemandee) %}
-                {% set offre = demandees|filter(v => (v.fabric.name ?? null) == matiereDemandee)|first
+                {% set offre = demandees|filter(v => (v.fabric ~ '') == matiereDemandee)|first
                     ?: demandees|first ?: product.variants|first ?: product %}
 
                 {# Prix barré et remise sont toujours écrits, masqués sans remise :
@@ -162,13 +162,14 @@
                 </div>
                 <p class="price-facilities">Paiement en 2, 3 ou 4 fois SANS FRAIS</p>
 
-                {# Variantes : la taille, puis la matière parmi celles de cette taille.
-                   Leurs prix et leur disponibilité sont écrits ici : la fiche les suit sans appel au serveur. #}
+                {# Variantes : la taille, puis la matière parmi celles de cette taille, puis sa finition.
+                   Leurs prix et leur disponibilité sont écrits ici : la fiche les suit sans appel au serveur.
+                   Une matière se nomme avec sa référence (« Céramique (Premium) ») : deux matières peuvent porter le même nom. #}
                 {% if product.variants|length %}
                     {% set tailles = product.variants|reduce((liste, v) => v.size and v.size not in liste ? liste|merge([v.size]) : liste, []) %}
-                    {% set matieres = product.variants|reduce((liste, v) => v.fabric and v.fabric.name not in liste ? liste|merge([v.fabric.name]) : liste, []) %}
+                    {% set matieres = product.variants|reduce((liste, v) => v.fabric and v.fabric not in liste ? liste|merge([v.fabric]) : liste, []) %}
                     <div data-variantes="{{ product.variants|map(v => {
-                        taille: v.size, matiere: v.fabric.name ?? null,
+                        taille: v.size, matiere: v.fabric ? v.fabric ~ '' : null,
                         prix: v.actualPrice|prix, prixBarre: v.initialPrice|prix, remise: v|remise, enStock: v.stock > 0
                     })|json_encode }}">
                         {% if tailles|length %}
@@ -185,17 +186,30 @@
                         {% endif %}
                         {% if matieres|length %}
                             <div class="cfg-group">
-                                <h3 class="cfg-title">Matière : <span class="cfg-choice">{{ offre.fabric.name ?? '' }}</span></h3>
+                                <h3 class="cfg-title">Matière : <span class="cfg-choice">{{ offre.fabric }}</span></h3>
                                 <div class="variant-row">
                                     {% for matiere in matieres %}
-                                        <button type="button" class="variant-chip matiere-opt{{ matiere == (offre.fabric.name ?? null) ? ' is-active' }}" data-choix="{{ matiere }}"
-                                                {{- product.variants|filter(v => v.size == offre.size and (v.fabric.name ?? null) == matiere)|length ? '' : ' hidden' }}>
+                                        <button type="button" class="variant-chip matiere-opt{{ matiere is same as offre.fabric ? ' is-active' }}" data-choix="{{ matiere }}"
+                                                {{- product.variants|filter(v => v.size == offre.size and v.fabric is same as matiere)|length ? '' : ' hidden' }}>
                                             <span class="variant-dim">{{ matiere }}</span>
                                         </button>
                                     {% endfor %}
                                 </div>
                             </div>
                         {% endif %}
+                        {# Finitions de la matière choisie, sans effet sur le prix : seul leur nuancier est visible.
+                           Une matière sans finition n'a pas cette étape. #}
+                        {% for matiere in matieres|filter(m => m.fabricColors|length) %}
+                            <div class="cfg-group swatch-group nuancier-group{{ matiere is same as offre.fabric ? ' is-visible' }}" data-finitions="{{ matiere }}">
+                                <h3 class="cfg-title">Finition : <span class="cfg-choice">{{ matiere.fabricColors|first.name }}</span></h3>
+                                {{ include('front/_nuancier.html.twig', {
+                                    fabric: matiere,
+                                    panneau: 'finitions-' ~ matiere.id,
+                                    titre: 'Choisir une finition',
+                                    legende: matiere ~ ' · ' ~ matiere.fabricColors|length ~ ' finitions'
+                                }) }}
+                            </div>
+                        {% endfor %}
                     </div>
                 {% endif %}
 

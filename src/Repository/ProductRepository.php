@@ -225,6 +225,22 @@ class ProductRepository extends ServiceEntityRepository
         return $qb->getQuery();
     }
 
+    // Fiche produit : le produit visible, avec ses variantes, leurs matières et les finitions de celles-ci,
+    // en une seule requête au lieu d'une par matière puis d'une par liste de finitions.
+    public function findOneActiveBySlug(string $slug): ?Product
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.variants', 'v')
+            ->leftJoin('v.fabric', 'f')
+            ->leftJoin('f.fabricColors', 'fc')
+            ->addSelect('v', 'f', 'fc')
+            ->andWhere('p.slug = :slug')
+            ->andWhere('p.isActive = true')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findSimilar(Product $product, int $limit = 4): array
     {
         $qb = $this->createQueryBuilder('p')
