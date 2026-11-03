@@ -1,0 +1,157 @@
+{% extends 'document/base.html.twig' %}
+{% import 'document/macros.html.twig' as doc %}
+
+{% set quote = invoice.quote %}
+{% set tva = constant('App\\Service\\QuoteCalculator::VAT_RATE') %}
+{% set taux_acompte = constant('App\\Service\\QuoteCalculator::DEPOSIT_RATE') %}
+
+{% block title %}Facture d'acompte {{ invoice.number ?? 'brouillon' }}{% endblock %}
+
+{% block retour %}{{ path('app_quote_print', {id: quote.id}) }}{% endblock %}
+
+{# Un brouillon s'émet ou se supprime. Émise, la facture ne change plus. #}
+{% block actions %}
+    {% if not invoice.issued %}
+        <form method="post" action="{{ path('app_invoice_issue', {id: invoice.id}) }}"
+              onsubmit="return confirm('Émettre la facture ? Elle reçoit son numéro et ne pourra plus être ni modifiée ni supprimée.');">
+            <input type="hidden" name="_token" value="{{ csrf_token('issue' ~ invoice.id) }}">
+            <button type="submit">Émettre la facture</button>
+        </form>
+        {{ include('admin/_delete_form.html.twig', {
+            action: path('app_invoice_delete', {id: invoice.id}),
+            token_id: 'delete' ~ invoice.id,
+            question: 'Supprimer ce brouillon de facture ?',
+        }) }}
+    {% endif %}
+{% endblock %}
+
+{% block document %}
+    <h1 class="long">Facture d'acompte</h1>
+    <dl>
+        <dt>Numéro</dt><dd>{{ invoice.number ?? 'Brouillon, attribué à l\'émission' }}</dd>
+        <dt>Date d'émission</dt><dd>{{ invoice.issuedAt ? invoice.issuedAt|date_longue : 'Pas encore émise' }}</dd>
+        <dt>Devis de référence</dt><dd>{{ quote.number }}</dd>
+        <dt>Devis signé le</dt><dd>{{ quote.acceptedAt|date_longue }}</dd>
+    </dl>
+{% endblock %}
+
+{% block contenu %}
+    <section class="parties">
+        <div>
+            <h2 class="titre">Vendeur</h2>
+            <p><strong>{{ company.name }}</strong>, {{ doc.info(company.legal_name) }}</p>
+            <p>Capital {{ doc.info(company.capital) }}</p>
+            <p>Siège : {{ doc.info(company.head_office) }}</p>
+            <p>SIRET {{ doc.info(company.siret) }} · RCS {{ doc.info(company.rcs) }}</p>
+            <p>TVA intracommunautaire {{ doc.info(company.vat_number) }}</p>
+        </div>
+        <div>
+            <h2 class="titre">Client</h2>
+            <p><strong>{{ invoice.customerName }}</strong></p>
+            <p>{{ invoice.customerAddress }}</p>
+            {% set prestations = [totaux.delivery > 0 ? 'de livraison', totaux.assembly > 0 ? 'de montage']|filter(p => p) %}
+            <p class="detail">Opération : livraison de biens{% if prestations %}, avec prestations {{ prestations|join(' et ') }}{% endif %}</p>
+        </div>
+    </section>
+
+    <section class="objet">
+        <div>
+            <h2 class="titre">Objet</h2>
+            <p>Acompte de {{ taux_acompte }}&nbsp;% versé à la commande, selon le devis {{ quote.number }} accepté et signé le {{ quote.acceptedAt|date_longue }}.</p>
+            <p class="reste">Reste à payer {{ quote.pickup ? 'au retrait' : 'à la livraison' }} : <strong>{{ totaux.balance|prix(2) }} TTC</strong> ({{ totaux.balanceHt|prix(2) }} HT, TVA {{ totaux.balanceTva|prix(2) }}), sur la facture de solde.</p>
+        </div>
+        <div class="encadre-acompte">
+            <h2>Acompte facturé : {{ taux_acompte }}&nbsp;% du total TTC</h2>
+            <table>
+                <tr><th>Montant HT</th><td>{{ totaux.depositHt|prix(2) }}</td></tr>
+                <tr><th>TVA {{ tva }}&nbsp;%</th><td>{{ totaux.depositTva|prix(2) }}</td></tr>
+                <tr class="ttc"><th>Montant TTC</th><td>{{ totaux.deposit|prix(2) }}</td></tr>
+            </table>
+            {% if invoice.issued %}<p class="acquittee">Facture acquittée le {{ invoice.issuedAt|date_longue }}</p>{% endif %}
+        </div>
+    </section>
+
+    <h2 class="titre">Rappel de la commande (devis {{ quote.number }} du {{ quote.createdAt|date_longue }})</h2>
+    <table class="lignes">
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th>Qté</th>
+                <th>Prix unitaire HT</th>
+                <th>Remise HT</th>
+                <th>Total HT</th>
+                <th>TVA</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for key, line in quote.lines %}
+            {% set montants = totaux.lines[key] %}
+            <tr>
+                <td>
+                    <strong>{{ line.label }}</strong>
+                    {% if line.finish %}<p class="detail">{{ line.finish }}</p>{% endif %}
+                    {% if line.details %}<p class="detail">{{ line.details|nl2br }}</p>{% endif %}
+                </td>
+                <td>{{ line.quantity }}</td>
+                <td>{{ line.unitPrice|ht|prix(2) }}</td>
+                <td>
+                    {% if montants.discount > 0 %}
+                        -{{ montants.discount|ht|prix(2) }}
+                        {% if line.discountType.value == 'percent' %}<p class="detail">soit {{ doc.taux(line.discountValue) }}</p>{% endif %}
+                    {% endif %}
+                </td>
+                <td>{{ montants.total|ht|prix(2) }}</td>
+                <td>{{ tva }}&nbsp;%</td>
+            </tr>
+        {% endfor %}
+        {% if totaux.discount > 0 %}
+            <tr>
+                <td>Remise globale sur les articles</td>
+                <td></td>
+                <td></td>
+                <td>-{{ totaux.discount|ht|prix(2) }}</td>
+                <td>-{{ totaux.discount|ht|prix(2) }}</td>
+                <td>{{ tva }}&nbsp;%</td>
+            </tr>
+        {% endif %}
+        {% for libelle, montant in {'Livraison': totaux.delivery, 'Montage': totaux.assembly} %}
+            {% if montant > 0 %}
+                <tr>
+                    <td>{{ libelle }}</td>
+                    <td>1</td>
+                    <td>{{ montant|ht|prix(2) }}</td>
+                    <td></td>
+                    <td>{{ montant|ht|prix(2) }}</td>
+                    <td>{{ tva }}&nbsp;%</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr><th colspan="4">Total de la commande HT</th><td>{{ totaux.ht|prix(2) }}</td><td></td></tr>
+            <tr><th colspan="4">TVA {{ tva }}&nbsp;%</th><td>{{ totaux.tva|prix(2) }}</td><td></td></tr>
+            <tr class="ttc"><th colspan="4">Total de la commande TTC</th><td>{{ totaux.ttc|prix(2) }}</td><td></td></tr>
+        </tfoot>
+    </table>
+
+    <section class="bas egal">
+        <div class="conditions">
+            <h2 class="titre">Paiement</h2>
+            <dl>
+                <dt>Conditions</dt><dd>Acompte de {{ taux_acompte }}&nbsp;% à la signature du devis. Solde à la livraison ou au retrait au showroom.</dd>
+                {% if invoice.issued %}<dt>Date de paiement</dt><dd>Acompte réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}
+                <dt>Mode de paiement</dt><dd>{{ doc.info("[noté à l'encaissement]") }}</dd>
+                <dt>Escompte</dt><dd>{{ doc.info(company.early_payment) }}</dd>
+                <dt>Retard de paiement</dt><dd>{{ doc.info(company.late_payment) }}</dd>
+            </dl>
+        </div>
+        <div class="mentions">
+            <h2 class="titre">Mentions</h2>
+            <ul>
+                <li>Les sommes versées à la commande sont des acomptes et non des arrhes (article L214-1 du Code de la consommation).</li>
+                <li>Conditions générales de vente : {{ company.website }}/cgv</li>
+                <li>Toute correction de cette facture se fait par un avoir numéroté BHA-AAAA-MM-NNN, jamais en modifiant la facture.</li>
+            </ul>
+        </div>
+    </section>
+{% endblock %}

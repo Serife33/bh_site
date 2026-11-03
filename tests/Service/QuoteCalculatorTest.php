@@ -34,6 +34,11 @@ final class QuoteCalculatorTest extends TestCase
         self::assertSame('513.50', $totals['tva']);
         self::assertSame('924.30', $totals['deposit']);
         self::assertSame('2156.70', $totals['balance']);
+        // La facture d'acompte BHF-2026-11-001 de la maquette facture-pdf.html
+        self::assertSame('770.25', $totals['depositHt']);
+        self::assertSame('154.05', $totals['depositTva']);
+        self::assertSame('1797.25', $totals['balanceHt']);
+        self::assertSame('359.45', $totals['balanceTva']);
     }
 
     public function testAmountDiscountAppliesToTheWholeLine(): void

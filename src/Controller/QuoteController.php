@@ -10,6 +10,7 @@ use App\Repository\AdminUserRepository;
 use App\Repository\CustomerRepository;
 use App\Repository\DocumentCounterRepository;
 use App\Repository\FabricColorRepository;
+use App\Repository\InvoiceRepository;
 use App\Repository\QuoteRepository;
 use App\Service\QuoteCalculator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -103,19 +104,26 @@ final class QuoteController extends AbstractController
 
     // Le devis au format A4 : « Imprimer » puis « Enregistrer au format PDF » dans le navigateur
     #[Route('/{id}', name: 'app_quote_print', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function print(Quote $quote): Response
+    public function print(Quote $quote, InvoiceRepository $invoiceRepository): Response
     {
         return $this->render('quote/print.html.twig', [
-            'quote'  => $quote,
-            'totaux' => $this->calculator->totals($quote),
+            'quote'   => $quote,
+            'totaux'  => $this->calculator->totals($quote),
+            'invoice' => $invoiceRepository->findOneForQuote($quote),
         ]);
     }
 
-    // Un devis se supprime complètement, quel que soit son statut (le papier signé fait foi)
+    // Un devis se supprime complètement, quel que soit son statut (le papier signé fait foi), sauf s'il a une facture
     #[Route('/{id}', name: 'app_quote_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function delete(Request $request, Quote $quote, EntityManagerInterface $em): Response
+    public function delete(Request $request, Quote $quote, EntityManagerInterface $em, InvoiceRepository $invoiceRepository): Response
     {
         if ($this->isCsrfTokenValid('delete' . $quote->getId(), $request->getPayload()->getString('_token'))) {
+            if ($invoiceRepository->findOneForQuote($quote) !== null) {
+                $this->addFlash('error', sprintf('Impossible de supprimer le devis %s : il a une facture d\'acompte (un brouillon de facture se supprime d\'abord).', $quote->getNumber()));
+
+                return $this->redirectToRoute('app_quote_index', [], Response::HTTP_SEE_OTHER);
+            }
+
             $em->remove($quote);
             $em->flush();
 

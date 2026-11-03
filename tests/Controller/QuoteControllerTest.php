@@ -11,6 +11,7 @@ use App\Entity\QuoteLine;
 use App\Enum\ProductModular;
 use App\Enum\ProductSide;
 use App\Enum\QuoteStatus;
+use App\Repository\InvoiceRepository;
 use App\Service\QuoteCalculator;
 use App\Twig\Extension\AppExtension;
 use Doctrine\ORM\EntityManagerInterface;
@@ -153,12 +154,50 @@ final class QuoteControllerTest extends WebTestCase
         $this->client->submit($this->client->request('GET', '/admin/client/' . $this->customer->getId() . '/edit')->selectButton('Supprimer')->form());
         self::assertResponseRedirects('/admin/client/' . $this->customer->getId() . '/edit');
 
-        $this->client->submit($this->client->request('GET', '/admin/devis/' . $quoteId . '/edit')->selectButton('Supprimer')->form());
+        $this->client->submit($this->client->request('GET', '/admin/devis/' . $quoteId)->selectButton('Supprimer')->form());
         self::assertResponseRedirects('/admin/devis');
         self::assertNull($this->em->find(Quote::class, $quoteId));
 
         $this->client->submit($this->client->request('GET', '/admin/client/' . $this->customer->getId() . '/edit')->selectButton('Supprimer')->form());
         self::assertResponseRedirects('/admin/client');
+    }
+
+    public function testDepositInvoiceIsNumberedWhenIssuedThenKept(): void
+    {
+        $quote = $this->quote(QuoteStatus::Accepted);   // une ligne à 100 € : acompte de 30 €, dont 25 € HT
+        $invoices = self::getContainer()->get(InvoiceRepository::class);
+        $this->client->loginUser($this->seller);
+        $createInvoice = fn () => $this->client->submit($this->client->request('GET', '/admin/devis/' . $quote->getId())->selectButton("Créer la facture d'acompte")->form());
+
+        // En brouillon, sans numéro : elle se supprime
+        $createInvoice();
+        $draft = $invoices->findOneForQuote($quote);
+        self::assertResponseRedirects('/admin/facture/' . $draft->getId());
+        self::assertNull($draft->getNumber());
+        $this->client->submit($this->client->request('GET', '/admin/facture/' . $draft->getId())->selectButton('Supprimer')->form());
+        self::assertNull($invoices->findOneForQuote($quote));
+
+        // Émise : elle reçoit son numéro, et le formulaire de suppression du brouillon, gardé, n'y fait plus rien
+        $createInvoice();
+        $invoiceId = $invoices->findOneForQuote($quote)->getId();
+        $crawler = $this->client->request('GET', '/admin/facture/' . $invoiceId);
+        $staleDelete = $crawler->selectButton('Supprimer')->form();
+        $this->client->submit($crawler->selectButton('Émettre la facture')->form());
+        $this->client->submit($staleDelete);
+
+        $invoice = $invoices->find($invoiceId);
+        self::assertMatchesRegularExpression('/^BHF-' . date('Y-m') . '-\d{3}$/', $invoice->getNumber());
+        self::assertNotNull($invoice->getIssuedAt());
+        self::assertSame('Client Exemple', $invoice->getCustomerName());
+
+        $this->client->request('GET', '/admin/facture/' . $invoiceId);
+        self::assertSelectorTextContains('.encadre-acompte', "25,00\u{A0}€");
+        self::assertSelectorTextContains('.doc', $invoice->getNumber());
+        self::assertSelectorNotExists('.barre-ecran form');   // ni émission ni suppression
+
+        // Le devis qui a une facture ne se supprime plus
+        $this->client->submit($this->client->request('GET', '/admin/devis/' . $quote->getId())->selectButton('Supprimer')->form());
+        self::assertNotNull($this->em->find(Quote::class, $quote->getId()));
     }
 
     private function line(string $label, string $unitPrice, string $discount, string $type, array $more = []): array

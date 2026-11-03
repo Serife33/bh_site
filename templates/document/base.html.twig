@@ -21,10 +21,15 @@
     </style>
 </head>
 <body>
-    <p class="barre-ecran">
-        <a href="{% block retour %}{% endblock %}">← Retour</a>
-        · Pour obtenir le PDF : <button type="button" onclick="print()">Imprimer</button> puis « Enregistrer au format PDF ».
-    </p>
+    {# Seulement à l'écran : retour, impression et les actions propres au document #}
+    <div class="barre-ecran">
+        <p>
+            <a href="{% block retour %}{% endblock %}">← Retour</a>
+            · Pour obtenir le PDF : <button type="button" onclick="print()">Imprimer</button> puis « Enregistrer au format PDF ».
+        </p>
+        {% block actions %}{% endblock %}
+        {% for messages in app.flashes %}{% for message in messages %}<p class="flash">{{ message }}</p>{% endfor %}{% endfor %}
+    </div>
 
     <article class="feuille">
         <header class="entete">

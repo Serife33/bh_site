@@ -24,6 +24,7 @@ class AppExtension extends AbstractExtension
             new TwigFilter('prix', [$this, 'prix']),
             new TwigFilter('remise', [$this, 'remise']),
             new TwigFilter('date_longue', [$this, 'dateLongue']),
+            new TwigFilter('ht', [AppExtensionRuntime::class, 'ht']),
         ];
     }
 

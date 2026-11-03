@@ -18,8 +18,11 @@ final class QuoteCalculator
      * Dans l'ordre : la remise de chaque ligne, puis la remise globale sur le total des articles.
      * Livraison et montage ne sont jamais remisés. Le HT et la TVA se tirent du total TTC.
      *
+     * L'acompte et le solde ont aussi leur HT et leur TVA, pour la facture d'acompte.
+     *
      * @return array{lines: array<int, array{discount: string, total: string}>, items: string, discount: string,
-     *     delivery: string, assembly: string, ttc: string, ht: string, tva: string, deposit: string, balance: string}
+     *     delivery: string, assembly: string, ttc: string, ht: string, tva: string, deposit: string, depositHt: string,
+     *     depositTva: string, balance: string, balanceHt: string, balanceTva: string}
      */
     public function totals(Quote $quote): array
     {
@@ -34,18 +37,27 @@ final class QuoteCalculator
         $ttc = bcadd(bcsub($items, $discount, 2), bcadd($delivery, $assembly, 2), 2);
         $ht = $this->excludingVat($ttc);
         $deposit = $this->percentOf($ttc, self::DEPOSIT_RATE);
+        $depositHt = $this->excludingVat($deposit);
+
+        // TVA et solde par différence : HT + TVA retombe toujours sur le TTC, acompte + solde sur le total
+        $tva = bcsub($ttc, $ht, 2);
+        $depositTva = bcsub($deposit, $depositHt, 2);
 
         return [
-            'lines'    => $lines,
-            'items'    => $items,
-            'discount' => $discount,
-            'delivery' => $delivery,
-            'assembly' => $assembly,
-            'ttc'      => $ttc,
-            'ht'       => $ht,
-            'tva'      => bcsub($ttc, $ht, 2),   // par différence : HT + TVA retombe toujours sur le TTC
-            'deposit'  => $deposit,
-            'balance'  => bcsub($ttc, $deposit, 2),
+            'lines'      => $lines,
+            'items'      => $items,
+            'discount'   => $discount,
+            'delivery'   => $delivery,
+            'assembly'   => $assembly,
+            'ttc'        => $ttc,
+            'ht'         => $ht,
+            'tva'        => $tva,
+            'deposit'    => $deposit,
+            'depositHt'  => $depositHt,
+            'depositTva' => $depositTva,
+            'balance'    => bcsub($ttc, $deposit, 2),
+            'balanceHt'  => bcsub($ht, $depositHt, 2),
+            'balanceTva' => bcsub($tva, $depositTva, 2),
         ];
     }
 

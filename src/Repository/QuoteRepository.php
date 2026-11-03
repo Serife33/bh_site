@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AdminUser;
 use App\Entity\Customer;
+use App\Entity\Invoice;
 use App\Entity\Quote;
 use App\Enum\QuoteStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -26,9 +27,10 @@ class QuoteRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('q')
             ->select('q.id', 'q.number', 'q.createdAt', 'q.validUntil', 'q.acceptedAt', 'q.status', 'q.total',
-                'c.lastName', 'c.firstName', 's.email AS sellerEmail')
+                'c.lastName', 'c.firstName', 's.email AS sellerEmail', 'i.id AS invoiceId', 'i.number AS invoiceNumber')
             ->join('q.customer', 'c')
             ->join('q.seller', 's')
+            ->leftJoin(Invoice::class, 'i', 'WITH', 'i.quote = q')   // sa facture d'acompte, s'il en a une
             ->orderBy('q.createdAt', 'DESC')
             ->addOrderBy('q.id', 'DESC');   // départage pour la pagination
 
