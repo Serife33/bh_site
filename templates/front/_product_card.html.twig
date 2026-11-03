@@ -26,11 +26,15 @@
     <div class="pcard-info">
         <div class="pcard-name">{{ product.name }}</div>
         <div class="pcard-price">
+            {# Le prix affiché est celui de la variante la moins chère : « à partir de » si d'autres coûtent plus #}
+            {% if product.variants|filter(v => v.actualPrice != product.actualPrice)|length %}
+                <span class="pcard-from">à partir de</span>
+            {% endif %}
             {% if product.actualPrice < product.initialPrice %}
-                <span class="promo">{{ product.actualPrice }} €</span>
-                <del>{{ product.initialPrice }} €</del>
+                <span class="promo">{{ product.actualPrice|prix }}</span>
+                <del>{{ product.initialPrice|prix }}</del>
             {% else %}
-                {{ product.actualPrice }} €
+                {{ product.actualPrice|prix }}
             {% endif %}
         </div>
     </div>
