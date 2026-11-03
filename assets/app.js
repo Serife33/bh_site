@@ -58,6 +58,15 @@ document.addEventListener('keydown', (e) => {
 matchMedia('(min-width: 768px)').addEventListener('change', () => basculerMenu(false));
 
 
+// ===== Bande « Nos univers » : une flèche avance d'une carte, l'accroche (scroll-snap) cale la position =====
+document.addEventListener('click', (e) => {
+    const fleche = e.target.closest('.fleche');
+    if (!fleche) return;
+    const bande = document.getElementById(fleche.getAttribute('aria-controls'));
+    bande.scrollBy({ left: fleche.dataset.sens * bande.firstElementChild.offsetWidth });
+});
+
+
 // ===== Galerie fiche produit =====
 
 // Photo affichée : celle dont le bord gauche est le plus proche du bord du cadre.

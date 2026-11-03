@@ -89,8 +89,8 @@ b, strong, th { font-weight: 500; }
 }
 .hdr-actions { display: flex; align-items: center; margin-left: auto; }
 /* Pictos de 44 px : la cible tactile minimale */
-.hdr-search, .burger { display: grid; place-items: center; width: 44px; height: 44px; }
-.hdr-search svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.hdr-search, .burger, .fleche { display: grid; place-items: center; width: 44px; height: 44px; }
+.hdr-search svg, .fleche svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.4; }
 
 
 /* ===== BOUTON WHATSAPP FLOTTANT : discret, pictogramme vert sur brun ===== */
@@ -209,52 +209,37 @@ b, strong, th { font-weight: 500; }
 .section-head p { font-size: 14px; color: var(--txt2); margin-top: 4px; }
 @media (min-width: 768px) { .section-head h2 { font-size: 32px; } }
 
-/* ===== RANGÉE CATÉGORIES ===== */
-/* MOBILE : carrousel horizontal façon "stories" — 0 JS */
-.cats {
-  display: flex;
-  gap: 18px;
+/* ===== NOS UNIVERS : bande qui défile, quel que soit le nombre de catégories ===== */
+.section-tete { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.fleches { display: none; gap: 8px; margin-bottom: 24px; }   /* même pied que le titre et son sous-titre */
+.fleche { border: 1px solid var(--border); }
+.fleche:hover { border-color: var(--txt); }
+.univers {
+  /* le bord gauche des cartes s'aligne sur le contenu, la bande file jusqu'au bord de l'écran */
+  --bord: max(var(--marge), calc((100% - 1440px) / 2 + var(--marge)));
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 72%;
+  gap: var(--gouttiere);
   overflow-x: auto;
-  scroll-snap-type: x mandatory;   /* s'arrête pile sur une catégorie */
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  padding-bottom: 4px;
-  scrollbar-width: none;           /* masque la barre (Firefox) */
+  scrollbar-width: none;
+  padding: 4px var(--bord);         /* 4 px en haut et en bas : l'anneau de focus n'est pas rogné */
+  scroll-padding-inline: var(--bord);
 }
-.cats::-webkit-scrollbar { display: none; }   /* masque la barre (Safari, Chrome) */
-
-.cat {
-  flex: 0 0 auto;                  /* ne rétrécit pas : c'est ce qui crée le débordement */
-  scroll-snap-align: start;
-  min-width: 96px;
-  text-align: center;
+.univers::-webkit-scrollbar { display: none; }
+.univers li { scroll-snap-align: start; }
+.univers a { display: block; }
+.univers .cadre + span { display: block; margin-top: 14px; }
+.univers a:hover .cadre + span { text-decoration: underline; text-decoration-color: var(--accent2); text-underline-offset: 6px; }
+@media (min-width: 600px) { .univers { grid-auto-columns: 40%; } }
+@media (min-width: 900px) {
+  .univers { grid-auto-columns: calc((100% - 4 * var(--gouttiere)) / 4.4); }
+  .fleches { display: flex; }
 }
-
-/* DESKTOP : retour à la grille, les 6 tiennent sur une ligne */
-@media (min-width: 768px) {
-  .cats {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    overflow: visible;
-  }
-  .cat { min-width: 0; }
-}
-@media (min-width: 768px) { .cats { grid-template-columns: repeat(6, 1fr); } }  /* desktop : 6 */
-.cat { text-align: center; }
-.cat-ring {
-  width: 96px; height: 96px; border-radius: 50%;
-  margin: 0 auto 10px;
-    background: linear-gradient(135deg, #D8C7B2, #BFA98C);
-  overflow: hidden;
-}
-.cat-ring img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  padding: 8px;
-  box-sizing: border-box;
-  display: block;
-}
-.cat-name { font-size: 13px; font-weight: 500; }
-.cat:hover .cat-name { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .univers { scroll-behavior: auto; } }
 
 
 
@@ -267,11 +252,12 @@ b, strong, th { font-weight: 500; }
 @media (min-width: 640px)  { .grid-produits { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .grid-produits { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* ===== CARTE PRODUIT : sans cadre, la photo sur fond sable ===== */
+/* ===== CARTE PRODUIT : sans bordure, la photo sur fond sable (cadre partagé avec « Nos univers ») ===== */
 .pcard { display: block; }
-.pcard-photo { position: relative; aspect-ratio: 1; background: var(--bg2); }
+.pcard-photo, .cadre { display: block; position: relative; aspect-ratio: 1; background: var(--bg2); }
+.cadre-haut { aspect-ratio: 4 / 5; }
 /* Photo entière, jamais rognée ; le blanc des photos détourées prend la teinte sable du fond */
-.pcard-photo img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; transition: opacity .35s ease; }
+.pcard-photo img, .cadre img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; transition: opacity .35s ease; }
 /* Seconde photo, révélée au survol de la carte */
 .pcard-survol { position: absolute; inset: 0; opacity: 0; }
 .pcard:hover .pcard-survol { opacity: 1; }

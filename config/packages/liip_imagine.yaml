@@ -33,11 +33,11 @@ liip_imagine:
                 thumbnail:
                     size: [600, 600]
                     mode: outbound
-        rond:
+        univers:
             format: webp
             quality: 82
             filters:
                 auto_rotate: ~
                 thumbnail:
-                    size: [300, 300]
-                    mode: inset      # l'image ENTIÈRE tient dans le carré
+                    size: [600, 750]   # carte portrait 4:5 de « Nos univers », nette sur écran x2
+                    mode: inset        # l'image ENTIÈRE, rien n'est rogné
