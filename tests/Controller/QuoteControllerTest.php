@@ -108,7 +108,8 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorTextContains('.lignes tbody tr:first-child', 'soit -159,00');
         self::assertSelectorCount(2, '.choix');                            // « Fabriqué selon vos choix » : canapé et tapis
         self::assertSelectorTextContains('.doc', 'vendeur-test@example.com');   // « Votre conseiller »
-        self::assertSelectorTextContains('.pied .ac', '[À COMPLÉTER');     // l'identité légale reste à fournir
+        self::assertSelectorTextContains('.pied', 'SIRET 901 674 507 00016');   // l'identité légale de la société
+        self::assertSelectorNotExists('.pied .ac');                         // plus rien à compléter dans le pied
     }
 
     // « Je tape Madrid et je retrouve tous les Madrid » : 20 au plus, avec leurs variantes et leurs tissus

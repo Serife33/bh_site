@@ -11,12 +11,12 @@ parameters:
     # Tant qu'une valeur commence par « [À COMPLÉTER », elle s'affiche encadrée en pointillés sur le document.
     company:
         name: 'Brillance Home'
-        legal_name: '[À COMPLÉTER : raison sociale et forme juridique]'
-        capital: '[À COMPLÉTER : capital social]'
-        head_office: '[À COMPLÉTER : adresse du siège]'
-        siret: '[À COMPLÉTER : SIRET]'
-        rcs: '[À COMPLÉTER : ville du RCS]'
-        vat_number: '[À COMPLÉTER : TVA intracommunautaire]'
+        legal_name: 'SASU (société par actions simplifiée unipersonnelle)'
+        capital: '500,00 €'
+        head_office: '22 rue André Dupin, 33310 Lormont'
+        siret: '901 674 507 00016'
+        rcs: 'Bordeaux 901 674 507'
+        vat_number: 'FR53 901 674 507'
         showroom: '12 bis rue Suffren, 33300 Bordeaux'
         phones: '07 81 07 10 71 · 06 95 32 41 51'
         website: 'brillancehome.fr'
