@@ -404,11 +404,13 @@
             </p>
             <div class="grid-produits">
                 {% for module in modulesVisibles %}
+                    {# La composition part de celle de la photo : les modules choisis dans l'admin #}
+                    {% set nb = module in product.modules ? 1 : 0 %}
                     <div class="compo-module" data-nom="{{ module.name }}" data-prix="{{ module.actualPrice }}">
                         {{ include('front/_product_card.html.twig', { product: module }) }}
                         <div class="compo-qte">
-                            <button type="button" class="compo-moins" aria-label="Retirer {{ module.name }}" aria-disabled="true">−</button>
-                            <span class="compo-nb">0</span>
+                            <button type="button" class="compo-moins" aria-label="Retirer {{ module.name }}" aria-disabled="{{ nb ? 'false' : 'true' }}">−</button>
+                            <span class="compo-nb" data-initial="{{ nb }}">{{ nb }}</span>
                             <button type="button" class="compo-plus" aria-label="Ajouter {{ module.name }}" aria-disabled="false">+</button>
                         </div>
                     </div>
