@@ -141,8 +141,9 @@ document.addEventListener('DOMContentLoaded', brancherPage);
 
 
 // ===== Groupes de pastilles : un champ « Rechercher » au-dessus des longues listes =====
-// Les mêmes groupes que « GROUPES DE CHOIX EN PASTILLES » dans admin.css. Le filtre ne fait que
-// masquer des pastilles déjà dans la page : aucune requête. Une pastille cochée reste toujours visible.
+// Les mêmes groupes que « GROUPES DE CHOIX EN PASTILLES » dans admin.css. La barre est celle de la liste
+// des produits (.filtres), mais ici le filtre ne fait que masquer des pastilles déjà dans la page : sans
+// rechargement, une section pas encore enregistrée garde ses cases cochées. Une pastille cochée reste visible.
 const GROUPES_PASTILLES = '[id$="_modules"], [id$="_products"], [id$="_fabrics"], [id$="_colors"], [id$="_subCategories"]';
 const SEUIL_RECHERCHE = 12;
 
@@ -150,58 +151,83 @@ const SEUIL_RECHERCHE = 12;
 const normaliser = (texte) => texte.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 const pluriel = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;
 
+// Le groupe que filtre ce champ ; null pour la barre de la liste des produits, qui recharge la page
+function groupeFiltre(champ) {
+    const groupe = champ.closest('.filtres')?.nextElementSibling;
+    return groupe?.matches(GROUPES_PASTILLES) ? groupe : null;
+}
+
 function ajouterRecherches() {
     document.querySelectorAll(GROUPES_PASTILLES).forEach((groupe) => {
         if (groupe.querySelectorAll('input[type=checkbox]').length <= SEUIL_RECHERCHE) return;
-        if (groupe.previousElementSibling.matches('.pastilles-recherche')) return;   // déjà ajouté (Turbo et DOMContentLoaded)
+        if (groupe.previousElementSibling.matches('.filtres')) return;   // déjà ajoutée (Turbo et DOMContentLoaded)
 
         const barre = document.createElement('div');
-        barre.className = 'pastilles-recherche';
-        barre.innerHTML = '<input type="search" placeholder="Rechercher"><span class="pastilles-compte" aria-live="polite"></span>';
+        barre.className = 'filtres';
+        barre.innerHTML = '<input type="search" class="filtre-recherche"><span class="filtre-compte" aria-live="polite"></span>';
+        const champ = barre.firstChild;
+        champ.placeholder = groupe.matches('[id$="_products"], [id$="_modules"]') ? 'Rechercher un produit…' : 'Rechercher…';
         // Le titre du groupe (« Tissus disponibles »…) est le libellé de sa ligne de formulaire
-        barre.firstChild.setAttribute('aria-label', `Rechercher dans « ${groupe.parentElement.querySelector(':scope > label').textContent.trim()} »`);
+        champ.setAttribute('aria-label', `Rechercher dans « ${groupe.parentElement.querySelector(':scope > label').textContent.trim()} »`);
+
+        // Produits et modules : le menu des catégories de la liste des produits, limité à celles du groupe
+        const categories = [...new Set([...groupe.querySelectorAll('[data-categorie]')].map((caseACocher) => caseACocher.dataset.categorie))];
+        if (categories.length) {
+            const menu = document.createElement('select');
+            menu.setAttribute('aria-label', 'Catégorie');
+            menu.add(new Option('Toutes les catégories', ''));
+            categories.sort((a, b) => a.localeCompare(b, 'fr')).forEach((nom) => menu.add(new Option(nom, nom)));
+            champ.after(menu);
+        }
+
         groupe.before(barre);
         filtrerPastilles(groupe);
     });
 }
 
-// Affiche les pastilles qui contiennent tous les mots cherchés, plus celles déjà cochées, et les compte.
+// Affiche les pastilles qui contiennent tous les mots cherchés et sont de la catégorie choisie,
+// plus celles déjà cochées, et les compte.
 function filtrerPastilles(groupe) {
     const barre = groupe.previousElementSibling;
     const mots = normaliser(barre.querySelector('input').value).split(/\s+/).filter(Boolean);
+    const categorie = barre.querySelector('select')?.value;
     let cochees = 0;
     let affichees = 0;
 
     groupe.querySelectorAll('input[type=checkbox]').forEach((caseACocher) => {
         const pastille = caseACocher.nextElementSibling;   // Symfony écrit chaque libellé juste après sa case
-        const visible = caseACocher.checked || mots.every((mot) => normaliser(pastille.textContent).includes(mot));
+        const visible = caseACocher.checked || ((!categorie || caseACocher.dataset.categorie === categorie)
+            && mots.every((mot) => normaliser(pastille.textContent).includes(mot)));
         caseACocher.hidden = pastille.hidden = !visible;
         cochees += caseACocher.checked ? 1 : 0;
         affichees += visible ? 1 : 0;
     });
 
-    barre.querySelector('.pastilles-compte').textContent = `${pluriel(cochees, 'coché')} · ${pluriel(affichees, 'affiché')}`;
+    barre.querySelector('.filtre-compte').textContent = `${pluriel(cochees, 'coché')} · ${pluriel(affichees, 'affiché')}`;
 }
 
+// Le champ et le menu des catégories (un select émet aussi « input »)
 document.addEventListener('input', (e) => {
-    if (e.target.matches('.pastilles-recherche input')) filtrerPastilles(e.target.parentElement.nextElementSibling);
+    const groupe = groupeFiltre(e.target);
+    if (groupe) filtrerPastilles(groupe);
 });
 
 // Cocher ou décocher met le compte à jour
 document.addEventListener('change', (e) => {
     const groupe = e.target.closest(GROUPES_PASTILLES);
-    if (groupe?.previousElementSibling.matches('.pastilles-recherche')) filtrerPastilles(groupe);
+    if (groupe?.previousElementSibling.matches('.filtres')) filtrerPastilles(groupe);
 });
 
 // Échap vide le champ ; Entrée ne doit pas envoyer tout le formulaire
 document.addEventListener('keydown', (e) => {
-    if (!e.target.matches('.pastilles-recherche input')) return;
+    const groupe = groupeFiltre(e.target);
+    if (!groupe) return;
 
     if (e.key === 'Enter') e.preventDefault();
     if (e.key === 'Escape' && e.target.value) {
         e.preventDefault();
         e.target.value = '';
-        filtrerPastilles(e.target.parentElement.nextElementSibling);
+        filtrerPastilles(groupe);
     }
 });
 

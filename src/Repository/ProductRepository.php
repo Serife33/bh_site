@@ -277,6 +277,8 @@ class ProductRepository extends ServiceEntityRepository
     public function createModulesQueryBuilder(Product $product): QueryBuilder
     {
         $qb = $this->createQueryBuilder('p')
+            ->join('p.category', 'c')
+            ->addSelect('c')   // la catégorie de chaque pastille (ProductType::categoryAttr) arrive avec le produit
             ->andWhere('p.isModular = :module')
             ->setParameter('module', ProductModular::Module)
             ->orderBy('p.name', 'ASC');
@@ -301,6 +303,8 @@ class ProductRepository extends ServiceEntityRepository
     public function createForHomeSectionQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('p')
+            ->join('p.category', 'c')
+            ->addSelect('c')   // la catégorie de chaque pastille (ProductType::categoryAttr) arrive avec le produit
             ->andWhere('p.isModular != :module')
             ->setParameter('module', ProductModular::Module)
             ->orderBy('p.name', 'ASC');

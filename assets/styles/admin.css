@@ -85,7 +85,6 @@
 .admin-content input[type=number],
 .admin-content input[type=email],
 .admin-content input[type=password],
-.admin-content input[type=search],
 .admin-content select,
 .admin-content textarea {
   width: 100%;
@@ -329,17 +328,7 @@
   outline-offset: 2px;
 }
 
-/* Le champ « Rechercher » qu'admin.js ajoute au-dessus des groupes de plus d'une douzaine de pastilles */
-.pastilles-recherche {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.8rem;
-  margin-bottom: 0.5rem;
-}
-.pastilles-compte { font-size: 13px; color: #6B6560; }
-
-/* Une pastille écartée par la recherche : hidden doit l'emporter sur le display des pastilles */
+/* Une pastille écartée par la recherche (admin.js) : hidden doit l'emporter sur le display des pastilles */
 .admin-content [hidden] { display: none !important; }
 
 
@@ -414,7 +403,7 @@
 }
 
 
-/* ===== Barre de filtres de la liste Produits ===== */
+/* ===== Barre de filtres : liste Produits, et recherche des longues listes de pastilles ===== */
 .filtres {
   display: flex;
   flex-wrap: wrap;
@@ -438,6 +427,9 @@
   font-size: 14px;
   color: #6B6B63;
 }
+
+/* La même barre au-dessus des longues listes de pastilles (admin.js) : « 9 cochés · 13 affichés » */
+.filtre-compte { font-size: 13px; color: #6B6B63; }
 
 /* Produit masqué sur le site : ligne atténuée */
 tr.est-masque { opacity: .55; }

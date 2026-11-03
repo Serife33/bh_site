@@ -40,6 +40,7 @@ class HomeSectionType extends AbstractType
                 'expanded' => true,
                 'required' => false,
                 'help' => "Un produit coché se range à la fin : l'ordre se règle sur la page de la section. Un produit masqué n'apparaît pas sur l'accueil.",
+                'choice_attr' => ProductType::categoryAttr(...),
                 'query_builder' => fn (ProductRepository $repo) => $repo->createForHomeSectionQueryBuilder(),
             ])
         ;
