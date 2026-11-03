@@ -14,6 +14,6 @@ class AppExtensionRuntime implements RuntimeExtensionInterface
 
     public function getNavCategories(): array
     {
-        return $this->categoryRepository->findBy([], ['id' => 'ASC']);
+        return $this->categoryRepository->findForMenu();
     }
 }

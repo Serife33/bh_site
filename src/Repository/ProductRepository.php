@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Category;
+use App\Entity\Fabric;
 use App\Entity\Product;
 use App\Entity\SubCategory;
 use App\Enum\ProductModular;
@@ -144,6 +145,12 @@ class ProductRepository extends ServiceEntityRepository
         return $slug;
     }
 
+    // Un produit a-t-il déjà cette adresse ? L'import ne recrée pas un modèle déjà en base.
+    public function slugExists(string $slug): bool
+    {
+        return $this->count(['slug' => $slug]) > 0;
+    }
+
     // Accueil : tous les produits visibles hors modules, avec leurs photos (pour les cartes).
     // Le service HomeSectionsBuilder applique ensuite les règles des trois sections.
     public function findActiveForHome(): array
@@ -159,48 +166,6 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-
-    // Les derniers produits actifs (pour la grille "Nouveautés" de l'accueil).
-    public function findLatestActive(int $limit = 8): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.isActive = true')   // seulement les produits publiés
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.createdAt', 'DESC')   // les plus récents d'abord
-            ->setMaxResults($limit)            // "limit" produits max
-            ->getQuery()
-            ->getResult();
-    }
-
-    // Produits en promo (prix actuel < prix initial)
-    public function findOnSale(int $limit = 8): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.isActive = true')
-            ->andWhere('p.actualPrice < p.initialPrice')   // ← la promo
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.updatedAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-    }
-
-    //Produits disponibles immédiatement (stock > 0)
-    public function findInStock(int $limit = 8): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.isActive = true')
-            ->andWhere('p.stock > 0')                       // ← en stock
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble, jamais dans les listes du catalogue.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.position', 'ASC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-    }
-
 
     public function findActiveByCategoryQuery(Category $category, ?SubCategory $subCategory = null): Query
     {
@@ -225,20 +190,53 @@ class ProductRepository extends ServiceEntityRepository
         return $qb->getQuery();
     }
 
-    // Fiche produit : le produit visible, avec ses variantes, leurs matières et les finitions de celles-ci,
-    // en une seule requête au lieu d'une par matière puis d'une par liste de finitions.
-    public function findOneActiveBySlug(string $slug): ?Product
+    // La fiche publique : le produit visible et ce qu'elle affiche autour, une collection par requête
+    // (jointes ensemble, variantes, finitions, tissus et coloris multiplieraient les lignes).
+    // Les photos arrivent au premier accès, en une requête.
+    public function findActiveBySlug(string $slug): ?Product
     {
-        return $this->createQueryBuilder('p')
+        $product = $this->createQueryBuilder('p')
+            ->join('p.category', 'c')
+            ->leftJoin('p.family', 'f')
             ->leftJoin('p.variants', 'v')
-            ->leftJoin('v.fabric', 'f')
-            ->leftJoin('f.fabricColors', 'fc')
-            ->addSelect('v', 'f', 'fc')
+            ->leftJoin('v.fabric', 'vf')
+            ->addSelect('c', 'f', 'v', 'vf')
             ->andWhere('p.slug = :slug')
             ->andWhere('p.isActive = true')
             ->setParameter('slug', $slug)
             ->getQuery()
             ->getOneOrNullResult();
+
+        if ($product === null) {
+            return null;
+        }
+
+        // Les tissus et leurs coloris : Doctrine remplit les collections du produit déjà chargé,
+        // au lieu d'une requête pour les tissus puis d'une par tissu.
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.fabrics', 'fa')
+            ->leftJoin('fa.fabricColors', 'fc')
+            ->addSelect('fa', 'fc')
+            ->andWhere('p = :product')
+            ->setParameter('product', $product)
+            ->orderBy('fa.id', 'ASC')   // l'ordre de la table de liaison, celui du chargement au premier accès
+            ->getQuery()
+            ->getResult();
+
+        // Les finitions des matières de ses variantes, de la même façon
+        $matieres = array_filter($product->getVariants()->map(fn ($variant) => $variant->getFabric())->toArray());
+        if ($matieres) {
+            $this->getEntityManager()->createQueryBuilder()
+                ->select('m', 'fi')
+                ->from(Fabric::class, 'm')
+                ->leftJoin('m.fabricColors', 'fi')
+                ->andWhere('m IN (:matieres)')
+                ->setParameter('matieres', $matieres)
+                ->getQuery()
+                ->getResult();
+        }
+
+        return $product;
     }
 
     public function findSimilar(Product $product, int $limit = 4): array
@@ -270,7 +268,18 @@ class ProductRepository extends ServiceEntityRepository
             return [];   // ni sous-cat ni famille → aucun similaire
         }
 
-        return $qb->andWhere($ou)->getQuery()->getResult();
+        $similar = $qb->andWhere($ou)->getQuery()->getResult();
+
+        // Les photos des cartes en une requête. Pas dans la première : son LIMIT compterait les photos, pas les produits.
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')
+            ->andWhere('p IN (:similar)')
+            ->setParameter('similar', $similar)
+            ->getQuery()
+            ->getResult();
+
+        return $similar;
     }
 
     public function searchActiveQuery(string $q): Query
@@ -323,4 +332,16 @@ class ProductRepository extends ServiceEntityRepository
         return $qb;
     }
 
+    // Les produits dont une variante est dans cette matière : tant qu'il y en a, elle ne se supprime pas.
+    public function findNamesUsingFabric(Fabric $fabric): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('DISTINCT p.name')
+            ->join('p.variants', 'v')
+            ->andWhere('v.fabric = :fabric')
+            ->setParameter('fabric', $fabric)
+            ->orderBy('p.name', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+    }
 }

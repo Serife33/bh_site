@@ -55,7 +55,7 @@ final class ProductController extends AbstractController
 
         return $this->render('product/index.html.twig', [
             'pagination'     => $pagination,
-            'categories'     => $categoryRepository->findBy([], ['name' => 'ASC']),
+            'categories'     => $categoryRepository->findSortedByName(),
             // Les sous-catégories n'ont de sens qu'une fois la catégorie choisie
             'sousCategories' => $category ? $subCategoryRepository->findInCategoryForAdmin($category) : [],
             'filtres'        => [
@@ -76,7 +76,7 @@ final class ProductController extends AbstractController
         CategoryRepository $categoryRepository,
         ProductRepository $productRepository
     ): Response {
-        $categories = $categoryRepository->findBy([], ['name' => 'ASC']);
+        $categories = $categoryRepository->findSortedByName();
 
         // Catégorie choisie dans le menu déroulant ; la première de la liste par défaut
         $id = $request->query->getInt('categorie');

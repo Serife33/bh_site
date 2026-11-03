@@ -29,4 +29,10 @@ class FabricRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    // Les matières d'un fournisseur : l'import ne recrée pas celles déjà en base
+    public function findBySupplier(string $supplier): array
+    {
+        return $this->findBy(['supplier' => $supplier]);
+    }
 }
