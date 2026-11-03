@@ -190,12 +190,12 @@ class ProductRepository extends ServiceEntityRepository
         return $qb->getQuery();
     }
 
-    // La fiche publique : le produit visible et ce qu'elle affiche autour.
-    // Une seule collection jointe, les variantes : jointes avec elles, les photos multiplieraient les lignes.
+    // La fiche publique : le produit visible et ce qu'elle affiche autour, une collection par requête
+    // (jointes ensemble, variantes, tissus et coloris multiplieraient les lignes).
     // Les photos arrivent au premier accès, en une requête.
     public function findActiveBySlug(string $slug): ?Product
     {
-        return $this->createQueryBuilder('p')
+        $product = $this->createQueryBuilder('p')
             ->join('p.category', 'c')
             ->leftJoin('p.family', 'f')
             ->leftJoin('p.variants', 'v')
@@ -206,6 +206,22 @@ class ProductRepository extends ServiceEntityRepository
             ->setParameter('slug', $slug)
             ->getQuery()
             ->getOneOrNullResult();
+
+        // Les tissus et leurs coloris : Doctrine remplit les collections du produit déjà chargé,
+        // au lieu d'une requête pour les tissus puis d'une par tissu.
+        if ($product !== null) {
+            $this->createQueryBuilder('p')
+                ->leftJoin('p.fabrics', 'fa')
+                ->leftJoin('fa.fabricColors', 'fc')
+                ->addSelect('fa', 'fc')
+                ->andWhere('p = :product')
+                ->setParameter('product', $product)
+                ->orderBy('fa.id', 'ASC')   // l'ordre de la table de liaison, celui du chargement au premier accès
+                ->getQuery()
+                ->getResult();
+        }
+
+        return $product;
     }
 
     public function findSimilar(Product $product, int $limit = 4): array
@@ -237,7 +253,18 @@ class ProductRepository extends ServiceEntityRepository
             return [];   // ni sous-cat ni famille → aucun similaire
         }
 
-        return $qb->andWhere($ou)->getQuery()->getResult();
+        $similar = $qb->andWhere($ou)->getQuery()->getResult();
+
+        // Les photos des cartes en une requête. Pas dans la première : son LIMIT compterait les photos, pas les produits.
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')
+            ->andWhere('p IN (:similar)')
+            ->setParameter('similar', $similar)
+            ->getQuery()
+            ->getResult();
+
+        return $similar;
     }
 
     public function searchActiveQuery(string $q): Query
