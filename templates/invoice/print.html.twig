@@ -73,13 +73,14 @@
     </section>
 
     <h2 class="titre">Rappel de la commande (devis {{ quote.number }} du {{ quote.createdAt|date_longue }})</h2>
+    {% set colonneRemise = totaux.discount > 0 or totaux.lines|filter(l => l.discount > 0)|length > 0 %}
     <table class="lignes">
         <thead>
             <tr>
                 <th>Désignation</th>
                 <th>Qté</th>
                 <th>Prix unitaire HT</th>
-                <th>Remise HT</th>
+                {% if colonneRemise %}<th>Remise HT</th>{% endif %}
                 <th>Total HT</th>
                 <th>TVA</th>
             </tr>
@@ -95,12 +96,14 @@
                 </td>
                 <td>{{ line.quantity }}</td>
                 <td>{{ line.unitPrice|ht(quote.vatRate)|prix(2) }}</td>
+                {% if colonneRemise %}
                 <td>
                     {% if montants.discount > 0 %}
                         -{{ montants.discount|ht(quote.vatRate)|prix(2) }}
                         {% if line.discountType.value != 'amount' %}<p class="detail">soit {{ doc.taux(line.discountType.value == 'percent' ? line.discountValue : montants.rate) }}</p>{% endif %}
                     {% endif %}
                 </td>
+                {% endif %}
                 <td>{{ montants.total|ht(quote.vatRate)|prix(2) }}</td>
                 <td>{{ tva }}</td>
             </tr>
@@ -125,7 +128,7 @@
                     <td>{{ libelle }}{{ option.montant > 0 ? '' : ' ' ~ option.offert }}</td>
                     <td>1</td>
                     <td>{{ option.montant|ht(quote.vatRate)|prix(2) }}</td>
-                    <td></td>
+                    {% if colonneRemise %}<td></td>{% endif %}
                     <td>{{ option.montant|ht(quote.vatRate)|prix(2) }}</td>
                     <td>{{ tva }}</td>
                 </tr>
@@ -133,9 +136,9 @@
         {% endfor %}
         </tbody>
         <tfoot>
-            <tr><th colspan="4">Total de la commande HT</th><td>{{ totaux.ht|prix(2) }}</td><td></td></tr>
-            <tr><th colspan="4">TVA {{ tva }}</th><td>{{ totaux.tva|prix(2) }}</td><td></td></tr>
-            <tr class="ttc"><th colspan="4">Total de la commande TTC</th><td>{{ totaux.ttc|prix(2) }}</td><td></td></tr>
+            <tr><th colspan="{{ colonneRemise ? 4 : 3 }}">Total de la commande HT</th><td>{{ totaux.ht|prix(2) }}</td><td></td></tr>
+            <tr><th colspan="{{ colonneRemise ? 4 : 3 }}">TVA {{ tva }}</th><td>{{ totaux.tva|prix(2) }}</td><td></td></tr>
+            <tr class="ttc"><th colspan="{{ colonneRemise ? 4 : 3 }}">Total de la commande TTC</th><td>{{ totaux.ttc|prix(2) }}</td><td></td></tr>
         </tfoot>
     </table>
     {# Texte à faire valider par la comptable #}

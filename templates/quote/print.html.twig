@@ -54,13 +54,15 @@
         </div>
     </section>
 
+    {# La colonne Remise seulement si une ligne est remisée : un devis sans remise n'en parle pas #}
+    {% set colonneRemise = totaux.lines|filter(l => l.discount > 0)|length > 0 %}
     <table class="lignes">
         <thead>
             <tr>
                 <th>Désignation</th>
                 <th>Qté</th>
                 <th>Prix unitaire TTC</th>
-                <th>Remise</th>
+                {% if colonneRemise %}<th>Remise</th>{% endif %}
                 <th>Total TTC</th>
             </tr>
         </thead>
@@ -86,6 +88,7 @@
                 </td>
                 <td>{{ line.quantity }}</td>
                 <td>{{ line.unitPrice|prix(2) }}</td>
+                {% if colonneRemise %}
                 <td>
                     {# Une remise en % montre aussi les euros ; un prix final montre la remise qu'il donne, en euros et en % #}
                     {% if montants.discount > 0 %}
@@ -97,6 +100,7 @@
                         {% endif %}
                     {% endif %}
                 </td>
+                {% endif %}
                 <td>{{ montants.total|prix(2) }}</td>
             </tr>
         {% endfor %}

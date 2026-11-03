@@ -3,7 +3,9 @@
 {% import 'document/macros.html.twig' as doc %}
 <table class="totaux">
     <tr><th>Total des articles</th><td data-total="items">{{ totaux.items|prix(2) }}</td></tr>
-    <tr><th>Remise globale</th><td data-total="discount">{{ totaux.discount > 0 ? '-' }}{{ totaux.discount|prix(2) }}</td></tr>
+    {% if totaux.discount > 0 or saisie|default(false) %}
+        <tr><th>Remise globale</th><td data-total="discount">{{ totaux.discount > 0 ? '-' }}{{ totaux.discount|prix(2) }}</td></tr>
+    {% endif %}
     {# Livraison et montage : sur le document, une ligne seulement s'ils sont cochés ; à l'écran de saisie (saisie),
        toujours leurs deux lignes, mises à jour par assets/admin.js #}
     {% if quote.delivery or saisie|default(false) %}

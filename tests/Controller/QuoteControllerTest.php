@@ -198,6 +198,24 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorTextContains('.lignes tbody tr:nth-child(2)', "2\u{A0}000,00\u{A0}€ -333,33\u{A0}€ soit 16,67\u{A0}% 1\u{A0}666,67\u{A0}€");
     }
 
+    // Sans aucune remise, le devis et la facture n'en parlent pas : ni colonne, ni ligne « Remise globale »
+    public function testNoDiscountColumnWithoutDiscount(): void
+    {
+        $quote = $this->quote(QuoteStatus::Accepted)->addLine((new QuoteLine())->setLabel('Canapé')->setUnitPrice('2400.00'));
+        $invoice = new Invoice($quote);
+        $this->em->persist($invoice);
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+
+        $this->client->request('GET', '/admin/devis/' . $quote->getId());
+        self::assertSelectorTextNotContains('.lignes thead', 'Remise');
+        self::assertSelectorTextNotContains('.totaux', 'Remise globale');
+
+        $this->client->request('GET', '/admin/facture/' . $invoice->getId());
+        self::assertSelectorTextNotContains('.lignes thead', 'Remise');
+        self::assertSelectorExists('.lignes tfoot th[colspan="3"]');
+    }
+
     // Un acompte saisi ne dépasse jamais le total, même quand le total baisse après coup
     public function testDepositAmountStaysWithinTheTotal(): void
     {
