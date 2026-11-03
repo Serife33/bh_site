@@ -45,10 +45,12 @@ a { color: inherit; text-decoration: none; }
 /* Titres fins et serrés ; 400 pour le texte, 500 pour les prix et libellés */
 h1, h2 { font-weight: 300; line-height: 1.1; letter-spacing: -.025em; }
 h1 { font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem); }
-b, strong { font-weight: 500; }
+b, strong, th { font-weight: 500; }
 ::placeholder { color: var(--txt2); }
-/* Anneau encre, et un halo clair qui le garde visible sur les fonds sombres */
+/* Anneau encre, séparé de l'élément par un liseré clair */
 :focus-visible { outline: 2px solid var(--txt); outline-offset: 2px; box-shadow: 0 0 0 2px var(--bg); }
+/* Sur fond encre (bandeau cookies, visionneuse, bloc sombre), l'anneau passe en clair */
+.cookie-banner :focus-visible, .visionneuse :focus-visible, .dark :focus-visible { outline-color: var(--bg); box-shadow: 0 0 0 2px var(--txt); }
 
 /* Conteneur centré, marges qui s'élargissent avec l'écran */
 .wrap {
@@ -158,11 +160,11 @@ b, strong { font-weight: 500; }
    Seuls éléments en capitales espacées du site. */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 12px;
-  min-height: 52px; padding: 0 28px;
+  min-height: 52px; padding: 12px 28px;
   border: 1px solid;
-  font-size: .75rem; font-weight: 500; line-height: 1; letter-spacing: .14em; text-transform: uppercase;
+  font-size: .75rem; font-weight: 500; line-height: 1.3; letter-spacing: .14em; text-transform: uppercase;
 }
-.btn:hover { background: var(--txt); border-color: var(--txt); color: var(--bg); }
+.btn:not(:disabled):hover { background: var(--txt); border-color: var(--txt); color: var(--bg); }
 .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 .btn-wa i { color: var(--wa); }   /* WhatsApp : le vert sur le pictogramme seulement */
 
@@ -269,10 +271,12 @@ b, strong { font-weight: 500; }
 .pcard { display: block; }
 .pcard-photo { position: relative; aspect-ratio: 1; background: var(--bg2); }
 /* Photo entière, jamais rognée ; le blanc des photos détourées prend la teinte sable du fond */
-.pcard-photo img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; }
+.pcard-photo img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; transition: opacity .35s ease; }
 /* Seconde photo, révélée au survol de la carte */
-.pcard-survol { position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease; }
+.pcard-survol { position: absolute; inset: 0; opacity: 0; }
 .pcard:hover .pcard-survol { opacity: 1; }
+/* La première s'efface : entière et en multiply, la seconde la laisserait voir (souris seulement) */
+@media (hover: hover) { .pcard:hover img:has(+ .pcard-survol) { opacity: 0; } }
 /* Écrans tactiles : pas de survol, donc pas d'image à charger */
 @media (hover: none) { .pcard-survol { display: none; } }
 .pcard-badge { position: absolute; top: 12px; left: 12px; padding: 4px 8px; font-size: .75rem; font-weight: 500; line-height: 1.4; }
@@ -425,7 +429,7 @@ b, strong { font-weight: 500; }
 
 /* ===== BANDEAU DÉFILANT ===== */
 .band {
-  overflow: hidden;
+  overflow: clip;            /* jamais défilé par le navigateur, même quand un lien reçoit le focus */
   background: var(--bg2);
   font-size: .75rem;
 }
@@ -437,7 +441,10 @@ b, strong { font-weight: 500; }
   min-width: 200vw;
   animation: band-scroll 50s linear infinite;
 }
-.band:hover .band-track, .band:focus-within .band-track { animation-play-state: paused; }
+.band:hover .band-track { animation-play-state: paused; }
+/* Au clavier : le bandeau s'arrête au début et défile à la main jusqu'au lien */
+.band:focus-within { overflow-x: auto; }
+.band:focus-within .band-track { animation: none; }
 .band-track > * {
   flex: 1 0 auto;
   display: flex;
@@ -516,8 +523,6 @@ b, strong { font-weight: 500; }
 
   .nav-univers:hover .nav-univers-menu,
   .nav-univers:focus-within .nav-univers-menu { display: flex; }
-
-  .nav-univers-menu a { font-size: .8125rem; }
 }
 
 
@@ -628,7 +633,8 @@ b, strong { font-weight: 500; }
     flex: 0 0 100%;
     scroll-snap-align: start;
 }
-.gal-photo:focus-visible { outline-offset: -4px; }   /* à l'intérieur : le cadre rognerait l'anneau */
+/* À l'intérieur : le cadre (ou l'écran, pour la visionneuse) rognerait l'anneau */
+.gal-photo:focus-visible, .map-facade:focus-visible, .visionneuse .gal-viewport:focus-visible { outline-offset: -4px; }
 .gal-photo img {
     width: 100%;
     aspect-ratio: 4 / 3;
@@ -970,19 +976,6 @@ b, strong { font-weight: 500; }
     gap: 8px; font-size: 14px; 
     color: var(--txt2); 
 }
-.buybox .btn-devis { 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 10px; 
-    padding: 14px 20px; 
-    background: var(--wa); 
-    color: #fff; 
-    border-radius: var(--r); 
-    font-weight: 500; 
-    font-size: 15px; 
-}
-.buybox .btn-devis:hover { filter: brightness(.95); }
 
 
 
@@ -1081,8 +1074,6 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
 .custom-quote { margin-top: 24px; padding: 18px 20px; background: var(--bg2); border-left: 3px solid var(--accent); border-radius: var(--r); }
 .custom-quote p { margin: 0 0 12px; font-size: 14px; color: var(--txt); line-height: 1.6; }
 .quote-dims { width: 100%; margin-bottom: 10px; }
-.custom-quote .btn-quote, .compo-commander { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--wa); color: #fff; border: none; border-radius: var(--r); font-weight: 500; font-size: 14px; cursor: pointer; }
-.custom-quote .btn-quote:hover, .compo-commander:hover { filter: brightness(.95); }
 
 
 

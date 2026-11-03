@@ -29,17 +29,33 @@ function lienWhatsApp(numero, message) {
 
 
 // ===== Menu mobile =====
+// Plein écran, il cache la page : tant qu'il est ouvert, la page dessous est inerte (ni focus ni clic).
+function basculerMenu(ouvrir) {
+    document.querySelector('.nav')?.classList.toggle('open', ouvrir);
+    document.querySelector('.burger')?.setAttribute('aria-expanded', ouvrir);
+    document.querySelectorAll('.main, .ft').forEach(e => e.inert = ouvrir);
+}
+
 document.addEventListener('click', (e) => {
     if (e.target.closest('.burger')) {
-        const nav = document.querySelector('.nav');
-        const burger = document.querySelector('.burger');
-        burger.setAttribute('aria-expanded', nav.classList.toggle('open') ? 'true' : 'false');
+        const ouvrir = !document.querySelector('.nav').classList.contains('open');
+        basculerMenu(ouvrir);
+        if (ouvrir) document.querySelector('.nav a').focus();   // le clavier part du premier lien du menu
         return;
     }
-    if (e.target.closest('.nav a')) {
-        document.querySelector('.nav')?.classList.remove('open');
+    if (e.target.closest('.nav a')) basculerMenu(false);
+});
+
+// Échap ferme le menu et rend le focus au burger
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.querySelector('.nav.open')) {
+        basculerMenu(false);
+        document.querySelector('.burger').focus();
     }
 });
+
+// Passage en largeur bureau (tablette tournée) : le menu redevient la barre, la page ne doit pas rester inerte
+matchMedia('(min-width: 768px)').addEventListener('change', () => basculerMenu(false));
 
 
 // ===== Galerie fiche produit =====
