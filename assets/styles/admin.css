@@ -90,7 +90,7 @@
   width: 100%;
   max-width: 480px;
   padding: 0.5rem 0.6rem;
-  border: 1px solid #C9C2BA;
+  border: 1px solid #8C857D;   /* 3,6:1 sur blanc : le contour d'un champ doit se voir (WCAG 1.4.11) */
   border-radius: 6px;
   font: inherit;
   background: #fff;
@@ -386,6 +386,18 @@
   padding: .15rem .55rem;
 }
 
+/* Monter / Descendre : ranger sans glisser-déposer (clavier, doigt), cibles de 44 px */
+.ordre-boutons { display: flex; gap: .4rem; margin-left: auto; }   /* sur petit écran, les deux passent à la ligne ensemble, à droite */
+.admin-content .ordre-bouton {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: #fff;
+  color: #8B6F4E;
+  border: 1px solid #8C857D;
+  font-size: 18px;
+}
+
 /* Produit masqué sur le site : ligne atténuée, mais elle garde sa place */
 .ordre-ligne.est-masque { opacity: .55; }
 
@@ -415,7 +427,7 @@
 .filtres input,
 .filtres select {
   padding: 6px 10px;
-  border: 1px solid #D8D2C7;
+  border: 1px solid #8C857D;
   border-radius: 4px;
   font: inherit;
   background: #fff;

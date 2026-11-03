@@ -77,7 +77,8 @@ function moveLabels(items) {
     });
 }
 
-async function enregistrerOrdre(liste) {
+// annonce : ce que lit le lecteur d'écran avant « Ordre enregistré. » (la place de la ligne déplacée par un bouton)
+async function enregistrerOrdre(liste, annonce = '') {
     const lignes = [...liste.querySelectorAll('li')];
     const message = document.getElementById('ordre-message');
 
@@ -105,7 +106,7 @@ async function enregistrerOrdre(liste) {
 
         if (message) {
             message.textContent = donnees.ok
-                ? 'Ordre enregistré.'
+                ? `${annonce}Ordre enregistré.`
                 : (donnees.message ?? "L'enregistrement a échoué.");
         }
     } catch (erreur) {
@@ -127,6 +128,22 @@ function activerGlisser() {
         });
     });
 }
+
+// Monter / Descendre : le même rangement sans glisser-déposer, pour le clavier et le doigt (WCAG 2.5.7).
+// En tête ou en bas, la ligne ne bouge pas, et l'annonce redit sa place.
+document.addEventListener('click', (e) => {
+    const bouton = e.target.closest('.ordre-monter, .ordre-descendre');
+    if (!bouton) return;
+
+    const ligne = bouton.closest('.ordre-ligne');
+    const liste = ligne.parentElement;
+    if (bouton.matches('.ordre-monter')) ligne.previousElementSibling?.before(ligne);
+    else ligne.nextElementSibling?.after(ligne);
+    bouton.focus();   // déplacer la ligne a retiré le focus au bouton
+
+    const place = [...liste.children].indexOf(ligne) + 1;
+    enregistrerOrdre(liste, `${ligne.querySelector('.ordre-nom').textContent} : position ${place} sur ${liste.children.length}. `);
+});
 
 // Ce que chaque page doit brancher : les listes glissables et les champs de recherche des pastilles.
 function brancherPage() {
@@ -216,6 +233,13 @@ document.addEventListener('input', (e) => {
 document.addEventListener('change', (e) => {
     const groupe = e.target.closest(GROUPES_PASTILLES);
     if (groupe?.previousElementSibling.matches('.filtres')) filtrerPastilles(groupe);
+});
+
+// Au clavier, la pastille qui reçoit le focus est ramenée dans sa liste qui défile : sa case, invisible, reste en haut
+document.addEventListener('focusin', (e) => {
+    if (e.target.matches('input[type=checkbox]') && e.target.closest(GROUPES_PASTILLES)) {
+        e.target.nextElementSibling.scrollIntoView({ block: 'nearest' });
+    }
 });
 
 // Échap vide le champ ; Entrée ne doit pas envoyer tout le formulaire
