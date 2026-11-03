@@ -410,27 +410,48 @@
             </div>
         </div>
 
-        {# Fiche d'un canapé modulable : ses modules visibles, dans l'ordre du glisser-déposer #}
-        {% set modulesVisibles = product.modules|filter(m => m.isActive)|sort((a, b) => (a.position - b.position) ?: (a.id - b.id)) %}
+        {# Composition d'un canapé modulable, module par module, à partir de zéro. Sur toutes les fiches
+           de la gamme (ensembles et modules), les mêmes modules visibles : ceux de la famille, dans l'ordre
+           du glisser-déposer. Un ensemble sans famille garde les siens. #}
+        {% set modulesVisibles = (product.family and product.isModular.value != 'no'
+                ? product.family.products|filter(p => p.isModular.value == 'module')
+                : product.modules)
+            |filter(m => m.isActive)|sort((a, b) => (a.position - b.position) ?: (a.id - b.id)) %}
         {% if modulesVisibles|length %}
-        <section class="modules-produit">
-            <h2>Composez votre {{ product.family ? product.family.name : product.name }}</h2>
+        {% set nomGamme = product.family.name ?? product.name %}
+        <section class="modules-produit composition" data-gamme="{{ nomGamme }}">
+            <h2>Composez votre {{ nomGamme }}</h2>
             <p class="modules-intro">
-                Chaque module est disponible à l'unité. Cliquez pour découvrir ses dimensions et son prix.
+                Ajoutez les modules de votre choix, le total se calcule à mesure. Cliquez sur un module pour découvrir ses dimensions.
             </p>
             <div class="grid-produits">
                 {% for module in modulesVisibles %}
-                    {{ include('front/_product_card.html.twig', { product: module }) }}
+                    <div class="compo-module" data-nom="{{ module.name }}" data-prix="{{ module.actualPrice }}">
+                        {{ include('front/_product_card.html.twig', { product: module }) }}
+                        <div class="compo-qte">
+                            <button type="button" class="compo-moins" aria-label="Retirer {{ module.name }}" aria-disabled="true">−</button>
+                            <span class="compo-nb">0</span>
+                            <button type="button" class="compo-plus" aria-label="Ajouter {{ module.name }}" aria-disabled="false">+</button>
+                        </div>
+                    </div>
                 {% endfor %}
+            </div>
+            <div class="compo-recap">
+                <div role="status" aria-live="polite">
+                    <ul class="compo-liste"></ul>
+                    <p class="compo-somme">Total : <strong class="compo-total">{{ 0|prix }}</strong></p>
+                </div>
+                <p class="compo-mention">Un conseiller valide avec vous la faisabilité de votre composition.</p>
+                <button type="button" class="compo-commander" data-wa="{{ whatsapp_number }}" disabled>
+                    <i class="fa-brands fa-whatsapp"></i> Commander cette composition sur WhatsApp
+                </button>
             </div>
         </section>
         {% endif %}
 
-        {# Fiche d'un module : on mène vers les canapés de la gamme et vers les autres modules #}
+        {# Fiche d'un module : on mène aussi vers les canapés de la gamme #}
         {% if product.isModular.value == 'module' and product.family %}
-            {% set gamme = product.family.products|filter(p => p.isActive)|sort((a, b) => (a.position - b.position) ?: (a.id - b.id)) %}
-            {% set canapesGamme = gamme|filter(p => p.isModular.value != 'module') %}
-            {% set autresModules = gamme|filter(p => p.isModular.value == 'module' and p.id != product.id) %}
+            {% set canapesGamme = product.family.products|filter(p => p.isActive and p.isModular.value != 'module')|sort((a, b) => (a.position - b.position) ?: (a.id - b.id)) %}
 
             {% if canapesGamme|length %}
             <section class="modules-produit">
@@ -439,18 +460,6 @@
                 <div class="grid-produits">
                     {% for canape in canapesGamme %}
                         {{ include('front/_product_card.html.twig', { product: canape }) }}
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-
-            {% if autresModules|length %}
-            <section class="modules-produit">
-                <h2>Les autres modules {{ product.family.name }}</h2>
-                <p class="modules-intro">Chaque module est disponible à l'unité.</p>
-                <div class="grid-produits">
-                    {% for module in autresModules %}
-                        {{ include('front/_product_card.html.twig', { product: module }) }}
                     {% endfor %}
                 </div>
             </section>
