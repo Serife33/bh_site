@@ -80,7 +80,7 @@ final class ImportCatalogueCommand
         // Les matières, désignées par leur libellé dans l'admin : « Céramique (Premium) ».
         // Une matière déjà en base garde ses coloris tels quels : ils ont pu être renommés dans l'admin.
         $fabrics = [];
-        foreach ($this->fabricRepository->findBy(['supplier' => $fournisseur]) as $fabric) {
+        foreach ($this->fabricRepository->findBySupplier($fournisseur) as $fabric) {
             $fabrics[(string) $fabric] = $fabric;
         }
 
@@ -98,14 +98,14 @@ final class ImportCatalogueCommand
             }
             $slugs[$slug] = true;
 
-            if ($this->productRepository->findOneBy(['slug' => $slug]) !== null) {
+            if ($this->productRepository->slugExists($slug)) {
                 ++$count['Produits déjà en base, ignorés'];
                 $io->text("= $name : déjà en base, ignoré");
 
                 continue;
             }
 
-            $category = $this->categoryRepository->findOneBy(['name' => $rows[0]['categorie']])
+            $category = $this->categoryRepository->findOneByName($rows[0]['categorie'])
                 ?? throw new \RuntimeException("Catégorie inconnue : {$rows[0]['categorie']}.");
 
             // Masqué : textes, photos et prix sont à relire dans l'admin avant de le publier
@@ -124,7 +124,7 @@ final class ImportCatalogueCommand
             $product->setPosition($positions[$category->getId()]++);
 
             foreach (array_filter(array_map(trim(...), explode(',', $rows[0]['sous_categories']))) as $subCategoryName) {
-                $product->addSubCategory($this->subCategoryRepository->findOneBy(['name' => $subCategoryName])
+                $product->addSubCategory($this->subCategoryRepository->findOneByName($subCategoryName)
                     ?? throw new \RuntimeException("Sous-catégorie inconnue : $subCategoryName."));
             }
 

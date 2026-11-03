@@ -17,7 +17,7 @@ final class HomeController extends AbstractController
         $sections = $homeSections->build();
 
         return $this->render('home/index.html.twig', [
-            'categories' => $categoryRepository->findBy([], ['id' => 'ASC']),
+            'categories' => $categoryRepository->findForMenu(),
             'nouveautes' => $sections['nouveautes'],
             'promos'     => $sections['promos'],
             'enStock'    => $sections['enStock'],

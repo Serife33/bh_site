@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Category;
+use App\Entity\Fabric;
 use App\Entity\Product;
 use App\Entity\SubCategory;
 use App\Enum\ProductModular;
@@ -144,6 +145,12 @@ class ProductRepository extends ServiceEntityRepository
         return $slug;
     }
 
+    // Un produit a-t-il déjà cette adresse ? L'import ne recrée pas un modèle déjà en base.
+    public function slugExists(string $slug): bool
+    {
+        return $this->count(['slug' => $slug]) > 0;
+    }
+
     // Accueil : tous les produits visibles hors modules, avec leurs photos (pour les cartes).
     // Le service HomeSectionsBuilder applique ensuite les règles des trois sections.
     public function findActiveForHome(): array
@@ -181,6 +188,24 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $qb->getQuery();
+    }
+
+    // La fiche publique : le produit visible et ce qu'elle affiche autour.
+    // Une seule collection jointe, les variantes : jointes avec elles, les photos multiplieraient les lignes.
+    // Les photos arrivent au premier accès, en une requête.
+    public function findActiveBySlug(string $slug): ?Product
+    {
+        return $this->createQueryBuilder('p')
+            ->join('p.category', 'c')
+            ->leftJoin('p.family', 'f')
+            ->leftJoin('p.variants', 'v')
+            ->leftJoin('v.fabric', 'vf')
+            ->addSelect('c', 'f', 'v', 'vf')
+            ->andWhere('p.slug = :slug')
+            ->andWhere('p.isActive = true')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findSimilar(Product $product, int $limit = 4): array
@@ -265,4 +290,16 @@ class ProductRepository extends ServiceEntityRepository
         return $qb;
     }
 
+    // Les produits dont une variante est dans cette matière : tant qu'il y en a, elle ne se supprime pas.
+    public function findNamesUsingFabric(Fabric $fabric): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('DISTINCT p.name')
+            ->join('p.variants', 'v')
+            ->andWhere('v.fabric = :fabric')
+            ->setParameter('fabric', $fabric)
+            ->orderBy('p.name', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+    }
 }
