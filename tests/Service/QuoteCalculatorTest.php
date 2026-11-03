@@ -1,0 +1,103 @@
+<?php
+
+namespace App\Tests\Service;
+
+use App\Entity\Quote;
+use App\Entity\QuoteLine;
+use App\Enum\DiscountType;
+use App\Service\QuoteCalculator;
+use PHPUnit\Framework\TestCase;
+
+final class QuoteCalculatorTest extends TestCase
+{
+    // Le devis BHD-2026-11-001 de la maquette edition.html, au centime près
+    public function testMaquetteExample(): void
+    {
+        $quote = $this->quote(
+            $this->line('1590.00', 1, '10.00', DiscountType::Percent),   // Canapé d'angle LONDON
+            $this->line('1155.00', 1, '75.00', DiscountType::Amount),    // Lit coffre PARIS
+            $this->line('480.00'),                                       // Tapis sur mesure, ligne libre
+        )->setDiscountValue('90.00')->setDiscountType(DiscountType::Amount)
+            ->setDeliveryFee('120.00')->setAssemblyFee('60.00');
+
+        $totals = (new QuoteCalculator())->totals($quote);
+
+        self::assertSame([
+            ['discount' => '159.00', 'total' => '1431.00'],
+            ['discount' => '75.00', 'total' => '1080.00'],
+            ['discount' => '0.00', 'total' => '480.00'],
+        ], $totals['lines']);
+        self::assertSame('2991.00', $totals['items']);
+        self::assertSame('90.00', $totals['discount']);
+        self::assertSame('3081.00', $totals['ttc']);
+        self::assertSame('2567.50', $totals['ht']);
+        self::assertSame('513.50', $totals['tva']);
+        self::assertSame('924.30', $totals['deposit']);
+        self::assertSame('2156.70', $totals['balance']);
+    }
+
+    public function testAmountDiscountAppliesToTheWholeLine(): void
+    {
+        $totals = (new QuoteCalculator())->totals($this->quote($this->line('100.00', 2, '30.00', DiscountType::Amount)));
+
+        self::assertSame('170.00', $totals['lines'][0]['total']);   // 2 × 100 - 30, et non 2 × (100 - 30)
+    }
+
+    public function testGlobalDiscountComesAfterLineDiscountsAndSparesFees(): void
+    {
+        $quote = $this->quote($this->line('1000.00', 1, '10.00', DiscountType::Percent))
+            ->setDiscountValue('10.00')->setDeliveryFee('100.00')->setAssemblyFee('50.00');
+
+        $totals = (new QuoteCalculator())->totals($quote);
+
+        self::assertSame('90.00', $totals['discount']);   // 10 % des 900 € remisés, pas des 1 000 €
+        self::assertSame('960.00', $totals['ttc']);       // 900 - 90 + 100 + 50
+    }
+
+    public function testPickupIgnoresDeliveryAndAssembly(): void
+    {
+        $quote = $this->quote($this->line('500.00'))->setDeliveryFee('120.00')->setAssemblyFee('60.00')->setPickup(true);
+
+        self::assertSame('500.00', (new QuoteCalculator())->totals($quote)['ttc']);
+    }
+
+    public function testRoundsToTheNearestCent(): void
+    {
+        $totals = (new QuoteCalculator())->totals($this->quote($this->line('33.33', 3, '15.00', DiscountType::Percent)));
+
+        self::assertSame('15.00', $totals['lines'][0]['discount']);   // 15 % de 99,99 = 14,9985
+        self::assertSame('84.99', $totals['ttc']);
+        self::assertSame('70.83', $totals['ht']);                    // 84,99 ÷ 1,2 = 70,825
+        self::assertSame('14.16', $totals['tva']);
+        self::assertSame('25.50', $totals['deposit']);               // 30 % de 84,99 = 25,497
+        self::assertSame('59.49', $totals['balance']);
+    }
+
+    public function testDiscountNeverExceedsWhatItReduces(): void
+    {
+        $quote = $this->quote($this->line('150.00', 1, '200.00', DiscountType::Amount), $this->line('80.00'))
+            ->setDiscountValue('500.00')->setDiscountType(DiscountType::Amount)->setDeliveryFee('40.00');
+
+        $totals = (new QuoteCalculator())->totals($quote);
+
+        self::assertSame('0.00', $totals['lines'][0]['total']);
+        self::assertSame('80.00', $totals['discount']);
+        self::assertSame('40.00', $totals['ttc']);   // il reste la livraison, jamais remisée
+    }
+
+    private function quote(QuoteLine ...$lines): Quote
+    {
+        $quote = new Quote();
+        foreach ($lines as $line) {
+            $quote->addLine($line);
+        }
+
+        return $quote;
+    }
+
+    private function line(string $unitPrice, int $quantity = 1, string $discount = '0.00', DiscountType $type = DiscountType::Percent): QuoteLine
+    {
+        return (new QuoteLine())->setLabel('Ligne test')->setUnitPrice($unitPrice)->setQuantity($quantity)
+            ->setDiscountValue($discount)->setDiscountType($type);
+    }
+}
