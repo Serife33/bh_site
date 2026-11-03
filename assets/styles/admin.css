@@ -745,6 +745,7 @@ tr.est-masque { opacity: .55; }
 #form-devis .segments.large label { flex: 1 1 0; padding: .35rem .6rem; line-height: 1.25; text-align: center; white-space: normal; }
 #form-devis .valeur { min-height: 2.9em; margin: 0; font-size: 14px; }
 #form-devis .valeur.attention { color: #7A5A12; font-weight: 600; }
+#form-devis .c-acompte { max-width: 16rem; margin: .2rem 0 0 calc(22px + .6rem); }
 .c-delai { margin-top: 1.4rem; padding-top: 1.1rem; border-top: 1px solid #E7E2DC; }
 .raccourcis { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
 #form-devis .raccourcis button { font-size: 14px; }

@@ -238,7 +238,7 @@ final class QuoteControllerTest extends WebTestCase
         $this->em->flush();
         $this->client->loginUser($this->seller);
         $values = $this->client->request('GET', '/admin/devis/new')->filter('#form-devis')->form()->getPhpValues();
-        $values['quote'] = ['customer' => $this->customer->getId(), 'leadTime' => '6 semaines', 'depositAmount' => '100.01',
+        $values['quote'] = ['customer' => $this->customer->getId(), 'leadTime' => '6 semaines', 'depositMode' => 'montant', 'depositAmount' => '100.01',
             'lines' => [$this->line('Ligne test', '100.00', '0', 'percent')]] + $values['quote'];
         $this->client->request('POST', '/admin/devis/new', $values);
         self::assertResponseStatusCodeSame(422);
@@ -250,6 +250,19 @@ final class QuoteControllerTest extends WebTestCase
         $this->client->request('POST', '/admin/devis/' . $quote->getId() . '/edit', $values);
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('#form-devis', "L'acompte ne peut pas dépasser le total TTC du devis.");
+    }
+
+    // « 30 % du total » choisi : un montant envoyé quand même (sans JavaScript) ne compte pas
+    public function testDepositRateIgnoresAnAmountSentAnyway(): void
+    {
+        $this->client->loginUser($this->seller);
+        $values = $this->client->request('GET', '/admin/devis/new')->filter('#form-devis')->form()->getPhpValues();
+        $values['quote'] = ['customer' => $this->customer->getId(), 'leadTime' => '6 semaines', 'depositMode' => 'taux', 'depositAmount' => '50.00',
+            'lines' => [$this->line('Ligne test', '100.00', '0', 'percent')]] + $values['quote'];
+        $this->client->request('POST', '/admin/devis/new', $values);
+
+        self::assertResponseRedirects();
+        self::assertNull($this->em->getRepository(Quote::class)->findOneBy(['customer' => $this->customer])->getDepositAmount());
     }
 
     public function testDepositAmountOnTheDocuments(): void

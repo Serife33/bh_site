@@ -25,6 +25,8 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class QuoteType extends AbstractType
@@ -67,11 +69,20 @@ class QuoteType extends AbstractType
             ->add('deliveryFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix de la livraison TTC', 'help' => 'Livraison offerte. Tapez un prix si elle est payante.'])
             ->add('assembly', CheckboxType::class, ['label' => 'Montage par nos soins', 'required' => false])
             ->add('assemblyFee', MoneyType::class, self::FEE_OPTIONS + ['label' => 'Prix du montage TTC', 'help' => 'Pas de montage.'])
+            // L'acompte : le taux du devis, ou un autre montant convenu avec le client. Le choix n'est pas enregistré :
+            // avec le taux, le montant (grisé, donc non envoyé) reste vide et le taux s'applique.
+            ->add('depositMode', ChoiceType::class, [
+                'mapped' => false,
+                'choices' => ['taux' => 'taux', 'montant' => 'montant'],
+                'expanded' => true,
+                'data' => $builder->getData()?->getDepositAmount() === null ? 'taux' : 'montant',
+            ])
             ->add('depositAmount', MoneyType::class, [
-                'label' => 'Acompte TTC',
+                'label' => "Montant de l'acompte TTC",
                 'required' => false,
                 'attr' => ['min' => '0.01', 'step' => '0.01'],   // pas de plafond ici : il dépend du total (DepositWithinTotal)
-                'help' => 'Vide : le pourcentage habituel du total. Un montant saisi le remplace.',
+                'help' => 'Calculé sur le total TTC, livraison et montage compris.',
+                'help_attr' => ['class' => 'resultat deux'],
             ] + QuoteLineType::PRICE_OPTIONS)
             ->add('leadTime', TextType::class, [
                 'label' => 'Délai de livraison <span class="obl">(obligatoire)</span>',
@@ -103,6 +114,13 @@ class QuoteType extends AbstractType
                 'attr' => ['placeholder' => "Visibles seulement dans l'administration, jamais sur le devis imprimé."],
             ])
         ;
+
+        // Le taux choisi : un montant envoyé quand même (sans JavaScript) ne compte pas. Avant la validation (priorité 1).
+        $builder->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event): void {
+            if ($event->getForm()->get('depositMode')->getData() === 'taux') {
+                $event->getData()->setDepositAmount(null);
+            }
+        }, 1);
 
         $builder->get('customer')->addModelTransformer(new CallbackTransformer(
             static fn (?Customer $customer) => $customer?->getId(),

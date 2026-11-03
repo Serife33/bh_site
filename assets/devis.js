@@ -365,18 +365,28 @@ function recalculer() {
     const ttc = totalArticles - globale.montant + livraison + montage;
     const ht = Math.round(ttc * 100 / (100 + Number(form.dataset.tva)));
 
-    // L'acompte : le montant saisi, sinon le taux du devis, montré en indication dans le champ vide
+    // L'acompte : le taux du devis (le montant suit le total en direct), ou un autre montant convenu, vérifié tout de suite
     const taux = Number(form.dataset.acompte);
     const calcule = Math.round(ttc * taux / 100);
-    const saisi = champDevis('depositAmount').value !== '';
-    const acompte = saisi ? centimes(champDevis('depositAmount').value) : calcule;
-    champDevis('depositAmount').placeholder = `${taux.toLocaleString('fr-FR')} % = ${euros(calcule)}`;
+    form.querySelector('[data-acompte-calcule]').textContent = euros(calcule);
+    const champAcompte = champDevis('depositAmount');
+    const autre = champDevis('depositMode').value === 'montant';
+    champAcompte.disabled = !autre;
+    const saisi = centimes(champAcompte.value);
+    const acompte = autre && champAcompte.value !== '' && saisi > 0 ? saisi : calcule;
+    const erreurAcompte = !autre || champAcompte.value === '' ? ''
+        : saisi <= 0 ? `Indiquez un montant supérieur à 0, ou choisissez ${taux.toLocaleString('fr-FR')} % du total.`
+        : saisi > ttc ? `L'acompte (${euros(saisi)}) dépasse le total TTC (${euros(ttc)}). Indiquez un montant plus petit.` : '';
+    resultat(aideDe(champAcompte), erreurAcompte || (!autre ? 'Calculé sur le total TTC, livraison et montage compris.'
+        : champAcompte.value === '' ? `Tapez le montant convenu avec le client. Vide, l'acompte reste à ${taux.toLocaleString('fr-FR')} %.`
+        : `Soit ${pourcent(saisi, ttc)} % du total TTC.`), erreurAcompte ? 'faux' : '');
+    if (erreurAcompte) problemes.push({ texte: `Acompte : ${saisi <= 0 ? 'indiquez un montant supérieur à 0' : 'il dépasse le total TTC'}`, cible: champAcompte.id });
 
     const montants = { items: totalArticles, discount: globale.montant, delivery: livraison, assembly: montage, ttc, ht, tva: ttc - ht, deposit: acompte, balance: ttc - acompte };
     Object.entries(montants).forEach(([cle, montant]) => { cellule(cle).textContent = (cle === 'discount' && montant ? '-' : '') + euros(montant); });
     cellule('delivery').textContent = !livre ? 'retrait au showroom' : livraison ? euros(livraison) : 'offerte';
     cellule('assembly').textContent = !monte ? 'sans montage' : montage ? euros(montage) : 'offert';
-    form.querySelector('[data-part-acompte]').textContent = `${saisi ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR')} %`;
+    form.querySelector('[data-part-acompte]').textContent = `${acompte !== calcule ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR')} %`;
     form.querySelector('[data-moment-solde]').textContent = livre ? 'à la livraison' : 'au retrait';
     return problemes;
 }
@@ -516,6 +526,12 @@ document.addEventListener('focusout', (e) => {
     if (cible.matches('.c-rv input') && cible.value === '') {
         cible.value = valeurNeutre(cible.closest('.c-remise'));
         apresChangement();
+    }
+    // Un autre acompte laissé vide : retour au taux du devis, dit à la même place
+    if (cible === champDevis('depositAmount') && cible.value === '' && champDevis('depositMode').value === 'montant') {
+        formulaire().querySelector('[name="quote[depositMode]"][value="taux"]').checked = true;
+        apresChangement();
+        resultat(aideDe(cible), `Montant vide : l'acompte reste à ${Number(formulaire().dataset.acompte).toLocaleString('fr-FR')} % du total.`);
     }
 });
 

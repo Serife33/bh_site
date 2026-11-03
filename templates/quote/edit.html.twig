@@ -5,6 +5,7 @@
    pourquoi (assets/devis.js). #}
 {% form_theme form 'quote/_form_theme.html.twig' %}
 {% import 'quote/_article.html.twig' as articles %}
+{% import 'document/macros.html.twig' as doc %}
 {% set titre = quote.number ? 'Devis ' ~ quote.number : 'Nouveau devis' %}
 
 {% block title %}{{ titre }}{% endblock %}
@@ -93,7 +94,20 @@
 
             <section class="bloc" aria-labelledby="section-acompte">
                 <h2 id="section-acompte"><span class="etape" aria-hidden="true">4</span>Acompte</h2>
-                {{ form_row(form.depositAmount) }}
+                <fieldset>
+                    <legend>Acompte à la commande</legend>
+                    {% for choix in form.depositMode %}
+                        <label class="case" for="{{ choix.vars.id }}">
+                            {{- form_widget(choix) -}}
+                            {%- if choix.vars.value == 'taux' -%}
+                                <span>{{ doc.taux(quote.depositRate) }} du total TTC : <strong data-acompte-calcule></strong></span>
+                            {%- else -%}
+                                Un autre montant
+                            {%- endif -%}
+                        </label>
+                    {% endfor %}
+                    {{ form_row(form.depositAmount, {row_attr: {class: 'c-acompte'}}) }}
+                </fieldset>
             </section>
 
             <section class="bloc" aria-labelledby="section-suivi">
