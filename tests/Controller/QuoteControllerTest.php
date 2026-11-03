@@ -108,7 +108,7 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSame(["1\u{A0}431,00\u{A0}€", "1\u{A0}080,00\u{A0}€", "480,00\u{A0}€"], $crawler->filter('.lignes tbody td:last-child')->each(fn ($td) => $td->text()));
         self::assertSelectorTextContains('.lignes tbody tr:first-child', 'soit -159,00');
         self::assertSelectorCount(2, '.choix');                            // « Fabriqué selon vos choix » : canapé et tapis
-        self::assertSelectorTextContains('.doc', 'vendeur-test@example.com');   // « Votre conseiller »
+        self::assertSelectorTextNotContains('.doc', 'vendeur-test@example.com'); // le vendeur n'est pas imprimé
         self::assertSelectorTextContains('.pied', 'SIRET 901 674 507 00016');   // l'identité légale de la société
         self::assertSelectorNotExists('.pied .ac');                         // plus rien à compléter dans le pied
     }

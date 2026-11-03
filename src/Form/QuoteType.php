@@ -98,7 +98,7 @@ class QuoteType extends AbstractType
             ])
             ->add('seller', EntityType::class, [
                 'label' => 'Vendeur',
-                'help' => 'Imprimé sur le devis comme « Votre conseiller ».',
+                'help' => 'Pour le suivi interne : n\'apparaît pas sur le devis.',
                 'class' => AdminUser::class,
                 'query_builder' => fn (AdminUserRepository $repository) => $repository->createSellersQueryBuilder(),
                 'choice_label' => 'email',

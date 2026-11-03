@@ -39,7 +39,7 @@ class Quote
     #[Assert\NotNull(message: 'Choisissez le client.')]
     private ?Customer $customer = null;
 
-    // Le vendeur, « Votre conseiller » sur le devis : le compte connecté qui le crée
+    // Le vendeur, pour le suivi interne (absent du devis imprimé) : le compte connecté qui le crée
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Choisissez le vendeur.')]

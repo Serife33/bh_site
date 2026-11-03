@@ -29,7 +29,6 @@
         <dt>Numéro</dt><dd>{{ quote.number }}</dd>
         <dt>Date</dt><dd>{{ quote.createdAt|date_longue }}</dd>
         <dt>Valable jusqu'au</dt><dd>{{ quote.validUntil|date_longue }}</dd>
-        <dt>Votre conseiller</dt><dd>{{ quote.seller.email }}</dd>
     </dl>
 {% endblock %}
 
