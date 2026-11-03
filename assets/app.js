@@ -233,8 +233,8 @@ function choisirTaille(bouton) {
     else refleterSelection();
 }
 
-// Applique une matière : seul son nuancier de finitions reste visible, sur sa première finition.
-// Une matière sans finition n'en a pas : l'étape disparaît.
+// Applique une matière : seul son nuancier de finitions reste visible, sur la finition déjà choisie
+// (la première au départ), comme les coloris d'un tissu. Une matière sans finition n'en a pas : l'étape disparaît.
 function choisirMatiere(bouton) {
     activerSeul(bouton, '.matiere-opt', bouton.parentElement);
 
@@ -242,9 +242,7 @@ function choisirMatiere(bouton) {
         groupe.classList.toggle('is-visible', groupe.dataset.finitions === bouton.dataset.choix);
     });
 
-    const premiere = document.querySelector('[data-finitions].is-visible .col-dot');
-    if (premiere) choisirColoris(premiere);
-    else refleterSelection();
+    refleterSelection();
 }
 
 // Applique un tissu : bouton actif, nuancier correspondant affiché, libellés à jour
