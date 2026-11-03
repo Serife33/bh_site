@@ -41,6 +41,26 @@ final class QuoteCalculatorTest extends TestCase
         self::assertSame('359.45', $totals['balanceTva']);
     }
 
+    // Le client donne 1 000 € d'acompte au lieu des 30 % (924,30 €) : le solde et la facture d'acompte suivent
+    public function testDepositAmountReplacesTheRate(): void
+    {
+        $quote = $this->quote($this->line('3081.00'));
+        $calculator = new QuoteCalculator();
+
+        $byRate = $calculator->totals($quote);
+        self::assertSame('924.30', $byRate['deposit']);
+        self::assertSame('30.00', $byRate['depositShare']);
+
+        $totals = $calculator->totals($quote->setDepositAmount('1000.00'));
+        self::assertSame('1000.00', $totals['deposit']);
+        self::assertSame('32.46', $totals['depositShare']);
+        self::assertSame('2081.00', $totals['balance']);
+        self::assertSame('833.33', $totals['depositHt']);
+        self::assertSame('166.67', $totals['depositTva']);
+        self::assertSame('1734.17', $totals['balanceHt']);   // 2 567,50 - 833,33
+        self::assertSame('346.83', $totals['balanceTva']);   // 513,50 - 166,67
+    }
+
     public function testAmountDiscountAppliesToTheWholeLine(): void
     {
         $totals = (new QuoteCalculator())->totals($this->quote($this->line('100.00', 2, '30.00', DiscountType::Amount)));

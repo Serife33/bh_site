@@ -197,6 +197,50 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorTextContains('.lignes tbody tr:nth-child(2)', "2\u{A0}000,00\u{A0}€ -333,33\u{A0}€ soit 16,67\u{A0}% 1\u{A0}666,67\u{A0}€");
     }
 
+    // Un acompte saisi ne dépasse jamais le total, même quand le total baisse après coup
+    public function testDepositAmountStaysWithinTheTotal(): void
+    {
+        $quote = $this->quote(QuoteStatus::Sent)->setDepositAmount('80.00')->setLeadTime('6 semaines');   // ligne à 100 €
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+        $values = $this->client->request('GET', '/admin/devis/new')->filter('#form-devis')->form()->getPhpValues();
+        $values['quote'] = ['customer' => $this->customer->getId(), 'leadTime' => '6 semaines', 'depositAmount' => '100.01',
+            'lines' => [$this->line('Ligne test', '100.00', '0', 'percent')]] + $values['quote'];
+        $this->client->request('POST', '/admin/devis/new', $values);
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#form-devis', "L'acompte ne peut pas dépasser le total TTC du devis.");
+
+        // Le total passe de 100 € à 50 €, sous l'acompte de 80 € déjà saisi
+        $values = $this->client->request('GET', '/admin/devis/' . $quote->getId() . '/edit')->filter('#form-devis')->form()->getPhpValues();
+        $values['quote']['lines'][0]['unitPrice'] = '50.00';
+        $this->client->request('POST', '/admin/devis/' . $quote->getId() . '/edit', $values);
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#form-devis', "L'acompte ne peut pas dépasser le total TTC du devis.");
+    }
+
+    public function testDepositAmountOnTheDocuments(): void
+    {
+        $quote = (new Quote())->setNumber('BHD-2000-01-900')->setStatus(QuoteStatus::Accepted)->setCustomer($this->customer)
+            ->setSeller($this->seller)->setLeadTime('6 semaines')->setDepositAmount('1000.00')
+            ->addLine((new QuoteLine())->setLabel('Ensemble')->setUnitPrice('3081.00'));
+        $invoice = new Invoice($quote);
+        $this->em->persist($quote);
+        $this->em->persist($invoice);
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+
+        $this->client->request('GET', '/admin/devis/' . $quote->getId());
+        self::assertSelectorTextContains('.conditions', "Acompte de 1\u{A0}000,00\u{A0}€ à la signature");
+        self::assertSelectorTextContains('.totaux .acompte th', "Acompte 32,46\u{A0}% à la commande");
+        self::assertSelectorTextContains('.totaux .acompte td', "1\u{A0}000,00\u{A0}€");
+        self::assertSelectorTextContains('.totaux .solde', "2\u{A0}081,00\u{A0}€");
+
+        $crawler = $this->client->request('GET', '/admin/facture/' . $invoice->getId());
+        self::assertSame(["833,33\u{A0}€", "166,67\u{A0}€", "1\u{A0}000,00\u{A0}€"], $crawler->filter('.encadre-acompte td')->each(fn ($td) => $td->text()));   // HT, TVA, TTC
+        self::assertSelectorTextContains('.objet', "Acompte de 1\u{A0}000,00\u{A0}€ versé à la commande");
+        self::assertSelectorTextContains('.reste', "2\u{A0}081,00\u{A0}€ TTC");
+    }
+
     public function testAcceptedQuoteIsLocked(): void
     {
         $quote = $this->quote(QuoteStatus::Accepted);

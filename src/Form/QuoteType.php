@@ -57,6 +57,12 @@ class QuoteType extends AbstractType
             ])
             ->add('deliveryFee', MoneyType::class, QuoteLineType::PRICE_OPTIONS + ['label' => 'Livraison TTC'])
             ->add('assemblyFee', MoneyType::class, QuoteLineType::PRICE_OPTIONS + ['label' => 'Montage TTC'])
+            ->add('depositAmount', MoneyType::class, [
+                'label' => 'Acompte TTC',
+                'required' => false,
+                'attr' => ['min' => '0.01', 'step' => '0.01'],   // pas de plafond ici : il dépend du total (DepositWithinTotal)
+                'help' => 'Vide : le pourcentage habituel du total. Un montant saisi le remplace.',
+            ] + QuoteLineType::PRICE_OPTIONS)
             ->add('leadTime', TextType::class, [
                 'label' => 'Délai de livraison',
                 'attr' => ['placeholder' => "6 à 10 semaines après réception de l'acompte"],

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Enum\QuoteStatus;
 use App\Repository\QuoteRepository;
+use App\Validator\DepositWithinTotal;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -12,6 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 // Un devis du showroom. Les montants sont saisis TTC ; QuoteCalculator en tire le HT, la TVA, l'acompte et le solde.
 #[ORM\Entity(repositoryClass: QuoteRepository::class)]
+#[DepositWithinTotal]
 class Quote
 {
     use DiscountTrait;   // la remise globale, sur le total des articles
@@ -77,6 +79,12 @@ class Quote
     // L'acompte, en % du total TTC, livraison et montage compris
     #[ORM\Column(type: Types::DECIMAL, precision: 4, scale: 2)]
     private string $depositRate = '30.00';
+
+    // L'acompte TTC demandé, quand le client en donne un autre que celui du taux (1 000 € au lieu de 984,30 €).
+    // Vide : le taux s'applique.
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2, nullable: true)]
+    #[Assert\Positive(message: "L'acompte doit être supérieur à 0, ou laissez le champ vide pour le pourcentage habituel.")]
+    private ?string $depositAmount = null;
 
     // Le total TTC recalculé à chaque enregistrement, pour la liste des devis.
     // 12 chiffres : 50 lignes au prix et à la quantité maximum tiennent encore.
@@ -246,6 +254,18 @@ class Quote
     public function getDepositRate(): string
     {
         return $this->depositRate;
+    }
+
+    public function getDepositAmount(): ?string
+    {
+        return $this->depositAmount;
+    }
+
+    public function setDepositAmount(?string $depositAmount): static
+    {
+        $this->depositAmount = $depositAmount;
+
+        return $this;
     }
 
     public function getTotal(): string

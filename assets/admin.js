@@ -253,6 +253,16 @@ const champDe = (ligne, nom) => ligne.querySelector(`[name$="[${nom}]"]`);
 // Les montants en centimes, pour éviter les erreurs d'arrondi des nombres à virgule
 const centimes = (valeur) => Math.round((parseFloat(valeur) || 0) * 100);
 const euros = (montant) => (montant / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+// La part d'un montant dans un autre, au centième de % : « 16,67 »
+const pourcent = (part, tout) => (tout ? Math.round(part * 10000 / tout) / 100 : 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 });
+
+// Une ligne d'aide sous un champ, créée au premier besoin, vide et masquée sans texte
+function indication(champ, texte) {
+    const aide = champ.parentElement.querySelector('.soit')
+        ?? champ.parentElement.appendChild(Object.assign(document.createElement('p'), { className: 'aide soit' }));
+    aide.hidden = !texte;
+    aide.textContent = texte;
+}
 
 
 // ===== Écran d'un devis : chercher le produit d'une ligne =====
@@ -412,11 +422,7 @@ function recalculerDevis(form) {
         champDe(ligne, 'total').value = euros(brut - remise);
 
         // Un prix final affiche à côté la remise qu'il donne : « soit -400,00 € (-16,67 %) »
-        const soit = ligne.querySelector('.soit')
-            ?? champDe(ligne, 'discountType').parentElement.appendChild(Object.assign(document.createElement('p'), { className: 'aide soit' }));
-        const taux = brut ? Math.round(remise * 10000 / brut) / 100 : 0;
-        soit.hidden = type !== 'final';
-        soit.textContent = `soit ${euros(-remise)} (${(-taux).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} %)`;
+        indication(champDe(ligne, 'discountType'), type === 'final' ? `soit ${euros(-remise)} (-${pourcent(remise, brut)} %)` : '');
         return brut - remise;
     });
 
@@ -428,7 +434,14 @@ function recalculerDevis(form) {
     const montage = retrait ? 0 : centimes(champ('assemblyFee').value);
     const ttc = articles - remise + livraison + montage;
     const ht = Math.round(ttc * 100 / (100 + Number(form.dataset.tva)));
-    const acompte = Math.round(ttc * Number(form.dataset.acompte) / 100);
+    // L'acompte : le montant saisi, sinon le taux du devis ; l'indication sous le champ donne l'autre façon de le lire
+    const taux = Number(form.dataset.acompte);
+    const calcule = Math.round(ttc * taux / 100);
+    const saisi = champ('depositAmount').value !== '';
+    const acompte = saisi ? centimes(champ('depositAmount').value) : calcule;
+    const part = saisi ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR');
+    indication(champ('depositAmount'), saisi ? `soit ${part} % du total` : `${part} % = ${euros(calcule)}`);
+    form.querySelector('[data-part-acompte]').textContent = `${part}\u00a0%`;
 
     const montants = { items: articles, discount: remise, delivery: livraison, assembly: montage, ttc, ht, tva: ttc - ht, deposit: acompte, balance: ttc - acompte };
     Object.entries(montants).forEach(([cle, montant]) => {

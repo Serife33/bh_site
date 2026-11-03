@@ -16,11 +16,12 @@ final class QuoteCalculator
      * Livraison et montage ne sont jamais remisés. Le HT et la TVA se tirent du total TTC.
      * Les taux de TVA et d'acompte sont ceux enregistrés sur le devis.
      *
-     * L'acompte et le solde ont aussi leur HT et leur TVA, pour la facture d'acompte.
+     * L'acompte est le montant saisi sur le devis, sinon son taux appliqué au total TTC ; sa part du total
+     * l'accompagne (« 32,46 % »). L'acompte et le solde ont aussi leur HT et leur TVA, pour la facture d'acompte.
      *
      * @return array{lines: array<int, array{discount: string, rate: string, total: string}>, items: string, discount: string,
-     *     delivery: string, assembly: string, ttc: string, ht: string, tva: string, deposit: string, depositHt: string,
-     *     depositTva: string, balance: string, balanceHt: string, balanceTva: string}
+     *     delivery: string, assembly: string, ttc: string, ht: string, tva: string, deposit: string, depositShare: string,
+     *     depositHt: string, depositTva: string, balance: string, balanceHt: string, balanceTva: string}
      */
     public function totals(Quote $quote): array
     {
@@ -34,28 +35,34 @@ final class QuoteCalculator
 
         $ttc = bcadd(bcsub($items, $discount, 2), bcadd($delivery, $assembly, 2), 2);
         $ht = $this->excludingVat($ttc, $quote->getVatRate());
-        $deposit = $this->percentOf($ttc, $quote->getDepositRate());
+        $deposit = $quote->getDepositAmount() ?? $this->percentOf($ttc, $quote->getDepositRate());
         $depositHt = $this->excludingVat($deposit, $quote->getVatRate());
 
         // TVA et solde par différence : HT + TVA retombe toujours sur le TTC, acompte + solde sur le total
         $tva = bcsub($ttc, $ht, 2);
         $depositTva = bcsub($deposit, $depositHt, 2);
 
+        // La part du total qu'est l'acompte : son taux, ou celle du montant saisi
+        $depositShare = $quote->getDepositAmount() === null || bccomp($ttc, '0', 2) <= 0
+            ? $quote->getDepositRate()
+            : $this->round(bcdiv(bcmul($deposit, '100', 10), $ttc, 10));
+
         return [
-            'lines'      => $lines,
-            'items'      => $items,
-            'discount'   => $discount,
-            'delivery'   => $delivery,
-            'assembly'   => $assembly,
-            'ttc'        => $ttc,
-            'ht'         => $ht,
-            'tva'        => $tva,
-            'deposit'    => $deposit,
-            'depositHt'  => $depositHt,
-            'depositTva' => $depositTva,
-            'balance'    => bcsub($ttc, $deposit, 2),
-            'balanceHt'  => bcsub($ht, $depositHt, 2),
-            'balanceTva' => bcsub($tva, $depositTva, 2),
+            'lines'        => $lines,
+            'items'        => $items,
+            'discount'     => $discount,
+            'delivery'     => $delivery,
+            'assembly'     => $assembly,
+            'ttc'          => $ttc,
+            'ht'           => $ht,
+            'tva'          => $tva,
+            'deposit'      => $deposit,
+            'depositShare' => $depositShare,
+            'depositHt'    => $depositHt,
+            'depositTva'   => $depositTva,
+            'balance'      => bcsub($ttc, $deposit, 2),
+            'balanceHt'    => bcsub($ht, $depositHt, 2),
+            'balanceTva'   => bcsub($tva, $depositTva, 2),
         ];
     }
 

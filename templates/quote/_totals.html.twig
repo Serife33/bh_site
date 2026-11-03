@@ -9,6 +9,7 @@
     <tr><th>Total HT</th><td data-total="ht">{{ totaux.ht|prix(2) }}</td></tr>
     <tr><th>TVA {{ doc.taux(quote.vatRate) }}</th><td data-total="tva">{{ totaux.tva|prix(2) }}</td></tr>
     <tr class="ttc"><th>Total TTC</th><td data-total="ttc">{{ totaux.ttc|prix(2) }}</td></tr>
-    <tr class="acompte"><th>Acompte {{ doc.taux(quote.depositRate) }} à la commande</th><td data-total="deposit">{{ totaux.deposit|prix(2) }}</td></tr>
+    {# La part du total : le taux du devis, ou celle de l'acompte saisi #}
+    <tr class="acompte"><th>Acompte <span data-part-acompte>{{ doc.taux(totaux.depositShare) }}</span> à la commande</th><td data-total="deposit">{{ totaux.deposit|prix(2) }}</td></tr>
     <tr class="solde"><th>Solde {{ quote.pickup ? 'au retrait' : 'à la livraison' }}</th><td data-total="balance">{{ totaux.balance|prix(2) }}</td></tr>
 </table>
