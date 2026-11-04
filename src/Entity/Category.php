@@ -36,6 +36,10 @@ class Category
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $metaDescription = null;
 
+    // Décochée : la catégorie sort du menu, de « Nos univers » et du plan du site, et sa page ne s'ouvre plus
+    #[ORM\Column(options: ['default' => true])]
+    private ?bool $isVisible = true;
+
     // Nom du fichier image (nullable : une catégorie peut ne pas en avoir)
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
@@ -132,6 +136,18 @@ class Category
     public function setMetaDescription(?string $metaDescription): static
     {
         $this->metaDescription = $metaDescription;
+
+        return $this;
+    }
+
+    public function isVisible(): ?bool
+    {
+        return $this->isVisible;
+    }
+
+    public function setIsVisible(bool $isVisible): static
+    {
+        $this->isVisible = $isVisible;
 
         return $this;
     }

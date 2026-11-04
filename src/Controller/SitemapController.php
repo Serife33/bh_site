@@ -24,8 +24,8 @@ final class SitemapController extends AbstractController
         }
 
         // Catégories
-        foreach ($categoryRepository->findForIndex() as $cat) {
-            $urls[] = ['loc' => $this->generateUrl('front_category', ['slug' => $cat['slug']], $abs)];
+        foreach ($categoryRepository->findForMenu() as $cat) {
+            $urls[] = ['loc' => $this->generateUrl('front_category', ['slug' => $cat->getSlug()], $abs)];
         }
 
         // Sous-catégories qui ont au moins un produit publié
