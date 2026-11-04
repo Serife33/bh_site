@@ -195,11 +195,7 @@ final class GroupProductsCommand
     {
         $differences = [];
         foreach (['prix_initial' => $item->getInitialPrice(), 'prix_actuel' => $item->getActualPrice(), 'stock' => $item->getStock()] as $column => $value) {
-            // Point décimal : « 1245 » ou « 1245.00 ». Un texte comme « 1 245,00 » serait lu 1.
-            if (!preg_match('/^\d+(\.\d{1,2})?$/', $row[$column])) {
-                throw new \RuntimeException("Fiche {$row['id']} : $column invalide « {$row[$column]} ».");
-            }
-            if ((float) $row[$column] !== (float) $value) {
+            if ((float) $this->csv->decimal($row, $column, "fiche {$row['id']}") !== (float) $value) {
                 $differences[] = "$column $value en base, {$row[$column]} dans la liste";
             }
         }

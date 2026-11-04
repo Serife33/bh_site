@@ -49,4 +49,13 @@ final class CsvReader
         // Sans en-tête, les colonnes n'ont jamais été contrôlées
         return $header !== null ? $rows : throw new \RuntimeException(basename($path) . ' : fichier vide.');
     }
+
+    // Un nombre à point décimal, comme un prix : « 1050 » ou « 1050.50 ». $where dit où le trouver en cas d'erreur.
+    // Vérifié ici : le validateur compare un texte comme « 1 050,00 » à 0 sans signaler que ce n'est pas un nombre.
+    public function decimal(array $row, string $column, string $where): string
+    {
+        return preg_match('/^\d+(\.\d{1,2})?$/', $row[$column])
+            ? $row[$column]
+            : throw new \RuntimeException(sprintf('%s invalide « %s » : %s.', $column, $row[$column], $where));
+    }
 }
