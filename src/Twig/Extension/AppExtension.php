@@ -15,6 +15,7 @@ class AppExtension extends AbstractExtension
     {
         return [
             new TwigFunction('nav_categories', [AppExtensionRuntime::class, 'getNavCategories']),
+            new TwigFunction('band_announcements', [AppExtensionRuntime::class, 'getBandAnnouncements']),
         ];
     }
 

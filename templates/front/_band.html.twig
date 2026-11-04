@@ -1,26 +1,23 @@
-{# Bandeau défilant. Les messages sont listés UNE fois, bouclés DEUX fois pour la boucle sans couture. #}
-{% set annonces = [
-    { text: "Livraison partout en France" },
-    { text: 'Paiement en 2, 3 ou 4 fois sans frais' },
-    { text: 'Showroom : 12 bis rue Suffren, 33300 Bordeaux' },
-    { text: 'Tissu, couleur et dimension au choix' },
-] %}
+{# Bandeau défilant, géré dans l'admin (menu Bandeau) : les messages visibles ce jour, promos d'abord.
+   Ils sont listés UNE fois, bouclés DEUX fois pour la boucle sans couture. Aucun message : pas de bandeau. #}
+{% set annonces = band_announcements() %}
 
-{# Offre datée : affichée seulement pendant sa période, à l'heure de Paris (le projet ne fixe aucun fuseau).
-   Les dates au format Y-m-d se comparent comme du texte. #}
-{% set aujourdhui = 'now'|date('Y-m-d', 'Europe/Paris') %}
-{% if aujourdhui >= '2026-11-06' and aujourdhui <= '2026-11-08' %}
-    {% set annonces = [{ text: '-10 % sur tout le magasin du 6 au 8 novembre', type: 'promo' }]|merge(annonces) %}
-{% endif %}
-
-<div class="band">
-    <div class="band-track">
-        {% for annonce in annonces %}
-            <span class="{{ annonce.type|default('') == 'promo' ? 'band-promo' : '' }}">{{ annonce.text }}</span>
-        {% endfor %}
-        {# duplication pour la boucle sans couture #}
-        {% for annonce in annonces %}
-            <span class="{{ annonce.type|default('') == 'promo' ? 'band-promo' : '' }}">{{ annonce.text }}</span>
-        {% endfor %}
+{% if annonces %}
+    <div class="band">
+        <div class="band-track">
+            {# le second passage est la duplication pour la boucle sans couture : lecteurs d'écran et clavier l'ignorent #}
+            {% for passage in 1..2 %}
+                {% for annonce in annonces %}
+                    <span class="{{ annonce.isPromo ? 'band-promo' : '' }}"{% if passage == 2 %} aria-hidden="true"{% endif %}>
+                        {%- if annonce.link -%}
+                            {#- un lien https mène hors du site : nouvel onglet, sans accès à cette page -#}
+                            <a href="{{ annonce.link }}"{% if passage == 2 %} tabindex="-1"{% endif %}{% if annonce.link starts with 'https://' %} target="_blank" rel="noopener"{% endif %}>{{ annonce.text }}</a>
+                        {%- else -%}
+                            {{ annonce.text }}
+                        {%- endif -%}
+                    </span>
+                {% endfor %}
+            {% endfor %}
+        </div>
     </div>
-</div>
+{% endif %}

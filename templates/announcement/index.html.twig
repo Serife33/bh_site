@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bandeau{% endblock %}
+
+{% block body %}
+    <h1>Bandeau</h1>
+    <p>Les messages qui défilent en haut du site, dans cet ordre : les promos d'abord, puis l'ordre d'affichage.</p>
+
+    <a class="btn" href="{{ path('app_announcement_new') }}">+ Nouveau message</a>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Lien</th>
+                <th>Promo</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th>Ordre</th>
+                <th>État</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for announcement in announcements %}
+            <tr>
+                <td>{{ announcement.text }}</td>
+                <td>{{ announcement.link }}</td>
+                <td>{{ announcement.isPromo ? 'Oui' : 'Non' }}</td>
+                <td>{{ announcement.startDate ? announcement.startDate|date('d/m/Y') }}</td>
+                <td>{{ announcement.endDate ? announcement.endDate|date('d/m/Y') }}</td>
+                <td>{{ announcement.position }}</td>
+                <td>{{ announcement.status(today) }}</td>
+                <td>
+                    <a href="{{ path('app_announcement_show', {'id': announcement.id}) }}">Voir</a>
+                    <a href="{{ path('app_announcement_edit', {'id': announcement.id}) }}">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">Aucun message : le bandeau n'apparaît pas sur le site.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
