@@ -558,7 +558,7 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorCount(1, '.compo-titre');
         self::assertSelectorTextContains('.lignes tbody tr:first-child', 'Canapé ESSAILUMA, composition');
         self::assertSelectorTextSame('.compo-total td:last-child', "2\u{A0}368,00\u{A0}€");   // sous-total de la composition
-        self::assertSelectorTextContains('.compo-total + tr', 'Housse de protection');
+        self::assertSelectorTextContains('.compo + tbody tr:first-child', 'Housse de protection');   // la ligne qui suit, hors de la composition
     }
 
     private function searchProducts(string $search): array

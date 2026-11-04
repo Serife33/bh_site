@@ -54,7 +54,8 @@
     </section>
 
     {# La colonne Remise seulement si une ligne est remisée : un devis sans remise n'en parle pas.
-       Un canapé composé module par module : son titre avant ses modules, son sous-total après (QuoteCalculator). #}
+       Un canapé composé module par module : son titre avant ses modules, son sous-total après (QuoteCalculator),
+       dans un tbody à lui pour que l'impression ne le coupe pas entre deux pages. #}
     {% set colonneRemise = totaux.lines|filter(l => l.discount > 0)|length > 0 %}
     {% set colonnes = colonneRemise ? 5 : 4 %}
     <table class="lignes">
@@ -72,7 +73,7 @@
             {% set montants = totaux.lines[key] %}
             {% set photo = line.product ? line.product.mainMedia : null %}
             {% for composition in totaux.compositions|filter(c => c.first == key) %}
-                <tr class="compo-titre"><td colspan="{{ colonnes }}">Canapé {{ composition.family }}, composition</td></tr>
+                </tbody><tbody class="compo"><tr class="compo-titre"><td colspan="{{ colonnes }}">Canapé {{ composition.family }}, composition</td></tr>
             {% endfor %}
             <tr>
                 <td>
@@ -108,7 +109,7 @@
                 <td>{{ montants.total|prix(2) }}</td>
             </tr>
             {% for composition in totaux.compositions|filter(c => c.last == key) %}
-                <tr class="compo-total"><td colspan="{{ colonnes - 1 }}">Sous-total de la composition</td><td>{{ composition.total|prix(2) }}</td></tr>
+                <tr class="compo-total"><td colspan="{{ colonnes - 1 }}">Sous-total de la composition</td><td>{{ composition.total|prix(2) }}</td></tr></tbody><tbody>
             {% endfor %}
         {% endfor %}
         </tbody>
@@ -126,6 +127,8 @@
         {{ include('quote/_totals.html.twig') }}
     </section>
 
+    {# Informations, signature et identité légale : un seul bloc, que l'impression ne coupe jamais #}
+    <div class="fin">
     <section class="mentions">
         <h2 class="titre">Informations importantes</h2>
         <ul>
@@ -152,4 +155,5 @@
         <p>Siège {{ doc.info(company.head_office) }}</p>
         <p>SIRET {{ doc.info(company.siret) }} · RCS {{ doc.info(company.rcs) }} · TVA intracommunautaire {{ doc.info(company.vat_number) }}</p>
     </footer>
+    </div>
 {% endblock %}

@@ -58,7 +58,7 @@ ul { list-style: none; }
 .lignes th { padding: 0 0 2mm 3mm; border-bottom: 1px solid var(--encre); color: var(--gris); font-size: 7pt; font-weight: 500; letter-spacing: .12em; text-align: right; text-transform: uppercase; }
 .lignes td { padding: 3mm 0 3mm 3mm; border-bottom: 1px solid var(--filet); text-align: right; vertical-align: top; white-space: nowrap; }
 .lignes th:first-child, .lignes td:first-child { padding-left: 0; text-align: left; white-space: normal; }
-.lignes tr { break-inside: avoid; }
+.lignes tr, .lignes .compo { break-inside: avoid; }
 .produit { display: flex; gap: 3mm; }
 .produit img, .produit .sans-photo { width: 18mm; height: 13mm; flex: none; object-fit: contain; background: var(--fond); }
 .produit strong { display: block; font-size: 9.5pt; font-weight: 500; }
@@ -121,6 +121,9 @@ ul { list-style: none; }
 .lignes tfoot .ttc th, .lignes tfoot .ttc td { color: var(--encre); font-weight: 500; }
 .bas.egal { grid-template-columns: 1fr 1fr; }
 .bas .mentions { margin: 0; padding: 0; border: 0; }
+
+/* Fin du devis : informations, signature et identité légale restent sur la même page */
+.fin { break-inside: avoid; }
 
 /* Pied : identité légale */
 .pied { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--filet); color: var(--gris); font-size: 7pt; line-height: 1.9; text-align: center; break-inside: avoid; }
