@@ -1,0 +1,195 @@
+﻿fiche_gardee;id;adresse;nom;taille;prix_initial;prix_actuel;stock;photos;nouveau_nom;nouvelle_adresse
+107;105;lit-coffre-alara-140x190;Lit coffre ALARA 140x190;140x190;1245;1245;0;8;;
+107;106;lit-coffre-alara-140x200;Lit coffre ALARA 140x200;140x200;1245;1245;0;8;;
+107;107;lit-coffre-alara-160x200;Lit coffre ALARA 160x200;160x200;1245;1245;0;8;Lit coffre ALARA;lit-coffre-alara
+107;108;lit-coffre-alara-180x200;Lit coffre ALARA 180x200;180x200;1395;1395;0;8;;
+109;109;lit-coffre-alara-single-90x190;Lit coffre ALARA SINGLE 90x190;90x190;840;840;0;8;Lit coffre ALARA une place;lit-coffre-alara-une-place
+109;110;lit-coffre-alara-single-100x190;Lit coffre ALARA SINGLE 100x190;100x190;855;855;0;8;;
+109;111;lit-coffre-alara-single-120x190;Lit coffre ALARA SINGLE 120x190;120x190;1035;1035;0;8;;
+102;102;lit-coffre-alissa-90x190;Lit coffre ALISSA 90x190;90x190;465;465;2;7;Lit coffre ALISSA une place;lit-coffre-alissa-une-place
+102;103;lit-coffre-alissa-100x190;Lit coffre ALISSA 100x190;100x190;480;480;0;7;;
+102;104;lit-coffre-alissa-120x190;Lit coffre ALISSA 120x190;120x190;585;585;5;7;;
+123;152;lit-coffre-aqua-140x190;Lit coffre AQUA 140x190;140x190;795;795;0;7;;
+123;153;lit-coffre-aqua-140x200;Lit coffre AQUA 140x200;140x200;795;795;0;7;;
+123;123;lit-coffre-aqua-160x200;Lit coffre AQUA 160x200;160x200;795;795;0;7;Lit coffre AQUA;lit-coffre-aqua
+123;154;lit-coffre-aqua-180x200;Lit coffre AQUA 180x200;180x200;900;900;0;7;;
+124;155;lit-coffre-berlin-140x190;Lit coffre BERLIN 140x190;140x190;1065;1065;0;7;;
+124;156;lit-coffre-berlin-140x200;Lit coffre BERLIN 140x200;140x200;1065;1065;0;7;;
+124;124;lit-coffre-berlin-160x200;Lit coffre BERLIN 160x200;160x200;1080;1080;0;7;Lit coffre BERLIN;lit-coffre-berlin
+124;157;lit-coffre-berlin-180x200;Lit coffre BERLIN 180x200;180x200;1200;1200;0;7;;
+125;158;lit-coffre-bohem-140x190;Lit coffre BOHEM 140x190;140x190;825;825;0;7;;
+125;159;lit-coffre-bohem-140x200;Lit coffre BOHEM 140x200;140x200;825;825;0;7;;
+125;125;lit-coffre-bohem-160x200;Lit coffre BOHEM 160x200;160x200;825;825;0;7;Lit coffre BOHEM;lit-coffre-bohem
+125;160;lit-coffre-bohem-180x200;Lit coffre BOHEM 180x200;180x200;930;930;0;7;;
+126;161;lit-coffre-cloudy-140x190;Lit coffre CLOUDY 140x190;140x190;1245;1245;0;7;;
+126;162;lit-coffre-cloudy-140x200;Lit coffre CLOUDY 140x200;140x200;1245;1245;0;7;;
+126;126;lit-coffre-cloudy-160x200;Lit coffre CLOUDY 160x200;160x200;1245;1245;0;7;Lit coffre CLOUDY;lit-coffre-cloudy
+126;163;lit-coffre-cloudy-180x200;Lit coffre CLOUDY 180x200;180x200;1395;1395;0;7;;
+127;164;lit-coffre-comfort-140x190;Lit coffre COMFORT 140x190;140x190;885;885;0;7;;
+127;165;lit-coffre-comfort-140x200;Lit coffre COMFORT 140x200;140x200;885;885;0;7;;
+127;127;lit-coffre-comfort-160x200;Lit coffre COMFORT 160x200;160x200;885;885;0;7;Lit coffre COMFORT;lit-coffre-comfort
+127;166;lit-coffre-comfort-180x200;Lit coffre COMFORT 180x200;180x200;990;990;0;7;;
+128;167;lit-coffre-dakkar-140x190;Lit coffre DAKKAR 140x190;140x190;885;885;0;7;;
+128;168;lit-coffre-dakkar-140x200;Lit coffre DAKKAR 140x200;140x200;885;885;0;7;;
+128;128;lit-coffre-dakkar-160x200;Lit coffre DAKKAR 160x200;160x200;885;885;0;7;Lit coffre DAKKAR;lit-coffre-dakkar
+128;169;lit-coffre-dakkar-180x200;Lit coffre DAKKAR 180x200;180x200;990;990;0;7;;
+129;170;lit-coffre-diamond-140x190;Lit coffre DIAMOND 140x190;140x190;1185;1185;0;7;;
+129;171;lit-coffre-diamond-140x200;Lit coffre DIAMOND 140x200;140x200;1185;1185;0;7;;
+129;129;lit-coffre-diamond-160x200;Lit coffre DIAMOND 160x200;160x200;1185;1185;0;7;Lit coffre DIAMOND;lit-coffre-diamond
+129;172;lit-coffre-diamond-180x200;Lit coffre DIAMOND 180x200;180x200;1335;1335;0;7;;
+143;143;lit-coffre-enzo-90x190;Lit coffre ENZO 90x190;90x190;480;480;0;7;Lit coffre ENZO une place;lit-coffre-enzo-une-place
+143;212;lit-coffre-enzo-100x190;Lit coffre ENZO 100x190;100x190;495;495;0;7;;
+143;213;lit-coffre-enzo-120x190;Lit coffre ENZO 120x190;120x190;600;600;0;7;;
+130;173;lit-coffre-ethena-140x190;Lit coffre ETHENA 140x190;140x190;1050;1050;0;7;;
+130;174;lit-coffre-ethena-140x200;Lit coffre ETHENA 140x200;140x200;1050;1050;0;7;;
+130;130;lit-coffre-ethena-160x200;Lit coffre ETHENA 160x200;160x200;1065;1065;0;7;Lit coffre ETHENA;lit-coffre-ethena
+130;175;lit-coffre-ethena-180x200;Lit coffre ETHENA 180x200;180x200;1200;1200;0;7;;
+131;176;lit-coffre-florida-140x190;Lit coffre FLORIDA 140x190;140x190;1020;1020;0;7;;
+131;177;lit-coffre-florida-140x200;Lit coffre FLORIDA 140x200;140x200;1020;1020;0;7;;
+131;131;lit-coffre-florida-160x200;Lit coffre FLORIDA 160x200;160x200;1020;1020;0;7;Lit coffre FLORIDA;lit-coffre-florida
+131;178;lit-coffre-florida-180x200;Lit coffre FLORIDA 180x200;180x200;1155;1155;0;7;;
+51;49;lit-coffre-genova-140x190;Lit coffre GENOVA 140x190;140x190;855;855;0;8;;
+51;50;lit-coffre-genova-140x200;Lit coffre GENOVA 140x200;140x200;855;855;0;8;;
+51;51;lit-coffre-genova-160x200;Lit coffre GENOVA 160x200;160x200;855;855;0;8;Lit coffre GENOVA;lit-coffre-genova
+51;52;lit-coffre-genova-180x200;Lit coffre GENOVA 180x200;180x200;960;960;0;8;;
+43;41;lit-coffre-gold-140x190;Lit coffre GOLD 140x190;140x190;855;855;0;6;;
+43;42;lit-coffre-gold-140x200;Lit coffre GOLD 140x200;140x200;855;855;0;6;;
+43;43;lit-coffre-gold-160x200;Lit coffre GOLD 160x200;160x200;855;855;3;6;Lit coffre GOLD;lit-coffre-gold
+43;44;lit-coffre-gold-180x200;Lit coffre GOLD 180x200;180x200;960;960;0;6;;
+58;56;lit-coffre-hayal-140x190;Lit Coffre HAYAL 140x190;140x190;795;795;0;7;;
+58;57;lit-coffre-hayal-140x200;Lit Coffre HAYAL 140x200;140x200;795;795;0;7;;
+58;58;lit-coffre-hayal-160x200;Lit Coffre HAYAL 160x200;160x200;795;795;0;7;Lit coffre HAYAL;lit-coffre-hayal
+58;59;lit-coffre-hayal-180x200;Lit Coffre HAYAL 180x200;180x200;900;900;0;7;;
+53;53;lit-coffre-hera-single-90x190;Lit coffre HERA SINGLE 90x190;90x190;480;480;0;7;Lit coffre HERA une place;lit-coffre-hera-une-place
+53;54;lit-coffre-hera-single-100x190;Lit coffre HERA SINGLE 100x190;100x190;495;495;0;7;;
+53;55;lit-coffre-hera-single-120x190;Lit coffre HERA SINGLE 120x190;120x190;600;600;0;7;;
+84;82;lit-coffre-infinity-140x190;Lit coffre INFINITY 140x190;140x190;930;930;0;8;;
+84;83;lit-coffre-infinity-140x200;Lit coffre INFINITY 140x200;140x200;930;930;0;8;;
+84;84;lit-coffre-infinity-160x200;Lit coffre INFINITY 160x200;160x200;930;930;0;8;Lit coffre INFINITY;lit-coffre-infinity
+84;85;lit-coffre-infinity-180x200;Lit coffre INFINITY 180x200;180x200;1050;1050;0;8;;
+100;98;lit-coffre-jumbo-140x190;Lit coffre JUMBO 140x190;140x190;899;899;0;7;;
+100;99;lit-coffre-jumbo-140x200;Lit coffre JUMBO 140x200;140x200;899;899;0;7;;
+100;100;lit-coffre-jumbo-160x200;Lit coffre JUMBO 160x200;160x200;899;899;0;7;Lit coffre JUMBO;lit-coffre-jumbo
+100;101;lit-coffre-jumbo-180x200;Lit coffre JUMBO 180x200;180x200;999;999;0;7;;
+96;94;lit-coffre-king-140x190;Lit coffre KING 140x190;140x190;720;720;0;7;;
+96;95;lit-coffre-king-140x200;Lit coffre KING 140x200;140x200;720;720;0;7;;
+96;96;lit-coffre-king-160x200;Lit coffre KING 160x200;160x200;720;720;0;7;Lit coffre KING;lit-coffre-king
+96;97;lit-coffre-king-180x200;Lit coffre KING 180x200;180x200;720;720;0;7;;
+92;90;lit-coffre-lina-140x190-90;Lit coffre KRISTAL 140x190;140x190;1050;1050;0;7;;
+92;91;lit-coffre-kristal-140x200;Lit coffre KRISTAL 140x200;140x200;1050;1050;0;7;;
+92;92;lit-coffre-kristal-160x200;Lit coffre KRISTAL 160x200;160x200;1050;1050;0;7;Lit coffre KRISTAL;lit-coffre-kristal
+92;93;lit-coffre-kristal-180x200;Lit coffre KRISTAL 180x200;180x200;1185;1185;0;7;;
+88;86;lit-coffre-lina-140x190;Lit Coffre LINA 140x190;140x190;885;885;0;8;;
+88;87;lit-coffre-lina-140x200;Lit Coffre LINA 140x200;140x200;885;885;0;8;;
+88;88;lit-coffre-lina-160x200;Lit Coffre LINA 160x200;160x200;885;885;0;8;Lit coffre LINA;lit-coffre-lina
+88;89;lit-coffre-lina-180x200;Lit Coffre LINA 180x200;180x200;1005;1005;0;8;;
+132;179;lit-coffre-lion-140x190;Lit coffre LION 140x190;140x190;825;825;0;7;;
+132;180;lit-coffre-lion-140x200;Lit coffre LION 140x200;140x200;825;825;0;7;;
+132;132;lit-coffre-lion-160x200;Lit coffre LION 160x200;160x200;825;825;0;7;Lit coffre LION;lit-coffre-lion
+132;181;lit-coffre-lion-180x200;Lit coffre LION 180x200;180x200;930;930;0;7;;
+133;182;lit-coffre-madrid-140x190;Lit coffre MADRID 140x190;140x190;1020;1020;0;7;;
+133;183;lit-coffre-madrid-140x200;Lit coffre MADRID 140x200;140x200;1020;1020;0;7;;
+133;133;lit-coffre-madrid-160x200;Lit coffre MADRID 160x200;160x200;1020;1020;0;7;Lit coffre MADRID;lit-coffre-madrid
+133;184;lit-coffre-madrid-180x200;Lit coffre MADRID 180x200;180x200;1155;1155;0;7;;
+134;185;lit-coffre-mistral-140x190;Lit coffre MISTRAL 140x190;140x190;1125;1125;0;7;;
+134;186;lit-coffre-mistral-140x200;Lit coffre MISTRAL 140x200;140x200;1125;1125;0;7;;
+134;134;lit-coffre-mistral-160x200;Lit coffre MISTRAL 160x200;160x200;1200;1200;0;7;Lit coffre MISTRAL;lit-coffre-mistral
+134;187;lit-coffre-mistral-180x200;Lit coffre MISTRAL 180x200;180x200;1350;1350;0;7;;
+146;146;lit-coffre-mistral-single-90x190;Lit coffre MISTRAL SINGLE 90x190;90x190;465;465;0;7;Lit coffre MISTRAL une place;lit-coffre-mistral-une-place
+146;218;lit-coffre-mistral-single-100x190;Lit coffre MISTRAL SINGLE 100x190;100x190;480;480;0;7;;
+146;219;lit-coffre-mistral-single-120x190;Lit coffre MISTRAL SINGLE 120x190;120x190;570;570;0;7;;
+135;188;lit-coffre-moonrest-140x190;Lit coffre MOONREST 140x190;140x190;855;855;0;7;;
+135;189;lit-coffre-moonrest-140x200;Lit coffre MOONREST 140x200;140x200;855;855;0;7;;
+135;135;lit-coffre-moonrest-160x200;Lit coffre MOONREST 160x200;160x200;855;855;0;7;Lit coffre MOONREST;lit-coffre-moonrest
+135;190;lit-coffre-moonrest-180x200;Lit coffre MOONREST 180x200;180x200;930;930;0;7;;
+136;191;lit-coffre-pandora-140x190;Lit coffre PANDORA 140x190;140x190;1155;1155;0;7;;
+136;192;lit-coffre-pandora-140x200;Lit coffre PANDORA 140x200;140x200;1155;1155;0;7;;
+136;136;lit-coffre-pandora-160x200;Lit coffre PANDORA 160x200;160x200;1155;1155;0;7;Lit coffre PANDORA;lit-coffre-pandora
+136;193;lit-coffre-pandora-180x200;Lit coffre PANDORA 180x200;180x200;1305;1305;0;7;;
+137;194;lit-coffre-paris-140x190;Lit coffre PARIS 140x190;140x190;1155;1155;0;7;;
+137;195;lit-coffre-paris-140x200;Lit coffre PARIS 140x200;140x200;1155;1155;0;7;;
+137;137;lit-coffre-paris-160x200;Lit coffre PARIS 160x200;160x200;1155;1155;0;7;Lit coffre PARIS;lit-coffre-paris
+137;196;lit-coffre-paris-180x200;Lit coffre PARIS 180x200;180x200;1320;1320;0;7;;
+39;34;lit-coffre-parma-140x190;Lit coffre PARMA 140x190;140x190;690;690;0;6;;
+39;38;lit-coffre-parma-140x200;Lit coffre PARMA 140x200;140x200;690;690;0;6;;
+39;39;lit-coffre-parma-160x200;Lit coffre PARMA 160x200;160x200;690;690;0;6;Lit coffre PARMA;lit-coffre-parma
+39;40;lit-coffre-parma-180x200;Lit coffre PARMA 180x200;180x200;780;780;0;6;;
+145;145;lit-coffre-parma-single-90x190;Lit coffre PARMA SINGLE 90x190;90x190;390;390;0;6;Lit coffre PARMA une place;lit-coffre-parma-une-place
+145;216;lit-coffre-parma-single-100x190;Lit coffre PARMA SINGLE 100x190;100x190;405;405;0;6;;
+145;217;lit-coffre-parma-single-120x190;Lit coffre PARMA SINGLE 120x190;120x190;495;495;0;6;;
+47;45;lit-coffre-petek-140x190;Lit coffre PETEK 140x190;140x190;795;795;0;8;;
+47;46;lit-coffre-petek-140x200;Lit coffre PETEK 140x200;140x200;795;795;0;8;;
+47;47;lit-coffre-petek-160x200;Lit coffre PETEK 160x200;160x200;795;795;0;8;Lit coffre PETEK;lit-coffre-petek
+47;48;lit-coffre-petek-180x200;Lit coffre PETEK 180x200;180x200;885;885;0;8;;
+27;29;lit-coffre-platin-avec-led-et-recharge-sans-fil-140-190;Lit Coffre PLATIN avec LED et recharge sans fil 140x190;140x190;1455;1455;0;8;;
+27;26;lit-coffre-platin-avec-led-et-recharge-sans-fil-140-200;Lit Coffre PLATIN avec LED et recharge sans fil 140x200;140x200;1455;1455;0;8;;
+27;27;lit-coffre-platin-avec-led-et-recharge-sans-fil-160-200;Lit Coffre PLATIN avec LED et recharge sans fil 160x200;160x200;1455;1455;0;8;Lit coffre PLATIN avec LED et recharge sans fil;lit-coffre-platin-avec-led-et-recharge-sans-fil
+27;28;lit-coffre-platin-avec-led-et-recharge-sans-fil-180-200-copie;Lit Coffre PLATIN avec LED et recharge sans fil 180*200;180x200;1620;1620;0;8;;
+30;33;lit-coffre-platinium-140x190;Lit coffre PLATINIUM 140x190;140x190;899;899;1;6;;
+30;31;lit-coffre-platinium-140x200;Lit coffre PLATINIUM 140X200;140x200;899;899;0;6;;
+30;30;lit-coffre-platinium-160x200;Lit coffre PLATINIUM 160x200;160x200;899;899;1;6;Lit coffre PLATINIUM;lit-coffre-platinium
+30;32;lit-coffre-platinium-180x200;Lit coffre PLATINIUM 180x200;180x200;999;999;0;6;;
+60;60;lit-coffre-prestij-single-90x190;Lit coffre PRESTIJ SINGLE 90x190;90x190;585;585;0;7;Lit coffre PRESTIJ une place;lit-coffre-prestij-une-place
+60;61;lit-coffre-prestij-single-100x190;Lit coffre PRESTIJ SINGLE 100x190;100x190;615;615;0;7;;
+60;62;lit-coffre-prestij-single-120x190;Lit coffre PRESTIJ SINGLE 120x190;120x190;735;735;0;7;;
+65;63;lit-coffre-roma-140x190;Lit coffre ROMA 140x190;140x190;1305;1305;0;8;;
+65;64;lit-coffre-roma-140x200;Lit coffre ROMA 140x200;140x200;1305;1305;0;8;;
+65;65;lit-coffre-roma-160x200;Lit coffre ROMA 160x200;160x200;1305;1305;0;8;Lit coffre ROMA;lit-coffre-roma
+65;66;lit-coffre-roma-180x200;Lit coffre ROMA 180x200;180x200;1470;1470;0;8;;
+69;67;lit-coffre-roza-140x190;Lit coffre ROZA 140x190;140x190;870;870;0;6;;
+69;68;lit-coffre-roza-140x200;Lit coffre ROZA 140x200;140x200;870;870;0;6;;
+69;69;lit-coffre-roza-160x200;Lit coffre ROZA 160x200;160x200;870;870;0;6;Lit coffre ROZA;lit-coffre-roza
+69;70;lit-coffre-roza-180x200;Lit coffre ROZA 180x200;180x200;975;975;0;6;;
+71;71;lit-coffre-serenity-single-90x190;Lit coffre SERENITY SINGLE 90x190;90x190;525;525;0;7;Lit coffre SERENITY une place;lit-coffre-serenity-une-place
+71;72;lit-coffre-serenity-single-100x190;Lit coffre SERENITY SINGLE 100x190;100x190;540;540;0;7;;
+71;73;lit-coffre-serenity-single-120x190;Lit coffre SERENITY SINGLE 120x190;120x190;630;630;0;7;;
+76;74;lit-coffre-siesta-140x190;Lit Coffre SIESTA 140x190;140x190;990;990;0;9;;
+76;75;lit-coffre-siesta-140x200;Lit Coffre SIESTA 140x200;140x200;990;990;0;9;;
+76;76;lit-coffre-siesta-160x200;Lit Coffre SIESTA 160x200;160x200;990;990;0;9;Lit coffre SIESTA;lit-coffre-siesta
+76;77;lit-coffre-siesta-180x200;Lit Coffre SIESTA 180x200;180x200;1125;1125;0;9;;
+147;147;lit-coffre-siesta-single-90x190;Lit coffre SIESTA SINGLE 90x190;90x190;585;585;0;7;Lit coffre SIESTA une place;lit-coffre-siesta-une-place
+147;220;lit-coffre-siesta-single-100x190;Lit coffre SIESTA SINGLE 100x190;100x190;600;600;0;7;;
+147;221;lit-coffre-siesta-single-120x190;Lit coffre SIESTA SINGLE 120x190;120x190;705;705;0;7;;
+80;78;lit-coffre-sleepnova-140x190;Lit coffre SLEEPNOVA 140x190;140x190;825;825;0;7;;
+80;79;lit-coffre-sleepnova-140x200;Lit coffre SLEEPNOVA 140x200;140x200;825;825;0;7;;
+80;80;lit-coffre-sleepnova-160x200;Lit coffre SLEEPNOVA 160x200;160x200;825;825;0;7;Lit coffre SLEEPNOVA;lit-coffre-sleepnova
+80;81;lit-coffre-sleepnova-180x200;Lit coffre SLEEPNOVA 180x200;180x200;930;930;0;7;;
+148;148;lit-coffre-sleepnova-single-90x190;Lit coffre SLEEPNOVA SINGLE 90x190;90x190;480;480;0;7;Lit coffre SLEEPNOVA une place;lit-coffre-sleepnova-une-place
+148;222;lit-coffre-sleepnova-single-100x190;Lit coffre SLEEPNOVA SINGLE 100x190;100x190;495;495;0;7;;
+148;223;lit-coffre-sleepnova-single-120x190;Lit coffre SLEEPNOVA SINGLE 120x190;120x190;600;600;0;7;;
+138;197;lit-coffre-sleepwest-140x190;Lit coffre SLEEPWEST 140x190;140x190;765;765;0;7;;
+138;198;lit-coffre-sleepwest-140x200;Lit coffre SLEEPWEST 140x200;140x200;765;765;0;7;;
+138;138;lit-coffre-sleepwest-160x200;Lit coffre SLEEPWEST 160x200;160x200;765;765;0;7;Lit coffre SLEEPWEST;lit-coffre-sleepwest
+138;199;lit-coffre-sleepwest-180x200;Lit coffre SLEEPWEST 180x200;180x200;855;855;0;7;;
+139;200;lit-coffre-terra-140x190;Lit coffre TERRA 140x190;140x190;990;990;0;7;;
+139;201;lit-coffre-terra-140x200;Lit coffre TERRA 140x200;140x200;990;990;0;7;;
+139;139;lit-coffre-terra-160x200;Lit coffre TERRA 160x200;160x200;990;990;0;7;Lit coffre TERRA;lit-coffre-terra
+139;202;lit-coffre-terra-180x200;Lit coffre TERRA 180x200;180x200;1125;1125;0;7;;
+149;149;lit-coffre-terra-single-90x190;Lit coffre TERRA SINGLE 90x190;90x190;585;585;0;7;Lit coffre TERRA une place;lit-coffre-terra-une-place
+149;224;lit-coffre-terra-single-100x190;Lit coffre TERRA SINGLE 100x190;100x190;600;600;0;7;;
+149;225;lit-coffre-terra-single-120x190;Lit coffre TERRA SINGLE 120x190;120x190;705;705;0;7;;
+140;203;lit-coffre-therapy-140x190;Lit coffre THERAPY 140x190;140x190;825;825;0;7;;
+140;204;lit-coffre-therapy-140x200;Lit coffre THERAPY 140x200;140x200;825;825;0;7;;
+140;140;lit-coffre-therapy-160x200;Lit coffre THERAPY 160x200;160x200;825;825;0;7;Lit coffre THERAPY;lit-coffre-therapy
+140;205;lit-coffre-therapy-180x200;Lit coffre THERAPY 180x200;180x200;930;930;0;7;;
+150;150;lit-coffre-therapy-single-90x190;Lit coffre THERAPY SINGLE 90x190;90x190;465;465;0;7;Lit coffre THERAPY une place;lit-coffre-therapy-une-place
+150;226;lit-coffre-therapy-single-100x190;Lit coffre THERAPY SINGLE 100x190;100x190;480;480;0;7;;
+150;227;lit-coffre-therapy-single-120x190;Lit coffre THERAPY SINGLE 120x190;120x190;570;570;0;7;;
+151;151;lit-coffre-tiffany-single-90x190;Lit coffre TIFFANY SINGLE 90x190;90x190;495;495;0;7;Lit coffre TIFFANY une place;lit-coffre-tiffany-une-place
+151;228;lit-coffre-tiffany-single-100x190;Lit coffre TIFFANY SINGLE 100x190;100x190;510;510;0;7;;
+151;229;lit-coffre-tiffany-single-120x190;Lit coffre TIFFANY SINGLE 120x190;120x190;615;615;0;7;;
+141;206;lit-coffre-venedik-140x190;Lit coffre VENEDIK 140x190;140x190;1305;1305;0;7;;
+141;207;lit-coffre-venedik-140x200;Lit coffre VENEDIK 140x200;140x200;1305;1305;0;7;;
+141;141;lit-coffre-venedik-160x200;Lit coffre VENEDIK 160x200;160x200;1305;1305;0;7;Lit coffre VENEDIK;lit-coffre-venedik
+141;208;lit-coffre-venedik-180x200;Lit coffre VENEDIK 180x200;180x200;1470;1470;0;7;;
+144;144;lit-coffre-verona-90x190;Lit coffre VERONA 90x190;90x190;450;450;0;6;Lit coffre VERONA une place;lit-coffre-verona-une-place
+144;214;lit-coffre-verona-100x190;Lit coffre VERONA 100x190;100x190;465;465;0;6;;
+144;215;lit-coffre-verona-120x190;Lit coffre VERONA 120x190;120x190;555;555;0;6;;
+231;122;lit-coffre-wool-140x190;Lit Coffre WOOL 140x190;140x190;930;930;4;8;;
+231;230;lit-coffre-wool-140x200;Lit coffre WOOL 140x200;140x200;930;930;0;8;;
+231;231;lit-coffre-wool-160x200;Lit coffre WOOL 160x200;160x200;930;930;0;8;Lit coffre WOOL;lit-coffre-wool
+231;232;lit-coffre-wool-180x200;Lit coffre WOOL 180x200;180x200;1050;1050;0;8;;
+142;209;lit-coffre-zenpura-140x190;Lit coffre ZENPURA 140x190;140x190;1215;1215;0;7;;
+142;210;lit-coffre-zenpura-140x200;Lit coffre ZENPURA 140x200;140x200;1215;1215;0;7;;
+142;142;lit-coffre-zenpura-160x200;Lit coffre ZENPURA 160x200;160x200;1215;1215;0;7;Lit coffre ZENPURA;lit-coffre-zenpura
+142;211;lit-coffre-zenpura-180x200;Lit coffre ZENPURA 180x200;180x200;1365;1365;0;7;;
