@@ -500,7 +500,6 @@ function recalculer() {
     cellule('delivery').textContent = !livre ? 'retrait au showroom' : livraison ? euros(livraison) : 'offerte';
     cellule('assembly').textContent = !monte ? 'sans montage' : montage ? euros(montage) : 'offert';
     form.querySelector('[data-part-acompte]').textContent = `${acompte !== calcule ? pourcent(acompte, ttc) : taux.toLocaleString('fr-FR')} %`;
-    form.querySelector('[data-moment-solde]').textContent = livre ? 'à la livraison' : 'au retrait';
     ['ttc', 'deposit', 'balance'].forEach((cle) => { form.querySelector(`[data-barre="${cle}"]`).textContent = cellule(cle).textContent; });
 
     // Avant d'enregistrer : ce qui est prêt, ce qui reste à faire (en lien vers le champ)

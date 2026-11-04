@@ -59,7 +59,7 @@
         <div>
             <h2 class="titre">Objet</h2>
             <p>Acompte de {{ acompte_demande }} versé à la commande, selon le devis {{ quote.number }} accepté et signé le {{ quote.acceptedAt|date_longue }}.</p>
-            <p class="reste">Reste à payer {{ quote.delivery ? 'à la livraison' : 'au retrait' }} : <strong>{{ totaux.balance|prix(2) }} TTC</strong> ({{ totaux.balanceHt|prix(2) }} HT, TVA {{ totaux.balanceTva|prix(2) }}), sur la facture de solde.</p>
+            <p class="reste">Reste à payer {{ doc.reste(quote) }} : <strong>{{ totaux.balance|prix(2) }} TTC</strong> ({{ totaux.balanceHt|prix(2) }} HT, TVA {{ totaux.balanceTva|prix(2) }}), sur la facture de solde.</p>
         </div>
         <div class="encadre-acompte">
             <h2>Acompte facturé : {{ doc.taux(totaux.depositShare) }} du total TTC</h2>
@@ -156,7 +156,7 @@
         <div class="conditions">
             <h2 class="titre">Paiement</h2>
             <dl>
-                <dt>Conditions</dt><dd>Acompte de {{ acompte_demande }} à la signature du devis. Reste à payer à la livraison ou au retrait au showroom.</dd>
+                <dt>Conditions</dt><dd>Acompte de {{ acompte_demande }} à la signature du devis. Reste à payer {{ doc.reste(quote) }}.</dd>
                 {% if invoice.issued %}<dt>Date de paiement</dt><dd>Acompte réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}
                 <dt>Escompte</dt><dd>{{ doc.info(company.early_payment) }}</dd>
                 <dt>Retard de paiement</dt><dd>{{ doc.info(company.late_payment) }}</dd>

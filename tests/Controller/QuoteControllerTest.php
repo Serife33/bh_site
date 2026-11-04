@@ -112,6 +112,9 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorTextNotContains('.doc', 'vendeur-test@example.com'); // le vendeur n'est pas imprimé
         self::assertSelectorTextContains('.pied', 'SIRET 901 674 507 00016');   // l'identité légale de la société
         self::assertSelectorNotExists('.pied .ac');                         // plus rien à compléter dans le pied
+        // Le reste se paie au showroom avant la livraison ; les moyens de paiement sont dans les CGV 6.3
+        self::assertSelectorTextContains('.conditions', 'Reste à payer au showroom, avant la livraison. La livraison est planifiée une fois le paiement reçu.');
+        self::assertSelectorTextNotContains('.conditions', 'Moyens de paiement');
     }
 
     // « Je tape Madrid et je retrouve tous les Madrid » : 20 au plus, avec leurs variantes et leurs tissus

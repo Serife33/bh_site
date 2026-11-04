@@ -120,8 +120,7 @@
             <dl>
                 <dt>Délai de livraison</dt><dd>{{ quote.leadTime }}</dd>
                 <dt>Validité</dt><dd>Jusqu'au {{ quote.validUntil|date_longue }}</dd>
-                <dt>Paiement</dt><dd>Acompte de {{ quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) }} à la signature, reste à payer {{ quote.delivery ? 'à la livraison' : 'au retrait au showroom' }}</dd>
-                <dt>Moyens de paiement</dt><dd>{{ doc.info(company.payment_methods) }}</dd>
+                <dt>Paiement</dt><dd>Acompte de {{ quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) }} à la signature. Reste à payer {{ doc.reste(quote) }}.{% if quote.delivery %} La livraison est planifiée une fois le paiement reçu.{% endif %}</dd>
             </dl>
         </div>
         {{ include('quote/_totals.html.twig') }}
