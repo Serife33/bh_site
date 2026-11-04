@@ -210,7 +210,7 @@ final class GroupProductsCommand
             }
             foreach ($old as $product) {
                 $this->em->remove($product);
-                $io->text("- {$product->getName()} ({$product->getSlug()}) : supprimée");
+                $io->text("- {$product->getName()} ({$product->getSlug()}) : " . ($dryRun ? 'à supprimer' : 'supprimée'));
             }
             $count['Anciennes fiches supprimées'] = count($old);
         }
