@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Category;
+use App\Entity\Family;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Enum\ProductModular;
@@ -82,6 +83,25 @@ final class CatalogControllerTest extends WebTestCase
         $plan = $this->client->getResponse()->getContent();
         self::assertStringContainsString('/produit/lit-test</loc>', $plan);
         self::assertStringNotContainsString('/produit/lit-test-', $plan);
+    }
+
+    // Le bloc « Configuration » relie les fiches d'une famille, sauf sur un produit à variantes, qui a son propre choix
+    public function testConfigurationBlockIsHiddenOnAProductWithVariants(): void
+    {
+        $category = (new Category())->setName('Catégorie configuration test')->setSlug('categorie-configuration-test');
+        $family = (new Family())->setName('FAMILLE TEST');
+        $this->em->persist($category);
+        $this->em->persist($family);
+        $this->product('Lit famille test', 'lit-famille-test', $category, true)->setFamily($family)
+            ->addVariant($this->variant('160x200', 'lit-famille-test-160x200'));
+        $this->product('Lit famille test SINGLE', 'lit-famille-test-single', $category, true)->setFamily($family);
+        $this->em->flush();
+
+        $this->client->request('GET', '/produit/lit-famille-test');
+        self::assertSelectorTextNotContains('.product-info', 'Configuration');
+
+        $this->client->request('GET', '/produit/lit-famille-test-single');
+        self::assertSelectorTextContains('.product-info', 'Configuration');
     }
 
     private function product(string $name, string $slug, Category $category, bool $active): Product
