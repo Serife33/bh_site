@@ -90,7 +90,7 @@
   width: 100%;
   max-width: 480px;
   padding: 0.5rem 0.6rem;
-  border: 1px solid #C9C2BA;
+  border: 1px solid #8C857D;   /* 3,6:1 sur blanc : le contour d'un champ doit se voir (WCAG 1.4.11) */
   border-radius: 6px;
   font: inherit;
   background: #fff;
@@ -249,10 +249,11 @@
 
 
 
-/* ===== GROUPES DE CHOIX EN PASTILLES (tissus, couleurs, sous-catégories) ===== */
+/* ===== GROUPES DE CHOIX EN PASTILLES (modules, produits d'une section, tissus, couleurs, sous-catégories) ===== */
 
 /* Le conteneur : pastilles alignées, hauteur limitée, défilement au-delà */
 .admin-content [id$="_modules"],
+.admin-content [id$="_products"],
 .admin-content [id$="_fabrics"],
 .admin-content [id$="_colors"],
 .admin-content [id$="_subCategories"] {
@@ -270,6 +271,7 @@
 /* La case elle-même disparaît de la vue — mais reste dans le document,
    donc utilisable au clavier et lisible par un lecteur d'écran. */
 .admin-content [id$="_modules"] input[type=checkbox],
+.admin-content [id$="_products"] input[type=checkbox],
 .admin-content [id$="_fabrics"] input[type=checkbox],
 .admin-content [id$="_colors"] input[type=checkbox],
 .admin-content [id$="_subCategories"] input[type=checkbox] {
@@ -280,6 +282,7 @@
 
 /* Le libellé devient la pastille */
 .admin-content [id$="_modules"] label,
+.admin-content [id$="_products"] label,
 .admin-content [id$="_fabrics"] label,
 .admin-content [id$="_colors"] label,
 .admin-content [id$="_subCategories"] label {
@@ -297,6 +300,7 @@
 }
 
 .admin-content [id$="_modules"] label:hover,
+.admin-content [id$="_products"] label:hover,
 .admin-content [id$="_fabrics"] label:hover,
 .admin-content [id$="_colors"] label:hover,
 .admin-content [id$="_subCategories"] label:hover {
@@ -305,6 +309,7 @@
 
 /* ⭐ SÉLECTIONNÉE → fond foncé */
 .admin-content [id$="_modules"] input:checked + label,
+.admin-content [id$="_products"] input:checked + label,
 .admin-content [id$="_fabrics"] input:checked + label,
 .admin-content [id$="_colors"] input:checked + label,
 .admin-content [id$="_subCategories"] input:checked + label {
@@ -315,12 +320,16 @@
 
 /* Contour visible quand on navigue au clavier (accessibilité) */
 .admin-content [id$="_modules"] input:focus-visible + label,
+.admin-content [id$="_products"] input:focus-visible + label,
 .admin-content [id$="_fabrics"] input:focus-visible + label,
 .admin-content [id$="_colors"] input:focus-visible + label,
 .admin-content [id$="_subCategories"] input:focus-visible + label {
   outline: 2px solid #8B6F4E;
   outline-offset: 2px;
 }
+
+/* Une pastille écartée par la recherche (admin.js) : hidden doit l'emporter sur le display des pastilles */
+.admin-content [hidden] { display: none !important; }
 
 
 /* ===== PAGE « ORDRE D'AFFICHAGE » ===== */
@@ -340,6 +349,7 @@
 
 .ordre-ligne {
   display: flex;
+  flex-wrap: wrap;          /* sur petit écran, les liens passent à la ligne au lieu de sortir du cadre */
   align-items: center;
   gap: .8rem;
   background: #fff;
@@ -376,6 +386,18 @@
   padding: .15rem .55rem;
 }
 
+/* Monter / Descendre : ranger sans glisser-déposer (clavier, doigt), cibles de 44 px */
+.ordre-boutons { display: flex; gap: .4rem; margin-left: auto; }   /* sur petit écran, les deux passent à la ligne ensemble, à droite */
+.admin-content .ordre-bouton {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: #fff;
+  color: #8B6F4E;
+  border: 1px solid #8C857D;
+  font-size: 18px;
+}
+
 /* Produit masqué sur le site : ligne atténuée, mais elle garde sa place */
 .ordre-ligne.est-masque { opacity: .55; }
 
@@ -393,7 +415,7 @@
 }
 
 
-/* ===== Barre de filtres de la liste Produits ===== */
+/* ===== Barre de filtres : liste Produits, et recherche des longues listes de pastilles ===== */
 .filtres {
   display: flex;
   flex-wrap: wrap;
@@ -405,7 +427,7 @@
 .filtres input,
 .filtres select {
   padding: 6px 10px;
-  border: 1px solid #D8D2C7;
+  border: 1px solid #8C857D;
   border-radius: 4px;
   font: inherit;
   background: #fff;
@@ -417,6 +439,9 @@
   font-size: 14px;
   color: #6B6B63;
 }
+
+/* La même barre au-dessus des longues listes de pastilles (admin.js) : « 9 cochés · 13 affichés » */
+.filtre-compte { font-size: 13px; color: #6B6B63; }
 
 /* Produit masqué sur le site : ligne atténuée */
 tr.est-masque { opacity: .55; }

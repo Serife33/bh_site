@@ -31,6 +31,13 @@ class ProductType extends AbstractType
     public const PRICE_OPTIONS = ['currency' => 'EUR', 'scale' => 2, 'html5' => true, 'attr' => ['min' => 0, 'max' => 50000, 'step' => '0.01']];
     public const STOCK_OPTIONS = ['attr' => ['min' => 0, 'max' => 9999]];
 
+    // Partagé avec HomeSectionType : la catégorie de chaque pastille de produit, pour le menu « Toutes les catégories »
+    // d'admin.js. Le nom sert à la fois de valeur et de libellé ; il est chargé par la jointure du QueryBuilder du champ.
+    public static function categoryAttr(Product $product): array
+    {
+        return ['data-categorie' => $product->getCategory()->getName()];
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $produitCourant = $builder->getData();
@@ -191,6 +198,7 @@ class ProductType extends AbstractType
                 'expanded' => true,
                 'required' => false,
                 'help' => "Seuls les modules de la même famille sont proposés.",
+                'choice_attr' => self::categoryAttr(...),
                 'query_builder' => fn (ProductRepository $repo) => $repo->createModulesQueryBuilder($produitCourant),
             ]);
         }   

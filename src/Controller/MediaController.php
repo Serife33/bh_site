@@ -22,6 +22,7 @@ use Vich\UploaderBundle\Storage\StorageInterface;
 #[Route('/admin')]
 final class MediaController extends AbstractController
 {
+    use OrderSaveTrait;
 
     #[Route('/product/{id}/media/new', name: 'app_media_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function new(Request $request, Product $product, EntityManagerInterface $em, MediaRepository $mediaRepository): Response
@@ -204,18 +205,7 @@ final class MediaController extends AbstractController
     #[Route('/media/ordre', name: 'app_media_order_save', methods: ['POST'])]
     public function orderSave(Request $request, MediaRepository $mediaRepository): JsonResponse
     {
-        $payload = $request->getPayload();
-
-        if (!$this->isCsrfTokenValid('ordre-photos', $payload->getString('_token'))) {
-            return new JsonResponse(['ok' => false, 'message' => 'Jeton invalide.'], 403);
-        }
-
-        // Les identifiants dans leur nouvel ordre, nettoyés
-        $ids = array_values(array_filter(array_map('intval', $payload->all('ids'))));
-
-        $mediaRepository->updatePositions($ids);
-
-        return new JsonResponse(['ok' => true, 'total' => count($ids)]);
+        return $this->saveOrder($request, 'ordre-photos', $mediaRepository->updatePositions(...));
     }
 
 

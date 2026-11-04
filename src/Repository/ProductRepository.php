@@ -17,6 +17,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ProductRepository extends ServiceEntityRepository
 {
+    use PositionsTrait;   // updatePositions() : la page « Ordre d'affichage »
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Product::class);
@@ -84,28 +86,6 @@ class ProductRepository extends ServiceEntityRepository
     }
 
 
-    // Enregistre un nouvel ordre : le 1er identifiant reçoit la position 1, le 2e la position 2…
-    // UPDATE direct : seule la colonne position change, updatedAt ne bouge pas
-    // (le lastmod du sitemap et le tri des promos restent justes).
-    // Tout ou rien : si une requête échoue, aucune position n'est modifiée.
-    public function updatePositions(array $ids): void
-    {
-        $requete = $this->createQueryBuilder('p')
-            ->update()
-            ->set('p.position', ':position')
-            ->where('p.id = :id')
-            ->getQuery();
-
-        $this->getEntityManager()->wrapInTransaction(function () use ($requete, $ids) {
-            foreach (array_values($ids) as $rang => $id) {
-                $requete->setParameter('position', $rang + 1)
-                        ->setParameter('id', $id)
-                        ->execute();
-            }
-        });
-    }
-
-
     // La première place libre dans une catégorie : un produit neuf — ou une copie —
     // se range à la fin, il ne vient jamais s'asseoir sur la place d'un autre.
     public function nextPosition(?Category $category): int
@@ -149,22 +129,6 @@ class ProductRepository extends ServiceEntityRepository
     public function slugExists(string $slug): bool
     {
         return $this->count(['slug' => $slug]) > 0;
-    }
-
-    // Accueil : tous les produits visibles hors modules, avec leurs photos (pour les cartes).
-    // Le service HomeSectionsBuilder applique ensuite les règles des trois sections.
-    public function findActiveForHome(): array
-    {
-        return $this->createQueryBuilder('p')
-            ->leftJoin('p.media', 'm')
-            ->addSelect('m')    // les photos arrivent avec les produits : pas une requête par carte
-            ->andWhere('p.isActive = true')
-            ->andWhere('p.isModular != :module') // Les modules ne s'affichent que sur la fiche de leur ensemble.
-            ->setParameter('module', ProductModular::Module)
-            ->orderBy('p.position', 'ASC')
-            ->addOrderBy('p.id', 'ASC')
-            ->getQuery()
-            ->getResult();
     }
 
     public function findActiveByCategoryQuery(Category $category, ?SubCategory $subCategory = null): Query
@@ -313,6 +277,8 @@ class ProductRepository extends ServiceEntityRepository
     public function createModulesQueryBuilder(Product $product): QueryBuilder
     {
         $qb = $this->createQueryBuilder('p')
+            ->join('p.category', 'c')
+            ->addSelect('c')   // la catégorie de chaque pastille (ProductType::categoryAttr) arrive avec le produit
             ->andWhere('p.isModular = :module')
             ->setParameter('module', ProductModular::Module)
             ->orderBy('p.name', 'ASC');
@@ -330,6 +296,18 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $qb;
+    }
+
+    // Les produits proposables dans une section de l'accueil : tous sauf les modules,
+    // qui ne s'affichent que sur la fiche de leur ensemble. Masqués compris : ils attendent leur mise en ligne.
+    public function createForHomeSectionQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('p')
+            ->join('p.category', 'c')
+            ->addSelect('c')   // la catégorie de chaque pastille (ProductType::categoryAttr) arrive avec le produit
+            ->andWhere('p.isModular != :module')
+            ->setParameter('module', ProductModular::Module)
+            ->orderBy('p.name', 'ASC');
     }
 
     // Les produits dont une variante est dans cette matière : tant qu'il y en a, elle ne se supprime pas.

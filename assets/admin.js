@@ -77,7 +77,8 @@ function moveLabels(items) {
     });
 }
 
-async function enregistrerOrdre(liste) {
+// annonce : ce que lit le lecteur d'écran avant « Ordre enregistré. » (la place de la ligne déplacée par un bouton)
+async function enregistrerOrdre(liste, annonce = '') {
     const lignes = [...liste.querySelectorAll('li')];
     const message = document.getElementById('ordre-message');
 
@@ -105,7 +106,7 @@ async function enregistrerOrdre(liste) {
 
         if (message) {
             message.textContent = donnees.ok
-                ? 'Ordre enregistré.'
+                ? `${annonce}Ordre enregistré.`
                 : (donnees.message ?? "L'enregistrement a échoué.");
         }
     } catch (erreur) {
@@ -128,10 +129,131 @@ function activerGlisser() {
     });
 }
 
+// Monter / Descendre : le même rangement sans glisser-déposer, pour le clavier et le doigt (WCAG 2.5.7).
+// En tête ou en bas, la ligne ne bouge pas, et l'annonce redit sa place.
+document.addEventListener('click', (e) => {
+    const bouton = e.target.closest('.ordre-monter, .ordre-descendre');
+    if (!bouton) return;
+
+    const ligne = bouton.closest('.ordre-ligne');
+    const liste = ligne.parentElement;
+    if (bouton.matches('.ordre-monter')) ligne.previousElementSibling?.before(ligne);
+    else ligne.nextElementSibling?.after(ligne);
+    bouton.focus();   // déplacer la ligne a retiré le focus au bouton
+
+    const place = [...liste.children].indexOf(ligne) + 1;
+    enregistrerOrdre(liste, `${ligne.querySelector('.ordre-nom').textContent} : position ${place} sur ${liste.children.length}. `);
+});
+
+// Ce que chaque page doit brancher : les listes glissables et les champs de recherche des pastilles.
+function brancherPage() {
+    activerGlisser();
+    ajouterRecherches();
+}
+
 // Turbo remplace le <body> sans relancer le script : on rebranche à chaque navigation.
-document.addEventListener('turbo:load', activerGlisser);
+document.addEventListener('turbo:load', brancherPage);
 // Filet de sécurité si Turbo est coupé un jour.
-document.addEventListener('DOMContentLoaded', activerGlisser);
+document.addEventListener('DOMContentLoaded', brancherPage);
+
+
+// ===== Groupes de pastilles : un champ « Rechercher » au-dessus des longues listes =====
+// Les mêmes groupes que « GROUPES DE CHOIX EN PASTILLES » dans admin.css. La barre est celle de la liste
+// des produits (.filtres), mais ici le filtre ne fait que masquer des pastilles déjà dans la page : sans
+// rechargement, une section pas encore enregistrée garde ses cases cochées. Une pastille cochée reste visible.
+const GROUPES_PASTILLES = '[id$="_modules"], [id$="_products"], [id$="_fabrics"], [id$="_colors"], [id$="_subCategories"]';
+const SEUIL_RECHERCHE = 12;
+
+// « canape » trouve « Canapé » : minuscules, accents retirés
+const normaliser = (texte) => texte.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+const pluriel = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;
+
+// Le groupe que filtre ce champ ; null pour la barre de la liste des produits, qui recharge la page
+function groupeFiltre(champ) {
+    const groupe = champ.closest('.filtres')?.nextElementSibling;
+    return groupe?.matches(GROUPES_PASTILLES) ? groupe : null;
+}
+
+function ajouterRecherches() {
+    document.querySelectorAll(GROUPES_PASTILLES).forEach((groupe) => {
+        if (groupe.querySelectorAll('input[type=checkbox]').length <= SEUIL_RECHERCHE) return;
+        if (groupe.previousElementSibling.matches('.filtres')) return;   // déjà ajoutée (Turbo et DOMContentLoaded)
+
+        const barre = document.createElement('div');
+        barre.className = 'filtres';
+        barre.innerHTML = '<input type="search" class="filtre-recherche"><span class="filtre-compte" aria-live="polite"></span>';
+        const champ = barre.firstChild;
+        champ.placeholder = groupe.matches('[id$="_products"], [id$="_modules"]') ? 'Rechercher un produit…' : 'Rechercher…';
+        // Le titre du groupe (« Tissus disponibles »…) est le libellé de sa ligne de formulaire
+        champ.setAttribute('aria-label', `Rechercher dans « ${groupe.parentElement.querySelector(':scope > label').textContent.trim()} »`);
+
+        // Produits et modules : le menu des catégories de la liste des produits, limité à celles du groupe
+        const categories = [...new Set([...groupe.querySelectorAll('[data-categorie]')].map((caseACocher) => caseACocher.dataset.categorie))];
+        if (categories.length) {
+            const menu = document.createElement('select');
+            menu.setAttribute('aria-label', 'Catégorie');
+            menu.add(new Option('Toutes les catégories', ''));
+            categories.sort((a, b) => a.localeCompare(b, 'fr')).forEach((nom) => menu.add(new Option(nom, nom)));
+            champ.after(menu);
+        }
+
+        groupe.before(barre);
+        filtrerPastilles(groupe);
+    });
+}
+
+// Affiche les pastilles qui contiennent tous les mots cherchés et sont de la catégorie choisie,
+// plus celles déjà cochées, et les compte.
+function filtrerPastilles(groupe) {
+    const barre = groupe.previousElementSibling;
+    const mots = normaliser(barre.querySelector('input').value).split(/\s+/).filter(Boolean);
+    const categorie = barre.querySelector('select')?.value;
+    let cochees = 0;
+    let affichees = 0;
+
+    groupe.querySelectorAll('input[type=checkbox]').forEach((caseACocher) => {
+        const pastille = caseACocher.nextElementSibling;   // Symfony écrit chaque libellé juste après sa case
+        const visible = caseACocher.checked || ((!categorie || caseACocher.dataset.categorie === categorie)
+            && mots.every((mot) => normaliser(pastille.textContent).includes(mot)));
+        caseACocher.hidden = pastille.hidden = !visible;
+        cochees += caseACocher.checked ? 1 : 0;
+        affichees += visible ? 1 : 0;
+    });
+
+    barre.querySelector('.filtre-compte').textContent = `${pluriel(cochees, 'coché')} · ${pluriel(affichees, 'affiché')}`;
+}
+
+// Le champ et le menu des catégories (un select émet aussi « input »)
+document.addEventListener('input', (e) => {
+    const groupe = groupeFiltre(e.target);
+    if (groupe) filtrerPastilles(groupe);
+});
+
+// Cocher ou décocher met le compte à jour
+document.addEventListener('change', (e) => {
+    const groupe = e.target.closest(GROUPES_PASTILLES);
+    if (groupe?.previousElementSibling.matches('.filtres')) filtrerPastilles(groupe);
+});
+
+// Au clavier, la pastille qui reçoit le focus est ramenée dans sa liste qui défile : sa case, invisible, reste en haut
+document.addEventListener('focusin', (e) => {
+    if (e.target.matches('input[type=checkbox]') && e.target.closest(GROUPES_PASTILLES)) {
+        e.target.nextElementSibling.scrollIntoView({ block: 'nearest' });
+    }
+});
+
+// Échap vide le champ ; Entrée ne doit pas envoyer tout le formulaire
+document.addEventListener('keydown', (e) => {
+    const groupe = groupeFiltre(e.target);
+    if (!groupe) return;
+
+    if (e.key === 'Enter') e.preventDefault();
+    if (e.key === 'Escape' && e.target.value) {
+        e.preventDefault();
+        e.target.value = '';
+        filtrerPastilles(groupe);
+    }
+});
 
 
 // ===== Page « Ajouter des photos » : une vignette et un champ alt par fichier choisi =====

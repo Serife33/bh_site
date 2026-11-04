@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ home_section.title }}{% endblock %}
+
+{% block body %}
+    <h1>Modifier {{ home_section.title }}</h1>
+
+    {{ include('home_section/_form.html.twig') }}
+
+    <a href="{{ path('app_home_section_index') }}">Retour à la liste</a>
+
+    {{ include('home_section/_delete_form.html.twig') }}
+{% endblock %}

@@ -12,6 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class MediaRepository extends ServiceEntityRepository
 {
+    use PositionsTrait;   // updatePositions() : la grille de photos d'un produit
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Media::class);
@@ -28,24 +30,5 @@ class MediaRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
 
         return (int) $max + 1;   // produit sans photo : MAX vaut null, la première place est 1
-    }
-
-    // Enregistre un nouvel ordre : la 1re photo reçoit la position 1, la 2e la position 2…
-    // UPDATE direct en une transaction : tout ou rien.
-    public function updatePositions(array $ids): void
-    {
-        $requete = $this->createQueryBuilder('m')
-            ->update()
-            ->set('m.position', ':position')
-            ->where('m.id = :id')
-            ->getQuery();
-
-        $this->getEntityManager()->wrapInTransaction(function () use ($requete, $ids) {
-            foreach (array_values($ids) as $rang => $id) {
-                $requete->setParameter('position', $rang + 1)
-                        ->setParameter('id', $id)
-                        ->execute();
-            }
-        });
     }
 }

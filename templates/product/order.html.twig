@@ -19,23 +19,14 @@
     </form>
 
     {% if products|length %}
-        {# data-url et data-token : tout ce dont le JavaScript a besoin pour enregistrer #}
-        <ul id="liste-ordre"
-            data-url="{{ path('app_product_order_save') }}"
-            data-token="{{ csrf_token('ordre') }}">
-            {% for p in products %}
-                <li class="ordre-ligne{% if not p.isActive %} est-masque{% endif %}" data-id="{{ p.id }}">
-                    <span class="ordre-poignee" aria-hidden="true">⠿</span>
-                    <span class="ordre-rang">{{ loop.index }}</span>
-                    <span class="ordre-nom">{{ p.name }}</span>
-                    {% if not p.isActive %}<span class="ordre-etiquette">masqué</span>{% endif %}
-                    {% if p.isModular.value == 'module' %}<span class="ordre-etiquette">module</span>{% endif %}
-                    <a href="{{ path('app_product_edit', {id: p.id}) }}">Modifier</a>
-                </li>
-            {% endfor %}
-        </ul>
-
-        <p id="ordre-message" role="status" aria-live="polite" class="ordre-message"></p>
+        {{ include('admin/_order_list.html.twig', {
+            url: path('app_product_order_save'),
+            lignes: products|map(p => {
+                id: p.id, nom: p.name, masque: not p.isActive,
+                etiquette: p.isModular.value == 'module' ? 'module',
+                liens: {Modifier: path('app_product_edit', {id: p.id})},
+            }),
+        }) }}
     {% else %}
         <p>Aucun produit dans cette catégorie.</p>
     {% endif %}

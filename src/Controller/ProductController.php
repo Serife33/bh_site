@@ -19,6 +19,8 @@ use App\Service\ProductDuplicator;
 #[Route('/admin/product')]
 final class ProductController extends AbstractController
 {
+    use OrderSaveTrait;
+
     // nombre de produits affichés par page 
     private const PRODUCTS_PER_PAGE = 20;
 
@@ -97,18 +99,7 @@ final class ProductController extends AbstractController
     #[Route('/ordre', name: 'app_product_order_save', methods: ['POST'])]
     public function orderSave(Request $request, ProductRepository $productRepository): JsonResponse
     {
-        $payload = $request->getPayload();
-
-        if (!$this->isCsrfTokenValid('ordre', $payload->getString('_token'))) {
-            return new JsonResponse(['ok' => false, 'message' => 'Jeton invalide.'], 403);
-        }
-
-        // Les identifiants dans leur nouvel ordre, nettoyés
-        $ids = array_values(array_filter(array_map('intval', $payload->all('ids'))));
-
-        $productRepository->updatePositions($ids);
-
-        return new JsonResponse(['ok' => true, 'total' => count($ids)]);
+        return $this->saveOrder($request, 'ordre', $productRepository->updatePositions(...));
     }
 
     // Créer un produit — GET affiche le formulaire, POST le traite
