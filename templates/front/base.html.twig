@@ -107,7 +107,18 @@
 
 
 <body>
-    {{ include('front/_band.html.twig') }}
+    <a href="#contenu" class="evitement">Aller au contenu</a>
+
+    {# Le bandeau cookies, quand il s'affiche, vient au clavier juste après le lien d'évitement #}
+    {{ include('front/_cookie_banner.html.twig') }}
+
+    {# Bandeau défilant et son bouton pause (le bouton d'abord : on l'atteint avant les messages) #}
+    <div class="band-zone">
+        <button type="button" class="band-pause" aria-label="Mettre en pause le bandeau">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="pause" d="M6 4h4v16H6zM14 4h4v16h-4z"/><path class="lecture" d="M7 4l13 8-13 8z"/></svg>
+        </button>
+        {{ include('front/_band.html.twig') }}
+    </div>
 
     <header class="hdr">
         <div class="hdr-in wrap">
@@ -136,7 +147,7 @@
         </div>
     </header>
 
-    <main class="main">
+    <main class="main" id="contenu">
         {# Le contenu de chaque page viendra ici #}
         {% block body %}{% endblock %}
     </main>
@@ -183,7 +194,5 @@
         aria-label="Poser une question sur WhatsApp">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
-    
-    {{ include('front/_cookie_banner.html.twig') }}
 </body>
 </html>

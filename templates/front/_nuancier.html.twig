@@ -3,7 +3,7 @@
 {% set maxColors = 5 %}
 <div class="col-row">
     {% for fc in fabric.fabricColors %}
-        <button type="button" class="col-dot{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxColors ? ' swatch-extra' }}"
+        <button type="button" class="col-dot{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxColors ? ' swatch-extra' }}" aria-pressed="{{ loop.first ? 'true' : 'false' }}"
                 data-choix="{{ fc.name }}" data-index="{{ loop.index0 }}"
                 aria-label="{{ fc.name }}" title="{{ fc.name }}"
                 {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></button>
@@ -25,7 +25,7 @@
         <div class="panneau-body">
             <div class="panneau-grid">
                 {% for fc in fabric.fabricColors %}
-                    <button type="button" class="panneau-opt{{ loop.first ? ' is-active' }}"
+                    <button type="button" class="panneau-opt{{ loop.first ? ' is-active' }}" aria-pressed="{{ loop.first ? 'true' : 'false' }}"
                             data-color="{{ fc.name }}" data-index="{{ loop.index0 }}">
                         <span class="echantillon"
                               {% if fc.image %}style="background-image: url('{{ vich_uploader_asset(fc, 'imageFile')|imagine_filter('macro_tissu') }}')"{% else %}style="background: {{ fc.hex }}"{% endif %}></span>

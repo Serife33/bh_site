@@ -34,16 +34,20 @@
 }
 
 /* Styles de base */
+/* Défilement vers un élément (focus, ancre) : il s'arrête sous l'en-tête collant et au-dessus du bouton WhatsApp */
+html { scroll-padding: 88px 0 88px; }
 body {
   background: var(--bg);
   color: var(--txt);
   font: 400 1rem/1.65 'Montserrat', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-wrap: anywhere;   /* texte agrandi : un mot ou une adresse trop longs passent à la ligne au lieu de déborder */
   min-height: 100dvh;        /* ← au moins la hauteur de l'écran */
   display: flex;             /* ← header / main / footer empilés */
   flex-direction: column;
 }
 a { color: inherit; text-decoration: none; }
+.main p a:not(.btn) { text-decoration: underline; text-underline-offset: 3px; }   /* lien dans une phrase : souligné */
 /* Titres fins et serrés ; 400 pour le texte, 500 pour les prix et libellés */
 h1, h2 { font-weight: 300; line-height: 1.1; letter-spacing: -.025em; }
 h1 { font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem); }
@@ -52,7 +56,11 @@ b, strong, th { font-weight: 500; }
 /* Anneau encre, séparé de l'élément par un liseré clair */
 :focus-visible { outline: 2px solid var(--txt); outline-offset: 2px; box-shadow: 0 0 0 2px var(--bg); }
 /* Sur fond encre (bandeau défilant, bandeau cookies, visionneuse, bloc sombre), l'anneau passe en clair */
-.band :focus-visible, .cookie-banner :focus-visible, .visionneuse :focus-visible, .dark :focus-visible { outline-color: var(--bg); box-shadow: 0 0 0 2px var(--txt); }
+.band-zone :focus-visible, .cookie-banner :focus-visible, .visionneuse :focus-visible, .dark :focus-visible { outline-color: var(--bg); box-shadow: 0 0 0 2px var(--txt); }
+
+/* Lien d'évitement : hors de l'écran jusqu'à ce qu'il reçoive le focus clavier */
+.evitement { position: absolute; top: 8px; left: 8px; z-index: 200; padding: 12px 16px; background: var(--txt); color: var(--bg); translate: 0 -200%; }
+.evitement:focus { translate: none; }
 
 /* Conteneur centré, marges qui s'élargissent avec l'écran */
 .wrap {
@@ -71,7 +79,7 @@ b, strong, th { font-weight: 500; }
   border-bottom: 1px solid var(--border);
 }
 .hdr-in {
-  height: 64px;
+  min-height: 64px;
   display: flex;                  /* logo, menu et pictos sur une ligne */
   align-items: center;            /* centre verticalement */
   gap: 16px;
@@ -80,6 +88,7 @@ b, strong, th { font-weight: 500; }
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;                   /* texte agrandi : le nom passe à la ligne au lieu de pousser les pictos */
 }
 .logo img { width: 34px; height: auto; mix-blend-mode: multiply; }
 .logo-text, .ft-brand {
@@ -87,12 +96,11 @@ b, strong, th { font-weight: 500; }
   font-weight: 500;
   letter-spacing: .24em;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 .hdr-actions { display: flex; align-items: center; margin-left: auto; }
 /* Bloc et non flex : le picto reste en ligne, donc hors du soulignement. Affiché avec le menu en ligne. */
 .hdr-wa { display: none; margin-left: 12px; padding: 12px 0; font-size: .8125rem; }
-.hdr-wa i { margin-right: 8px; color: var(--wa); font-size: 18px; vertical-align: -3px; }
+.hdr-wa i { margin-right: 8px; color: var(--wa); font-size: 1.125rem; vertical-align: -3px; }
 /* Pictos de 44 px : la cible tactile minimale */
 .hdr-search, .burger, .fleche { display: grid; place-items: center; width: 44px; height: 44px; }
 .hdr-search svg, .fleche svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.4; }
@@ -113,7 +121,7 @@ b, strong, th { font-weight: 500; }
   box-shadow: 0 6px 20px rgb(37 211 102 / .4);
   z-index: 150;                  /* au-dessus de tout */
 }
-.wa-float i { font-size: 30px; }
+.wa-float i { font-size: 30px; }   /* en px : le picto suit son rond de 56 px, pas la taille du texte */
 
 
 /* ===== FOOTER ===== */
@@ -142,7 +150,7 @@ b, strong, th { font-weight: 500; }
   align-items: center;
   gap: 0 24px;
   margin-top: clamp(48px, 6vw, 80px);
-  padding-block: 12px 20px;
+  padding-block: 12px 88px;      /* en bas : la place du bouton WhatsApp flottant (56 px + 2 × 16) */
   border-top: 1px solid var(--border);
   font-size: .75rem;
 }
@@ -189,9 +197,10 @@ b, strong, th { font-weight: 500; }
 }
 
 /* ===== HERO ===== */
+/* Petit écran : voile uniforme, le texte passe sur toute la photo (4,5:1 même sur la suspension claire) */
 .hero {
   background:
-    linear-gradient(90deg, rgba(26,26,24,.72) 0%, rgba(26,26,24,.45) 50%, rgba(26,26,24,.15) 100%),
+    linear-gradient(rgba(26,26,24,.62), rgba(26,26,24,.62)),
     url('/images/hero.jpg') center 60% / cover no-repeat;
   padding: 96px 0;
   color: #fff;
@@ -199,24 +208,24 @@ b, strong, th { font-weight: 500; }
   display: flex;
   align-items: center;
 }
-.hero-eyebrow { font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-.hero-title { font-size: 32px; line-height: 1.15; margin-bottom: 14px; }
-.hero-sub { font-size: 16px; color: var(--txt2); line-height: 1.5; margin-bottom: 22px; max-width: 480px; }
+.hero-eyebrow { font-size: .75rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.hero-title { font-size: 2rem; line-height: 1.15; margin-bottom: 14px; }
+.hero-sub { font-size: 1rem; color: var(--txt2); line-height: 1.5; margin-bottom: 22px; max-width: 480px; }
 .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; }
 /* Texte en blanc par-dessus la photo (surcharge les couleurs définies plus haut) */
 .hero-eyebrow, .hero-title, .hero-sub { color: #fff; }
 @media (min-width: 768px) {
-  .hero { padding: 80px 0; }
-  .hero-title { font-size: 44px; }
+  .hero { padding: 80px 0; background-image: linear-gradient(90deg, rgba(26,26,24,.72) 0%, rgba(26,26,24,.45) 50%, rgba(26,26,24,.15) 100%), url('/images/hero.jpg'); }
+  .hero-title { font-size: 2.75rem; }
 }
 
 
 /* ===== SECTIONS ===== */
 .section { padding: 40px 0; }
 .section-head { margin-bottom: 24px; }
-.section-head h2 { font-size: 26px; }
-.section-head p { font-size: 14px; color: var(--txt2); margin-top: 4px; }
-@media (min-width: 768px) { .section-head h2 { font-size: 32px; } }
+.section-head h2 { font-size: 1.625rem; }
+.section-head p { font-size: .875rem; color: var(--txt2); margin-top: 4px; }
+@media (min-width: 768px) { .section-head h2 { font-size: 2rem; } }
 
 /* ===== NOS UNIVERS : bande qui défile, quel que soit le nombre de catégories ===== */
 .section-tete { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
@@ -292,15 +301,15 @@ b, strong, th { font-weight: 500; }
 .reassu { background: var(--bg2); padding: 48px 0; }
 /* Petite étiquette au-dessus des titres (réutilisable) */
 .eyebrow {
-  font-size: 12px;
+  font-size: .75rem;
   font-weight: 500;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 8px;
 }
-.reassu h2 { font-size: 26px; margin-bottom: 28px; }
-@media (min-width: 768px) { .reassu h2 { font-size: 30px; } }
+.reassu h2 { font-size: 1.625rem; margin-bottom: 28px; }
+@media (min-width: 768px) { .reassu h2 { font-size: 1.875rem; } }
 .reassu-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);   /* mobile : 2 par ligne (2×2) */
@@ -311,8 +320,8 @@ b, strong, th { font-weight: 500; }
 }
 @media (min-width: 1024px) { .reassu-grid { grid-template-columns: repeat(4, 1fr); } }
 .rcard { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
-.rcard h3 { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
-.rcard p { font-size: 13px; color: var(--txt2); line-height: 1.5; }
+.rcard h3 { font-size: 1rem; font-weight: 500; margin-bottom: 6px; }
+.rcard p { font-size: .8125rem; color: var(--txt2); line-height: 1.5; }
 
 
 /* ===== BLOC SOMBRE (expertise) ===== */
@@ -320,9 +329,9 @@ b, strong, th { font-weight: 500; }
 .dark-in { display: flex; flex-direction: column; gap: 24px; }
 @media (min-width: 768px) { .dark-in { flex-direction: row; align-items: center; gap: 48px; } }
 .dark-col { flex: 1; }
-.eyebrow-light { font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
-.dark h2 { font-size: 26px; color: #fff; margin-bottom: 14px; }
-@media (min-width: 768px) { .dark h2 { font-size: 32px; } }
+.eyebrow-light { font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
+.dark h2 { font-size: 1.625rem; color: #fff; margin-bottom: 14px; }
+@media (min-width: 768px) { .dark h2 { font-size: 2rem; } }
 .dark-txt { color: rgba(255,255,255,.78); line-height: 1.6; margin-bottom: 18px; }
 
 
@@ -330,24 +339,24 @@ b, strong, th { font-weight: 500; }
 .showroom-in { display: flex; flex-direction: column; gap: 28px; }
 @media (min-width: 768px) { .showroom-in { flex-direction: row; align-items: stretch; gap: 48px; } }
 .showroom-col { flex: 1; }
-.showroom-col h2 { font-size: 26px; margin-bottom: 12px; }
-@media (min-width: 768px) { .showroom-col h2 { font-size: 32px; } }
+.showroom-col h2 { font-size: 1.625rem; margin-bottom: 12px; }
+@media (min-width: 768px) { .showroom-col h2 { font-size: 2rem; } }
 .showroom-txt { color: var(--txt2); line-height: 1.6; margin-bottom: 20px; }
-.showroom-addr { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
-.showroom-hours { font-size: 14px; color: var(--txt2); margin-bottom: 20px; }
+.showroom-addr { font-size: .9375rem; font-weight: 500; margin-bottom: 2px; }
+.showroom-hours { font-size: .875rem; color: var(--txt2); margin-bottom: 20px; }
 .showroom-map { flex: 1; border-radius: 16px; overflow: hidden; height: 260px; }
 @media (min-width: 768px) { .showroom-map { height: auto; min-height: 320px; } }
 .showroom-map iframe { display: block; width: 100%; height: 100%; border: 0; }
 /* Façade de la carte : rien de Google avant le clic */
 .map-facade { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; background: var(--bg2); text-align: center; }
-.map-facade i { font-size: 32px; color: var(--accent); }
-.map-facade small { max-width: 320px; font-size: 12px; line-height: 1.4; color: var(--txt2); }
+.map-facade i { font-size: 2rem; color: var(--accent); }
+.map-facade small { max-width: 320px; font-size: .75rem; line-height: 1.4; color: var(--txt2); }
 
 
 /* ===== RÉSEAUX SOCIAUX ===== */
-.socials-label { font-size: 14px; font-weight: 500; margin-top: 14px; margin-bottom: 10px; text-align: center; }
+.socials-label { font-size: .875rem; font-weight: 500; margin-top: 14px; margin-bottom: 10px; text-align: center; }
 .socials { display: flex; gap: 16px; justify-content: center; }   /* mobile : centré */
-.socials a { font-size: 26px; line-height: 1; transition: transform .2s; }
+.socials a { font-size: 1.625rem; line-height: 1; transition: transform .2s; }
 .socials a:hover { transform: translateY(-3px); }
 
 /* Couleurs officielles des marques */
@@ -371,7 +380,7 @@ b, strong, th { font-weight: 500; }
   border-radius: 8px;
   width: 30px; height: 30px;
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 17px;
+  font-size: 1.0625rem;
   -webkit-text-stroke: 1px #fff;   /* ← épaissit le blanc du ghost */
 }
 @media (min-width: 768px) {
@@ -382,8 +391,8 @@ b, strong, th { font-weight: 500; }
 
 
 /* ===== FAQ ===== */
-.faq-title { font-size: 26px; margin-bottom: 24px; text-align: center; }
-@media (min-width: 768px) { .faq-title { font-size: 32px; } }
+.faq-title { font-size: 1.625rem; margin-bottom: 24px; text-align: center; }
+@media (min-width: 768px) { .faq-title { font-size: 2rem; } }
 .faq-wrap { max-width: 780px; }
 .faq-item { border-bottom: 1px solid var(--border); }
 .faq-item summary {
@@ -394,12 +403,12 @@ b, strong, th { font-weight: 500; }
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 500;
 }
 .faq-item summary::-webkit-details-marker { display: none; }
-.faq-pm { color: var(--accent); font-size: 22px; flex-shrink: 0; }
-.faq-item p { padding: 0 0 18px; color: var(--txt2); line-height: 1.7; font-size: 15px; }
+.faq-pm { color: var(--accent); font-size: 1.375rem; flex-shrink: 0; }
+.faq-item p { padding: 0 0 18px; color: var(--txt2); line-height: 1.7; font-size: .9375rem; }
 
 
 /* ===== CTA WHATSAPP ===== */
@@ -421,8 +430,8 @@ b, strong, th { font-weight: 500; }
     text-align: left;
   }
 }
-.cta-wa-txt h2 { font-size: 24px; margin-bottom: 4px; }
-.cta-wa-txt p { font-size: 14px; color: var(--txt2); }
+.cta-wa-txt h2 { font-size: 1.5rem; margin-bottom: 4px; }
+.cta-wa-txt p { font-size: .875rem; color: var(--txt2); }
 
 
 /* ===== BANDEAU DÉFILANT ===== */
@@ -464,10 +473,17 @@ b, strong, th { font-weight: 500; }
 @keyframes band-scroll {
   to { transform: translateX(-50%); }
 }
+/* Bouton pause (critère 2.2.2) : la zone ne bouge plus tant qu'il est enfoncé */
+.band-zone { position: relative; }
+.band-pause { position: absolute; top: 0; right: 0; z-index: 1; display: grid; place-items: center; width: 44px; height: 100%; background: var(--txt); color: var(--bg); }
+.band-pause svg { width: 14px; height: 14px; fill: currentColor; }
+.band-zone.is-paused .band-track { animation-play-state: paused; }
+.band-zone:not(.is-paused) .lecture, .band-zone.is-paused .pause { display: none; }
 /* Mouvement réduit demandé : le bandeau s'arrête et se fait défiler au doigt */
 @media (prefers-reduced-motion: reduce) {
   .band { overflow-x: auto; }
   .band-track { animation: none; }
+  .band-pause { display: none; }
 }
 
 
@@ -492,10 +508,11 @@ b, strong, th { font-weight: 500; }
 .nav a:hover, .pagination a:hover, .pagination [aria-current] { color: var(--txt); text-decoration: underline 1px var(--accent2); text-underline-offset: 8px; }
 
 /* ===== GRAND ÉCRAN : catégories en ligne, centrées entre le logo et les pictos ; burger caché =====
-   1100 px : la largeur où tout tient sur une ligne (même seuil dans app.js) */
-@media (min-width: 1100px) {
-  .hdr-in { display: grid; grid-template-columns: 1fr auto 1fr; gap: 32px; height: 76px; }   /* deux colonnes égales : le menu est au centre */
+   68,75em (1100 px) : la largeur où tout tient sur une ligne ; en em, le seuil suit le texte agrandi (même seuil dans app.js) */
+@media (min-width: 68.75em) {
+  .hdr-in { display: grid; grid-template-columns: 1fr auto 1fr; gap: 32px; min-height: 76px; }   /* deux colonnes égales : le menu est au centre */
   .logo { justify-self: start; }
+  .logo-text { white-space: nowrap; }   /* le menu en ligne a la place de garder le nom sur une ligne */
   .burger { display: none; }
   .nav { display: flex; position: static; flex-direction: row; height: auto; overflow: visible; background: none; padding: 0; gap: 28px; }
   .nav a { padding: 12px 0; font-size: .8125rem; font-weight: 400; letter-spacing: 0; }   /* 44 px de haut */
@@ -508,7 +525,7 @@ b, strong, th { font-weight: 500; }
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: .8125rem;
     color: var(--txt2);
     margin-bottom: 24px;
 }
@@ -560,7 +577,7 @@ b, strong, th { font-weight: 500; }
     border-radius: 999px;   /* pilule bien ronde */
     color: var(--txt);
     text-decoration: none;
-    font-size: 14px;
+    font-size: .875rem;
     transition: all .15s;
 }
 .chip:hover {
@@ -657,7 +674,7 @@ b, strong, th { font-weight: 500; }
     border-radius: 50%;            /* rondes */
     background: rgba(255, 255, 255, .85);
     color: var(--txt);
-    font-size: 24px;
+    font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
     display: flex;
@@ -696,7 +713,7 @@ b, strong, th { font-weight: 500; }
     border-radius: 50%;
     background: rgba(255, 255, 255, .9);
     color: var(--txt);
-    font-size: 24px;
+    font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
     display: flex;
@@ -716,7 +733,7 @@ b, strong, th { font-weight: 500; }
     padding: 6px 10px;
     background: rgba(0, 0, 0, .55);
     color: #fff;
-    font-size: 11px;
+    font-size: .6875rem;
     line-height: 1.3;
 }
 
@@ -745,7 +762,7 @@ b, strong, th { font-weight: 500; }
     left: 50%;
     transform: translate(-50%, -50%);
     color: #fff;
-    font-size: 16px;
+    font-size: 1rem;
     text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
     pointer-events: none;
 }
@@ -797,7 +814,7 @@ b, strong, th { font-weight: 500; }
 .config { margin: 24px 0; }
 .cfg-group { margin-bottom: 22px; }
 .cfg-title { 
-    font-size: 14px; 
+    font-size: .875rem; 
     font-weight: 500; 
     text-transform: none; 
     letter-spacing: 0; 
@@ -820,7 +837,7 @@ b, strong, th { font-weight: 500; }
     border-radius: var(--r);
     background: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: .875rem;
     transition: all .15s;
 }
 .mat-opt:hover { border-color: var(--accent); }
@@ -843,6 +860,7 @@ b, strong, th { font-weight: 500; }
     outline: 1px solid var(--txt);   /* liseré fin autour */
     outline-offset: 3px;             /* ⭐ l'écart blanc entre la pastille et le liseré */
 }
+.col-dot.is-active:focus-visible { outline-width: 3px; outline-offset: 5px; }
 /* --- Touches de variantes (configurations, dimensions) --- */
 .variant-row {
     display: grid;
@@ -865,16 +883,12 @@ b, strong, th { font-weight: 500; }
 }
 .variant-chip:hover { border-color: var(--accent); }
 .variant-chip .variant-dim {
-    font-size: 14px;
+    font-size: .875rem;
     font-weight: 500;
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-align: center;              /* le nom se lit en entier : il passe à la ligne au lieu d'être coupé */
 }
-.variant-chip .variant-price { font-size: 12px; color: var(--txt2); }
-/* Une taille ou une matière se lit en entier : elle passe à la ligne au lieu d'être coupée */
-.taille-opt .variant-dim, .matiere-opt .variant-dim { white-space: normal; text-align: center; }
+.variant-chip .variant-price { font-size: .75rem; color: var(--txt2); }
 .variant-chip.is-active {
     border-color: var(--txt);
     background: var(--txt);
@@ -889,7 +903,7 @@ b, strong, th { font-weight: 500; }
     height: auto;
     padding: 10px 12px;
     border-radius: var(--r);
-    font-size: 14px;
+    font-size: .875rem;
     font-weight: 500;
 }
 /* Le « +N » des tissus prend la forme d'un bouton tissu, pas d'un échantillon carré */
@@ -898,7 +912,7 @@ b, strong, th { font-weight: 500; }
     height: auto;
     padding: 8px 16px;
     border-radius: var(--r);
-    font-size: 14px;
+    font-size: .875rem;
 }
 /* Chaque ligne de tissus occupe toute la largeur : les boutons se partagent l'espace libre */
 .mat-row .mat-opt {
@@ -931,7 +945,7 @@ b, strong, th { font-weight: 500; }
 .buybox-lead { 
     display: flex; 
     align-items: center; 
-    gap: 8px; font-size: 14px; 
+    gap: 8px; font-size: .875rem; 
     color: var(--txt2); 
 }
 
@@ -973,16 +987,19 @@ b, strong, th { font-weight: 500; }
     box-shadow: 0 4px 20px rgba(0,0,0,.2);
     flex-direction: column;
     gap: 12px;
-    font-size: 14px;
+    font-size: .875rem;
 }
 .cookie-banner.show { display: flex; }   /* rendu visible par le JS */
 body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsApp cachait « Accepter » sur mobile */
-.cookie-banner a { color: #fff; }
+/* Bandeau affiché : le focus s'arrête au-dessus de lui, et le bas du pied de page peut remonter au-dessus */
+html:has(.cookie-banner.show) { scroll-padding-bottom: 300px; }
+body:has(.cookie-banner.show) .ft-copy { padding-bottom: 300px; }
+.cookie-banner a { color: #fff; text-decoration: underline; }
 .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .cookie-actions button {
     padding: 8px 16px;
     border-radius: var(--r);
-    font-size: 14px;
+    font-size: .875rem;
     cursor: pointer;
     background: #fff;              /* Refuser et Accepter : même poids visuel (CNIL) */
     color: var(--txt);
@@ -992,12 +1009,12 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
 /* ===== Pages de texte : mentions légales, CGV, confidentialité, offres ===== */
 .wrap-legal { max-width: 860px; line-height: 1.6; }
 .wrap-legal h1 { margin-bottom: 8px; }
-.wrap-legal h2 { font-size: 20px; margin: 32px 0 10px; }
-.wrap-legal h3 { font-size: 16px; margin: 20px 0 6px; }
+.wrap-legal h2 { font-size: 1.25rem; margin: 32px 0 10px; }
+.wrap-legal h3 { font-size: 1rem; margin: 20px 0 6px; }
 .wrap-legal p, .wrap-legal ul, .wrap-legal ol, .wrap-legal table { margin-bottom: 12px; }
 .wrap-legal ul, .wrap-legal ol { list-style: revert; padding-left: 22px; }   /* retrouve les puces retirées par Tailwind */
 .wrap-legal a { color: var(--accent); text-decoration: underline; }
-.wrap-legal table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 14px; }   /* défile sur mobile au lieu de déborder */
+.wrap-legal table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; }   /* défile sur mobile au lieu de déborder */
 .wrap-legal th, .wrap-legal td { padding: 8px 10px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
 .wrap-legal th { background: var(--bg2); }
 .legal-box { margin: 16px 0; padding: 20px; border: 1px solid var(--txt); border-radius: var(--r); }   /* encadré exigé pour les garanties légales */
@@ -1020,27 +1037,27 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     padding: 16px 0;
     cursor: pointer;
     font-weight: 500;
-    font-size: 15px;
+    font-size: .9375rem;
     list-style: none;               /* enlève le triangle par défaut */
 }
 .accord summary::-webkit-details-marker { display: none; }   /* idem Safari */
-.accord summary::after { content: '+'; font-size: 20px; color: var(--txt2); font-weight: 400; }
+.accord summary::after { content: '+'; font-size: 1.25rem; color: var(--txt2); font-weight: 400; }
 .accord[open] summary::after { content: '−'; }               /* + devient − à l'ouverture */
 .accord p { padding: 0 0 16px; margin: 0; color: var(--txt2); line-height: 1.7; }
 
 
 .custom-quote { margin-top: 24px; padding: 18px 20px; background: var(--bg2); border-left: 3px solid var(--accent); border-radius: var(--r); }
-.custom-quote p { margin: 0 0 12px; font-size: 14px; color: var(--txt); line-height: 1.6; }
+.custom-quote p { margin: 0 0 12px; font-size: .875rem; color: var(--txt); line-height: 1.6; }
 .quote-dims { width: 100%; margin-bottom: 10px; }
 
 
 
-.product-info h1 { font-size: clamp(24px, 4vw, 30px); line-height: 1.2; margin-bottom: 10px; }
+.product-info h1 { font-size: clamp(1.5rem, 4vw, 1.875rem); line-height: 1.2; margin-bottom: 10px; }
 .price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
-.price { font-size: 26px; font-weight: 400; color: var(--txt); }
-.price-old { font-size: 16px; color: var(--txt2); }
-.price-remise { font-size: 14px; font-weight: 500; color: var(--promo); }
-.price-facilities { font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 24px; }
+.price { font-size: 1.625rem; font-weight: 400; color: var(--txt); }
+.price-old { font-size: 1rem; color: var(--txt2); }
+.price-remise { font-size: .875rem; font-weight: 500; color: var(--promo); }
+.price-facilities { font-size: .8125rem; color: var(--accent); font-weight: 500; margin-bottom: 24px; }
 
 
 /* Un élément masqué par l'attribut hidden le reste, même si sa classe lui donne un display */
@@ -1056,7 +1073,7 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-radius: 4px;
     background: none;
     color: var(--txt2);
-    font-size: 13px;
+    font-size: .8125rem;
     cursor: pointer;
 }
 .swatch-more:hover { border-color: var(--accent); color: var(--accent); }
@@ -1108,8 +1125,8 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-bottom: 1px solid var(--border);
     flex: 0 0 auto;
 }
-.panneau-head h2 { font-size: 17px; font-weight: 500; margin: 0; }
-.panneau-head p { font-size: 13px; color: var(--txt2); margin: 2px 0 0; }
+.panneau-head h2 { font-size: 1.0625rem; font-weight: 500; margin: 0; }
+.panneau-head p { font-size: .8125rem; color: var(--txt2); margin: 2px 0 0; }
 .panneau-close {
     width: 36px;
     height: 36px;
@@ -1117,7 +1134,7 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-radius: 50%;
     background: var(--bg2);
     color: var(--txt);
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1;
     cursor: pointer;
     flex: 0 0 auto;
@@ -1151,7 +1168,7 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
 }
 .panneau-opt:hover .echantillon { border-color: var(--accent); }
 .panneau-opt.is-active .echantillon { outline: 2px solid var(--txt); outline-offset: 2px; }
-.panneau-opt .echantillon-nom { font-size: 12px; color: var(--txt2); text-align: center; }
+.panneau-opt .echantillon-nom { font-size: .75rem; color: var(--txt2); text-align: center; }
 .panneau-opt.is-active .echantillon-nom { color: var(--txt); font-weight: 500; }
 
 .panneau-foot {
@@ -1163,7 +1180,7 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-top: 1px solid var(--border);
     flex: 0 0 auto;
 }
-.panneau-courant { font-size: 13px; color: var(--txt2); }
+.panneau-courant { font-size: .8125rem; color: var(--txt2); }
 .panneau-courant strong { color: var(--txt); }
 .btn-valider {
     padding: 12px 22px;
@@ -1171,7 +1188,7 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-radius: 999px;
     background: var(--txt);
     color: #fff;
-    font-size: 14px;
+    font-size: .875rem;
     font-weight: 500;
     cursor: pointer;
     font-family: inherit;
@@ -1208,8 +1225,8 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     background: var(--txt);
     color: #fff;
 }
-.ligne-nom { font-size: 14px; font-weight: 500; }
-.ligne-info { font-size: 12px; color: var(--txt2); }
+.ligne-nom { font-size: .875rem; font-weight: 500; }
+.ligne-info { font-size: .75rem; color: var(--txt2); }
 .panneau-ligne.is-active .ligne-info { color: rgba(255, 255, 255, .7); }
 
 /* Un nom de tissu très long ne doit pas occuper toute la ligne */
@@ -1239,31 +1256,31 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-radius: var(--r);
     text-align: center;
 }
-.reassurance-card i { font-size: 24px; color: var(--accent); }
-.reassurance-card h3 { font-size: 16px; margin: 12px 0 6px; }
-.reassurance-card p { font-size: 14px; color: var(--txt2); line-height: 1.5; }
+.reassurance-card i { font-size: 1.5rem; color: var(--accent); }
+.reassurance-card h3 { font-size: 1rem; margin: 12px 0 6px; }
+.reassurance-card p { font-size: .875rem; color: var(--txt2); line-height: 1.5; }
 
 .similar { margin: 48px 0 24px; }
-.similar h2 { font-size: 22px; margin-bottom: 20px; }
+.similar h2 { font-size: 1.375rem; margin-bottom: 20px; }
 
 
 /* ===== MODULES D'UN PRODUIT MODULABLE ===== */
 .modules-produit { margin: 48px 0 24px; }
-.modules-produit h2 { font-size: 22px; margin-bottom: 8px; }
-.modules-intro { color: var(--txt2); font-size: 15px; margin-bottom: 20px; }
+.modules-produit h2 { font-size: 1.375rem; margin-bottom: 8px; }
+.modules-intro { color: var(--txt2); font-size: .9375rem; margin-bottom: 20px; }
 
 /* Composition module par module : − quantité + sous chaque carte, puis le récapitulatif.
    La carte remplit la case : les − + d'une même rangée restent alignés, quel que soit le nom. */
 .compo-module { display: flex; flex-direction: column; }
 .compo-module .pcard { flex: 1; }
 .compo-qte { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
-.compo-qte button { width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 50%; background: #fff; font-size: 20px; cursor: pointer; }
+.compo-qte button { width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 50%; background: #fff; font-size: 1.25rem; cursor: pointer; }
 .compo-qte [aria-disabled="true"] { opacity: .35; cursor: default; }
 .compo-nb { min-width: 2ch; text-align: center; font-weight: 500; }
 .compo-recap { margin-top: 24px; padding: 18px 20px; background: var(--bg2); border-radius: var(--r); }
-.compo-liste li { font-size: 14px; line-height: 1.7; }
-.compo-somme { margin: 8px 0 4px; font-size: 16px; }
-.compo-mention { margin-bottom: 12px; font-size: 13px; color: var(--txt2); }
+.compo-liste li { font-size: .875rem; line-height: 1.7; }
+.compo-somme { margin: 8px 0 4px; font-size: 1rem; }
+.compo-mention { margin-bottom: 12px; font-size: .8125rem; color: var(--txt2); }
 .compo-commander:disabled { opacity: .5; cursor: not-allowed; }
 
 
