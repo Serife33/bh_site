@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Category;
 use App\Entity\Fabric;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\SubCategory;
 use App\Enum\ProductModular;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -201,6 +202,20 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $product;
+    }
+
+    // L'adresse et la taille de la variante qui a repris une ancienne fiche, si son produit est visible ; sinon null
+    public function findRedirectForLegacySlug(string $slug): ?array
+    {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('p.slug', 'v.size')
+            ->from(ProductVariant::class, 'v')
+            ->join('v.product', 'p')
+            ->andWhere('v.legacySlug = :slug')
+            ->andWhere('p.isActive = true')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findSimilar(Product $product, int $limit = 4): array
