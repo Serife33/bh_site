@@ -17,26 +17,27 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Vich\UploaderBundle\Storage\StorageInterface;
 
 /**
- * Regroupe les fiches d'un même modèle, une par taille, en une seule fiche à variantes, d'après un fichier de correspondance :
- * une ligne par fiche, avec la fiche gardée de son groupe (data/regroupement-lits.csv).
+ * Regroupe les fiches d'un même modèle, une par taille, en une seule fiche à variantes, d'après la liste validée
+ * (data/regroupement-lits.csv, faite par app:liste-lits) : une ligne par fiche, avec la fiche gardée de son groupe.
  * La commande ne calcule aucun prix : chaque variante reprend le prix initial, le prix actuel et le stock de la fiche
- * de sa taille, qui doivent être ceux de la liste validée.
+ * de sa taille, qui doivent être ceux de la liste.
  *
- * La fiche gardée prend son nouveau nom et sa nouvelle adresse, perd sa taille dans ses textes, et reçoit les photos
- * des autres fiches qu'elle n'a pas déjà (même contenu de fichier, même vidéo). Chaque variante retient l'adresse
- * de sa fiche pour la redirection 301. Les autres fiches sont masquées : rien n'est supprimé.
+ * La fiche gardée prend le nom, l'adresse, le titre et la description Google de la liste, perd sa taille dans sa description,
+ * et reçoit les photos des autres fiches qu'elle n'a pas déjà (même contenu de fichier, même vidéo) ; les deux photos
+ * choisies dans la liste ouvrent sa galerie. Chaque variante retient l'adresse de sa fiche pour la redirection 301.
+ * Les autres fiches sont masquées ; --supprime-anciennes les supprime, une fois le regroupement vérifié.
  *
- * Relançable : un groupe dont la fiche gardée a déjà des variantes n'est pas refait, ses variantes sont comparées à la liste.
+ * Relançable : un groupe dont la fiche gardée a déjà des variantes n'est pas refait, il est comparé à la liste.
  * Tout ou rien : tout est contrôlé avant d'écrire, puis la base est écrite en une seule transaction.
  */
 #[AsCommand(name: 'app:regroupe-fiches', description: 'Regroupe les fiches d\'un même modèle, une par taille, en une fiche à variantes')]
 final class GroupProductsCommand
 {
-    // Les colonnes utiles du fichier, une ligne par fiche. Les autres (nom, photos) aident seulement à le relire.
-    private const COLUMNS = ['fiche_gardee', 'id', 'adresse', 'taille', 'prix_initial', 'prix_actuel', 'stock', 'nouveau_nom', 'nouvelle_adresse'];
+    // Les colonnes de la nouvelle fiche, remplies sur la ligne de la fiche gardée seulement
+    private const NEW_PRODUCT = ['nouveau_nom', 'nouvelle_adresse', 'titre_google', 'description_google', 'photo_1', 'photo_2'];
 
-    // Une taille dans un texte, avec l'espace qui la précède : « 140x190 », « 140X200 », « 180*200 »
-    private const SIZE = '\s*(?<!\d)\d{2,3}\s*[x×X*]\s*\d{2,3}(?!\d)';
+    // Les colonnes utiles de la liste, une ligne par fiche. Les autres (nom, photos) aident seulement à la relire.
+    private const COLUMNS = ['fiche_gardee', 'id', 'adresse', 'taille', 'prix_initial', 'prix_actuel', 'stock', ...self::NEW_PRODUCT];
 
     public function __construct(
         private readonly EntityManagerInterface $em,
@@ -49,8 +50,9 @@ final class GroupProductsCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument('Le fichier de correspondance, validé')] string $fichier,
+        #[Argument('La liste validée')] string $fichier,
         #[Option('Affiche ce qui serait fait, sans rien écrire')] bool $dryRun = false,
+        #[Option('Supprime les anciennes fiches, si tous les groupes sont déjà regroupés et conformes à la liste')] bool $supprimeAnciennes = false,
     ): int {
         $groups = [];
         foreach ($this->csv->read($fichier, self::COLUMNS) as $row) {
@@ -64,6 +66,7 @@ final class GroupProductsCommand
         $products = $this->productRepository->findWithMediaByIds($ids);
 
         $newSlugs = [];
+        $old = [];   // les anciennes fiches des groupes déjà regroupés, pour --supprime-anciennes
         $count = ['Fiches regroupées' => 0, 'Variantes créées' => 0, 'Photos ajoutées' => 0, 'Fiches masquées' => 0, 'Groupes déjà regroupés' => 0, 'Différences avec la liste' => 0];
 
         foreach ($groups as $keptId => $rows) {
@@ -71,13 +74,23 @@ final class GroupProductsCommand
             $keptRow = array_find($rows, static fn (array $row) => $row['id'] === (string) $keptId)
                 ?? throw new \RuntimeException("Fiche gardée $keptId : elle n'a pas sa propre ligne dans son groupe.");
 
-            // Déjà regroupé : chaque variante est comparée à la ligne de sa fiche
+            // Déjà regroupé : chaque taille est comparée à la ligne de sa fiche, et chaque ancienne fiche doit être restée masquée
             if (!$kept->getVariants()->isEmpty()) {
                 ++$count['Groupes déjà regroupés'];
                 $io->text("= {$kept->getName()} : déjà regroupé, comparé à la liste");
                 foreach ($rows as $row) {
                     $variant = $kept->getVariants()->findFirst(static fn (int $key, ProductVariant $variant) => $variant->getLegacySlug() === $row['adresse']);
-                    foreach ($variant ? $this->differences($row, $variant) : ['variante absente'] as $difference) {
+                    $differences = $variant ? $this->differences($row, $variant) : ['taille absente de la fiche regroupée'];
+
+                    $product = $products[$row['id']] ?? null;   // une ancienne fiche déjà supprimée n'a plus rien à contrôler
+                    if ($product !== null && $product !== $kept) {
+                        if ($product->isActive()) {
+                            $differences[] = 'ancienne fiche de nouveau visible';
+                        }
+                        $old[] = $product;
+                    }
+
+                    foreach ($differences as $difference) {
                         ++$count['Différences avec la liste'];
                         $io->text("    ! {$row['taille']} ({$row['adresse']}) : $difference");
                     }
@@ -86,12 +99,17 @@ final class GroupProductsCommand
                 continue;
             }
 
-            // Une variante par fiche, avec ses prix et son stock tels quels, dans l'ordre du fichier
+            // Une variante par fiche, avec ses prix et son stock tels quels, dans l'ordre de la liste
             foreach ($rows as $index => $row) {
                 $product = $products[$row['id']] ?? throw new \RuntimeException("Fiche {$row['id']} introuvable.");
+                $isKept = $product === $kept;
 
                 if ($product->getSlug() !== $row['adresse']) {
                     throw new \RuntimeException("Fiche {$row['id']} : son adresse est « {$product->getSlug()} », pas « {$row['adresse']} ».");
+                }
+                // Masquée, elle redeviendrait une taille en vente
+                if (!$product->isActive()) {
+                    throw new \RuntimeException("{$product->getName()} est masquée : à retirer de la liste, ou à remettre en ligne avant.");
                 }
                 if (!preg_match('/^\d{2,3}x\d{2,3}$/', $row['taille'])) {
                     throw new \RuntimeException("Fiche {$row['id']} : taille « {$row['taille']} » à écrire comme 140x190.");
@@ -99,12 +117,13 @@ final class GroupProductsCommand
                 if ($differences = $this->differences($row, $product)) {
                     throw new \RuntimeException("{$product->getName()} a changé depuis la liste : " . implode(', ', $differences) . '.');
                 }
-                if ($product !== $kept && !$product->getVariants()->isEmpty()) {
+                if (!$isKept && !$product->getVariants()->isEmpty()) {
                     throw new \RuntimeException("{$product->getName()} a déjà des variantes : à regrouper à la main.");
                 }
-                // Le nouveau nom et la nouvelle adresse se lisent sur la ligne de la fiche gardée, et seulement là
-                if ([$row['nouveau_nom'] !== '', $row['nouvelle_adresse'] !== ''] !== [$product === $kept, $product === $kept]) {
-                    throw new \RuntimeException("Fiche {$row['id']} : nouveau nom et nouvelle adresse sont à remplir sur la ligne de la fiche gardée, et vides ailleurs.");
+                // Les colonnes de la nouvelle fiche se lisent sur la ligne de la fiche gardée, qui a au moins un nom et une adresse
+                $filled = array_filter(array_intersect_key($row, array_flip(self::NEW_PRODUCT)), static fn (string $value) => $value !== '');
+                if ($isKept ? !isset($filled['nouveau_nom'], $filled['nouvelle_adresse']) : $filled !== []) {
+                    throw new \RuntimeException("Fiche {$row['id']} : nouveau nom et nouvelle adresse à remplir sur la ligne de la fiche gardée ; les colonnes de la nouvelle fiche restent vides sur les autres lignes.");
                 }
 
                 $kept->addVariant((new ProductVariant())
@@ -117,8 +136,9 @@ final class GroupProductsCommand
             }
 
             // Les photos des autres fiches qui manquent à la fiche gardée, à la suite des siennes ; les autres fiches sont masquées
-            $known = array_map($this->fingerprint(...), $kept->getMedia()->toArray());
-            $position = max([0, ...$kept->getMedia()->map(static fn (Media $media) => $media->getPosition())->toArray()]);
+            $gallery = $kept->getMedia()->toArray();
+            usort($gallery, static fn (Media $a, Media $b) => $a->getPosition() <=> $b->getPosition());
+            $known = array_map($this->fingerprint(...), $gallery);
             $added = 0;
             foreach ($rows as $row) {
                 $product = $products[$row['id']];
@@ -129,7 +149,8 @@ final class GroupProductsCommand
                     if (!in_array($fingerprint = $this->fingerprint($media), $known, true)) {
                         $known[] = $fingerprint;
                         // Pas de removeMedium() sur l'ancienne fiche : orphanRemoval supprimerait la photo
-                        $kept->addMedium($media->setPosition(++$position));
+                        $kept->addMedium($media);
+                        $gallery[] = $media;
                         ++$added;
                     }
                 }
@@ -137,12 +158,22 @@ final class GroupProductsCommand
                 ++$count['Fiches masquées'];
             }
 
-            // La fiche regroupée vend toutes les tailles : la sienne disparaît de ses textes
+            // Les deux photos choisies ouvrent la galerie (le lit de trois quarts avec son matelas, puis le coffre ouvert), les autres suivent
+            $first = array_values(array_filter([$keptRow['photo_1'], $keptRow['photo_2']]));
+            if ($missing = array_diff($first, array_map(static fn (Media $media) => $media->getUrl(), $gallery))) {
+                throw new \RuntimeException("{$kept->getName()} : photo choisie absente de la fiche : " . implode(', ', $missing) . '.');
+            }
+            $position = count($first);
+            foreach ($gallery as $media) {
+                $rank = array_search($media->getUrl(), $first, true);
+                $media->setPosition($rank === false ? ++$position : $rank + 1);
+            }
+
             $kept->setName($keptRow['nouveau_nom'])
                 ->setSlug($keptRow['nouvelle_adresse'])
-                ->setMetaTitle($this->withoutSize($kept->getMetaTitle()))
-                ->setMetaDescription($this->withoutSize($kept->getMetaDescription()))
-                ->setDescription($this->withoutSize($kept->getDescription()));
+                ->setMetaTitle($keptRow['titre_google'] ?: null)
+                ->setMetaDescription($keptRow['description_google'] ?: null)
+                ->setDescription(ProductVariant::withoutSize($kept->getDescription()));
 
             // Refusé dès l'à-blanc : en base, l'adresse unique ferait échouer tout le regroupement
             if (isset($newSlugs[$kept->getSlug()])) {
@@ -167,6 +198,21 @@ final class GroupProductsCommand
                     $variant->getSize(), $variant->getActualPrice(), $variant->getInitialPrice(), $variant->getStock(), $variant->getLegacySlug()));
             }
             $io->text("    titre Google : {$kept->getMetaTitle()}");
+            $io->text("    description Google : {$kept->getMetaDescription()}");
+            $io->text('    photos 1 et 2 : ' . implode(', ', $first));
+        }
+
+        // Les anciennes fiches partent seulement quand tout est regroupé et conforme. Leurs photos (des copies) et leurs
+        // lignes de l'accueil partent avec elles ; leurs redirections restent, portées par les variantes.
+        if ($supprimeAnciennes) {
+            if ($count['Fiches regroupées'] > 0 || $count['Différences avec la liste'] > 0) {
+                throw new \RuntimeException('Suppression refusée : tous les groupes doivent être déjà regroupés, sans différence avec la liste.');
+            }
+            foreach ($old as $product) {
+                $this->em->remove($product);
+                $io->text("- {$product->getName()} ({$product->getSlug()}) : supprimée");
+            }
+            $count['Anciennes fiches supprimées'] = count($old);
         }
 
         if (!$dryRun) {
@@ -178,7 +224,7 @@ final class GroupProductsCommand
         $dryRun ? $io->note('À blanc : rien n\'a été écrit.') : $io->success('Regroupement terminé.');
 
         if ($count['Différences avec la liste'] > 0) {
-            $io->warning('Des variantes ne correspondent plus à la liste : voir les lignes « ! ».');
+            $io->warning('Des tailles ou des anciennes fiches ne correspondent plus à la liste : voir les lignes « ! ».');
 
             return Command::FAILURE;
         }
@@ -215,11 +261,5 @@ final class GroupProductsCommand
         return is_file($path)
             ? hash_file('sha256', $path)
             : throw new \RuntimeException("Photo absente du disque : {$media->getUrl()} ({$media->getProduct()->getName()}).");
-    }
-
-    // Collée au mot suivant (« 160x200à cadre »), la taille laisse une espace à sa place
-    private function withoutSize(?string $text): ?string
-    {
-        return $text === null ? null : preg_replace(['/' . self::SIZE . '(?=\p{L})/u', '/' . self::SIZE . '/u'], [' ', ''], $text);
     }
 }
