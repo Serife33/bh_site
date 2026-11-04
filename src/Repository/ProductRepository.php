@@ -126,6 +126,18 @@ class ProductRepository extends ServiceEntityRepository
         return $slug;
     }
 
+    // Les fiches d'un regroupement et leurs photos, en une requête, indexées par identifiant
+    public function findWithMediaByIds(array $ids): array
+    {
+        return $this->createQueryBuilder('p', 'p.id')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')
+            ->andWhere('p.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
+
     // Un produit a-t-il déjà cette adresse ? L'import ne recrée pas un modèle déjà en base.
     public function slugExists(string $slug): bool
     {
