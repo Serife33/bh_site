@@ -37,7 +37,7 @@
                 <li>
                     <a href="{{ path('front_category', { slug: categorie.slug }) }}">
                         {# Décorative : le nom de la catégorie, juste dessous, est le texte du lien #}
-                        <span class="cadre cadre-haut">
+                        <span class="cadre">
                             {% if categorie.image %}
                                 <img src="{{ vich_uploader_asset(categorie, 'imageFile') | imagine_filter('univers') }}" alt="" loading="lazy">
                             {% endif %}

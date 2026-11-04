@@ -39,5 +39,5 @@ liip_imagine:
             filters:
                 auto_rotate: ~
                 thumbnail:
-                    size: [600, 750]   # carte portrait 4:5 de « Nos univers », nette sur écran x2
+                    size: [800, 600]   # carte 4:3 de « Nos univers », nette sur écran x2
                     mode: outbound     # recadrée au centre : la photo remplit la carte

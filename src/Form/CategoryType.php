@@ -37,7 +37,7 @@ class CategoryType extends AbstractType
                 'download_uri' => false,
                 'image_uri' => true,
                 'delete_label' => 'Retirer l’image',
-                'help' => "Photo d'ambiance de la bande « Nos univers » de l'accueil, recadrée au centre en portrait 4:5 : gardez le meuble au milieu de la photo. Facultative : sans image, la carte reste sable.",
+                'help' => "Photo d'ambiance de la bande « Nos univers » de l'accueil, recadrée au centre en 4:3 : une photo en largeur, le meuble au milieu. Facultative : sans image, la carte reste sable.",
                 'constraints' => [
                     new Assert\File(
                         maxSize: '50M',
