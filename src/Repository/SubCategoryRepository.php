@@ -65,6 +65,7 @@ class SubCategoryRepository extends ServiceEntityRepository
             ->join('sc.products', 'p')
             ->join('p.category', 'c')
             ->andWhere('p.isActive = true')
+            ->andWhere('c.isVisible = true')
             ->distinct()
             ->orderBy('c.slug', 'ASC')
             ->addOrderBy('sc.slug', 'ASC')

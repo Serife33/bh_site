@@ -22,16 +22,17 @@ class CategoryRepository extends ServiceEntityRepository
     public function findForIndex(): array
     {
         return $this->createQueryBuilder('c')
-            ->select('c.id', 'c.name', 'c.slug', 'c.seoText', 'c.metaTitle', 'c.metaDescription')
+            ->select('c.id', 'c.name', 'c.slug', 'c.isVisible', 'c.seoText', 'c.metaTitle', 'c.metaDescription')
             ->orderBy('c.name', 'ASC')
             ->getQuery()
             ->getArrayResult(); // tableaux bruts, pas d'objets Color
     }
 
-    // Le menu du site et « Nos univers » de l'accueil : dans l'ordre de création
+    // Le menu du site, « Nos univers » de l'accueil et le plan du site : les catégories visibles, dans l'ordre de création
     public function findForMenu(): array
     {
         return $this->createQueryBuilder('c')
+            ->andWhere('c.isVisible = true')
             ->orderBy('c.id', 'ASC')
             ->getQuery()
             ->getResult();
@@ -46,9 +47,10 @@ class CategoryRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    // La page d'une catégorie : une catégorie masquée ne s'ouvre pas
     public function findOneBySlug(string $slug): ?Category
     {
-        return $this->findOneBy(['slug' => $slug]);
+        return $this->findOneBy(['slug' => $slug, 'isVisible' => true]);
     }
 
     // L'import retrouve la catégorie écrite en toutes lettres dans le tableur

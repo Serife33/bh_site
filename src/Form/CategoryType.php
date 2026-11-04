@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Category;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -16,6 +17,11 @@ class CategoryType extends AbstractType
     {
         $builder
             ->add('name')
+            ->add('isVisible', CheckboxType::class, [
+                'label' => 'Visible sur le site',
+                'required' => false,
+                'help' => 'Décochée, la catégorie disparaît du menu, de « Nos univers » et du plan du site, et sa page ne s\'ouvre plus. Ses produits restent visibles : masquez-les aussi si besoin.',
+            ])
             ->add('seoText', TextareaType::class, [
                 'label' => 'Texte de référencement',
                 'required' => false,
@@ -31,7 +37,7 @@ class CategoryType extends AbstractType
                 'download_uri' => false,
                 'image_uri' => true,
                 'delete_label' => 'Retirer l’image',
-                'help' => "Affichée en entier dans la bande « Nos univers » de l'accueil, au format portrait : une photo d'ambiance en 4:5 remplit la carte. Facultative : sans image, la carte reste sable.",
+                'help' => "Photo d'ambiance de la bande « Nos univers » de l'accueil, recadrée au centre en portrait 4:5 : gardez le meuble au milieu de la photo. Facultative : sans image, la carte reste sable.",
                 'constraints' => [
                     new Assert\File(
                         maxSize: '50M',

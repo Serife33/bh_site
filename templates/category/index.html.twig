@@ -21,9 +21,9 @@
         </thead>
         <tbody>
         {% for category in categories %}
-            <tr>
+            <tr{{ category.isVisible ? '' : ' class="est-masque"' }}>
                 <td>{{ category.id }}</td>
-                <td>{{ category.name }}</td>
+                <td>{{ category.name }}{{ category.isVisible ? '' : ' (masquée)' }}</td>
                 <td>{{ category.slug }}</td>
                 <td>{{ category.seoText }}</td>
                 <td>{{ category.metaTitle }}</td>
