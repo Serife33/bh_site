@@ -138,6 +138,20 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    // Toutes les fiches d'une catégorie, masquées comprises, avec leur famille et leurs photos : la liste du regroupement des lits
+    public function findByCategoryWithMedia(Category $category): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.family', 'f')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('f', 'm')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $category)
+            ->orderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // Un produit a-t-il déjà cette adresse ? L'import ne recrée pas un modèle déjà en base.
     public function slugExists(string $slug): bool
     {
