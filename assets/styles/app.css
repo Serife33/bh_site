@@ -256,6 +256,8 @@ b, strong, th { font-weight: 500; }
 .cadre-haut { aspect-ratio: 4 / 5; }
 /* Photo entière, jamais rognée ; le blanc des photos détourées prend la teinte sable du fond */
 .cadre img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; }
+/* Nos univers : une photo en situation qui remplit la carte */
+.univers .cadre img { object-fit: cover; padding: 0; mix-blend-mode: normal; }
 @media (min-width: 600px) { .univers { grid-auto-columns: 40%; } }
 @media (min-width: 900px) {
   .univers { grid-auto-columns: calc((100% - 4 * var(--gouttiere)) / 4.4); }

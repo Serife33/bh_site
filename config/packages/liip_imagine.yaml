@@ -40,4 +40,4 @@ liip_imagine:
                 auto_rotate: ~
                 thumbnail:
                     size: [600, 750]   # carte portrait 4:5 de « Nos univers », nette sur écran x2
-                    mode: inset        # l'image ENTIÈRE, rien n'est rogné
+                    mode: outbound     # recadrée au centre : la photo remplit la carte
