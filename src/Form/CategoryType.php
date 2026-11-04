@@ -31,7 +31,7 @@ class CategoryType extends AbstractType
                 'download_uri' => false,
                 'image_uri' => true,
                 'delete_label' => 'Retirer l’image',
-                'help' => "Affichée dans le rond de la page d'accueil. Facultative — sans image, le dégradé actuel reste.",
+                'help' => "Affichée en entier dans la bande « Nos univers » de l'accueil, au format portrait : une photo d'ambiance en 4:5 remplit la carte. Facultative : sans image, la carte reste sable.",
                 'constraints' => [
                     new Assert\File(
                         maxSize: '50M',

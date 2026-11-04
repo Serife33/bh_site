@@ -95,7 +95,7 @@
                                         </div>
                                     {% else %}
                                         {# Un bouton : la photo s'ouvre en grand, au clic comme au clavier #}
-                                        <button type="button" class="gal-photo" aria-haspopup="dialog">
+                                        <button type="button" class="gal-photo" aria-haspopup="dialog"{% if not loop.first %} tabindex="-1"{% endif %}>
                                             <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('galerie') }}"
                                                  alt="{{ media.alt ?? product.name }}">
                                         </button>
@@ -109,7 +109,7 @@
                         </div>
                         <div class="gal-thumbs">
                             {% for media in product.media %}
-                                <button type="button" class="gal-thumb{{ loop.first ? ' is-active' }}" data-index="{{ loop.index0 }}">
+                                <button type="button" class="gal-thumb{{ loop.first ? ' is-active' }}" aria-pressed="{{ loop.first ? 'true' : 'false' }}" data-index="{{ loop.index0 }}">
                                     <img src="{{ vich_uploader_asset(media, 'imageFile') | imagine_filter('vignette') }}"
                                          alt="{{ media.alt ?? product.name }}">
                                     {% if media.video %}<span class="gal-thumb-play" aria-hidden="true">▶</span>{% endif %}
@@ -177,7 +177,7 @@
                                 <h3 class="cfg-title">Taille (cm) : <span class="cfg-choice">{{ offre.size }}</span></h3>
                                 <div class="variant-row">
                                     {% for taille in tailles %}
-                                        <button type="button" class="variant-chip taille-opt{{ taille == offre.size ? ' is-active' }}" data-choix="{{ taille }}">
+                                        <button type="button" class="variant-chip taille-opt{{ taille == offre.size ? ' is-active' }}" aria-pressed="{{ taille == offre.size ? 'true' : 'false' }}" data-choix="{{ taille }}">
                                             <span class="variant-dim">{{ taille }}</span>
                                         </button>
                                     {% endfor %}
@@ -189,7 +189,7 @@
                                 <h3 class="cfg-title">Matière : <span class="cfg-choice">{{ offre.fabric }}</span></h3>
                                 <div class="variant-row">
                                     {% for matiere in matieres %}
-                                        <button type="button" class="variant-chip matiere-opt{{ matiere is same as offre.fabric ? ' is-active' }}" data-choix="{{ matiere }}"
+                                        <button type="button" class="variant-chip matiere-opt{{ matiere is same as offre.fabric ? ' is-active' }}" aria-pressed="{{ matiere is same as offre.fabric ? 'true' : 'false' }}" data-choix="{{ matiere }}"
                                                 {{- product.variants|filter(v => v.size == offre.size and v.fabric is same as matiere)|length ? '' : ' hidden' }}>
                                             <span class="variant-dim">{{ matiere }}</span>
                                         </button>
@@ -220,7 +220,7 @@
                             <h3 class="cfg-title">Tissu : <span class="cfg-choice">{{ product.fabrics|first.name }}</span></h3>
                             <div class="mat-row">
                                 {% for fabric in product.fabrics %}
-                                    <button type="button" class="mat-opt{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxFabrics ? ' swatch-extra' }}"
+                                    <button type="button" class="mat-opt{{ loop.first ? ' is-active' }}{{ loop.index0 >= maxFabrics ? ' swatch-extra' }}" aria-pressed="{{ loop.first ? 'true' : 'false' }}"
                                             data-choix="{{ fabric.name }}" data-fabric-id="{{ fabric.id }}">{{ fabric }}</button>
                                 {% endfor %}
                                 {% if product.fabrics|length > maxFabrics %}
@@ -241,7 +241,7 @@
                                     <div class="panneau-body">
                                         <div class="panneau-liste">
                                             {% for fabric in product.fabrics %}
-                                                <button type="button" class="panneau-ligne{{ loop.first ? ' is-active' }}" data-fabric-id="{{ fabric.id }}">
+                                                <button type="button" class="panneau-ligne{{ loop.first ? ' is-active' }}" aria-pressed="{{ loop.first ? 'true' : 'false' }}" data-fabric-id="{{ fabric.id }}">
                                                     <span class="ligne-nom">{{ fabric.name }}</span>
                                                     {% if fabric.fabricColors|length %}
                                                         <span class="ligne-info">{{ fabric.fabricColors|length }} coloris</span>
@@ -274,7 +274,7 @@
                             <h3 class="cfg-title">Finition : <span class="cfg-choice">{{ product.colors|first.name }}</span></h3>
                             <div class="col-row">
                                 {% for color in product.colors %}
-                                    <button type="button" class="col-dot{{ loop.first ? ' is-active' }}"
+                                    <button type="button" class="col-dot{{ loop.first ? ' is-active' }}" aria-pressed="{{ loop.first ? 'true' : 'false' }}"
                                             style="background: {{ color.hex }}"
                                             data-choix="{{ color.name }}" aria-label="{{ color.name }}" title="{{ color.name }}"></button>
                                 {% endfor %}
@@ -326,7 +326,7 @@
                         </p>
                     {% endif %}
 
-                    <a class="btn-devis" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}"
+                    <a class="btn btn-wa btn-devis" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}"
                        href="https://wa.me/{{ whatsapp_number }}?text={{ ('Bonjour, je suis intéressée par le ' ~ product.name ~ '. Je souhaite le commander.')|url_encode }}"
                        target="_blank" rel="noopener">
                        <i class="fa-brands fa-whatsapp"></i> Commander sur WhatsApp
@@ -361,9 +361,9 @@
         {# Encadré devis sur-mesure — pas pour un module : ses dimensions sont fixes #}
         {% if product.isModular.value != 'module' %}
             <div class="custom-quote">
-                <p><strong>Une taille non listée ?</strong> Indiquez vos dimensions, on vous envoie un devis sous 24h.</p>
-                <input type="text" class="quote-dims" placeholder="Ex. L 250 × P 100 × H 85 cm">
-                <button type="button" class="btn-quote" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}">
+                <p><strong>Une taille non listée ?</strong> <label for="dimensions">Indiquez vos dimensions</label>, on vous envoie un devis sous 24h.</p>
+                <input type="text" class="quote-dims" id="dimensions" placeholder="Ex. L 250 × P 100 × H 85 cm">
+                <button type="button" class="btn btn-wa btn-quote" data-wa="{{ whatsapp_number }}" data-product="{{ product.name }}">
                     <i class="fa-brands fa-whatsapp"></i> Demander un devis
                 </button>
             </div>
@@ -422,7 +422,7 @@
                     <p class="compo-somme">Total : <strong class="compo-total">{{ 0|prix }}</strong></p>
                 </div>
                 <p class="compo-mention">Un conseiller valide avec vous la faisabilité de votre composition.</p>
-                <button type="button" class="compo-commander" data-wa="{{ whatsapp_number }}" disabled>
+                <button type="button" class="btn btn-wa compo-commander" data-wa="{{ whatsapp_number }}" disabled>
                     <i class="fa-brands fa-whatsapp"></i> Commander cette composition sur WhatsApp
                 </button>
             </div>

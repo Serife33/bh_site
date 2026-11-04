@@ -4,42 +4,70 @@
 
 /* ===================== DESIGN SYSTEM BRILLANCE HOME ===================== */
 
-/* Les "tokens" : les couleurs de ta charte, définies UNE fois, réutilisées partout */
+/* Montserrat, hébergée sur le site (Google Fonts transmettrait l'adresse IP du visiteur).
+   Fichier variable, sous-ensemble latin (accents, œ, €, espaces insécables), de fonts.gstatic.com.
+   Copyright The Montserrat Project Authors, licence SIL Open Font License 1.1 (OFL). */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 300 500;      /* les seules graisses utilisées : titres, texte, prix et libellés */
+  font-display: swap;
+  src: url('../fonts/montserrat-latin.woff2') format('woff2');
+}
+
+/* Les "tokens" : les couleurs de la charte (piste B), définies UNE fois, réutilisées partout */
 :root {
   --bg:     #FAFAF8;   /* fond principal (blanc cassé chaud) */
-  --bg2:    #F2EDE8;   /* fond secondaire (beige) */
-  --txt:    #1A1A18;   /* texte principal (presque noir) */
-  --txt2:   #6B6560;   /* texte secondaire (gris chaud) */
-  --accent: #8B6F4E;   /* taupe — couleur d'accent (boutons, liens) */
-  --accent2:#C4A882;   /* taupe clair */
-  --deep:   #6B4C3B;   /* brun profond */
-  --border: #E8E0D8;   /* bordures discrètes */
-  --wa:     #25D366;   /* vert WhatsApp */
-  --ok:     #2E7D32;   /* vert "en stock" */
-  --promo:  #D64C1A;   /* orange promo */
-  --r:      10px;      /* rayon d'arrondi standard */
+  --bg2:    #F2EDE8;   /* fond secondaire (sable) */
+  --txt:    #1A1A18;   /* texte principal (encre) */
+  --txt2:   #6B6560;   /* texte secondaire (gris chaud, 5,5:1 sur le fond) */
+  --accent: #6B4C3B;   /* brun profond : boutons et accents (7,4:1 sur le fond) */
+  --accent2:#C4A882;   /* taupe clair : soulignés et séparateurs, jamais pour du texte */
+  --border: #E8E0D8;   /* filets discrets */
+  --wa:     #25D366;   /* vert WhatsApp vif : bouton flottant et pictogrammes */
+  --wa-fonce:#157A3F;  /* vert WhatsApp foncé des boutons (blanc dessus : 5,4:1) */
+  --promo:  #8C2F39;   /* bordeaux des promotions (7,8:1 sur le fond) */
+  --promo-clair:#F2A0A8; /* promotion sur fond encre, dans le bandeau (8,6:1) */
+  --r:      0;         /* aucun arrondi */
+  --marge:  clamp(16px, 4.5vw, 64px);       /* marges latérales */
+  --gouttiere: clamp(12px, 1.8vw, 24px);    /* écart entre les cartes */
 }
 
 /* Styles de base */
+/* Défilement vers un élément (focus, ancre) : il s'arrête sous l'en-tête collant et au-dessus du bouton WhatsApp */
+html { scroll-padding: 88px 0 88px; }
 body {
   background: var(--bg);
   color: var(--txt);
-  font-family: 'Montserrat', sans-serif;
-  font-size: 16px;
+  font: 400 1rem/1.65 'Montserrat', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: anywhere;   /* texte agrandi : un mot ou une adresse trop longs passent à la ligne au lieu de déborder */
   min-height: 100dvh;        /* ← au moins la hauteur de l'écran */
   display: flex;             /* ← header / main / footer empilés */
   flex-direction: column;
 }
 a { color: inherit; text-decoration: none; }
-h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
+.main p a:not(.btn) { text-decoration: underline; text-underline-offset: 3px; }   /* lien dans une phrase : souligné */
+/* Titres fins et serrés ; 400 pour le texte, 500 pour les prix et libellés */
+h1, h2 { font-weight: 300; line-height: 1.1; letter-spacing: -.025em; }
+h1 { font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem); }
+b, strong, th { font-weight: 500; }
+::placeholder { color: var(--txt2); }
+/* Anneau encre, séparé de l'élément par un liseré clair */
+:focus-visible { outline: 2px solid var(--txt); outline-offset: 2px; box-shadow: 0 0 0 2px var(--bg); }
+/* Sur fond encre (bandeau défilant, bandeau cookies, visionneuse, bloc sombre), l'anneau passe en clair */
+.band-zone :focus-visible, .cookie-banner :focus-visible, .visionneuse :focus-visible, .dark :focus-visible { outline-color: var(--bg); box-shadow: 0 0 0 2px var(--txt); }
 
-/* Conteneur centré (mobile-first : petit padding, plus large sur desktop) */
-.wrap { 
-    max-width: 1180px; 
-    margin: 0 auto; 
-    padding: 0 20px; 
+/* Lien d'évitement : hors de l'écran jusqu'à ce qu'il reçoive le focus clavier */
+.evitement { position: absolute; top: 8px; left: 8px; z-index: 200; padding: 12px 16px; background: var(--txt); color: var(--bg); translate: 0 -200%; }
+.evitement:focus { translate: none; }
+
+/* Conteneur centré, marges qui s'élargissent avec l'écran */
+.wrap {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--marge);
 }
-@media (min-width: 768px) { .wrap { padding: 0 32px; } }
 
 
 /* ===== HEADER ===== */
@@ -48,133 +76,92 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   top: 0;
   z-index: 99;                    /* passe au-dessus du contenu */
   background: var(--bg);
-  border-bottom: .5px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 .hdr-in {
-  height: 78px;
-  display: flex;                  /* logo + menu sur une ligne */
+  min-height: 64px;
+  display: flex;                  /* logo, menu et pictos sur une ligne */
   align-items: center;            /* centre verticalement */
-  justify-content: space-between; /* logo à gauche, menu à droite */
-  gap: 20px;
+  gap: 16px;
 }
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;                   /* texte agrandi : le nom passe à la ligne au lieu de pousser les pictos */
 }
-.logo img { height: 54px; width: auto; display: block; mix-blend-mode: multiply; }
-.logo-text {
-  font-family: 'Jost', sans-serif;
-  font-weight: 300;
-  font-size: 18px;
-  letter-spacing: .28em;
-  margin-right: -.28em;   /* rattrape l'espace en trop après la dernière lettre */
+.logo img { width: 34px; height: auto; mix-blend-mode: multiply; }
+.logo-text, .ft-brand {
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .24em;
   text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--text);
 }
-@media (max-width: 560px) {
-    .hdr-in { height: 62px; }
-    .logo img { height: 42px; }
-    .logo-text { font-size: 12px; letter-spacing: .18em; }
-}
-.logo img { height: 44px; width: auto; display: block; mix-blend-mode: multiply; }
-.nav { display: flex; gap: 18px; font-size: 14px; font-weight: 500; }
-.nav a:hover { color: var(--accent); }
+.hdr-actions { display: flex; align-items: center; margin-left: auto; }
+/* Bloc et non flex : le picto reste en ligne, donc hors du soulignement. Affiché avec le menu en ligne. */
+.hdr-wa { display: none; margin-left: 12px; padding: 12px 0; font-size: .8125rem; }
+.hdr-wa i { margin-right: 8px; color: var(--wa); font-size: 1.125rem; vertical-align: -3px; }
+/* Pictos de 44 px : la cible tactile minimale */
+.hdr-search, .burger, .fleche { display: grid; place-items: center; width: 44px; height: 44px; }
+.hdr-search svg, .fleche svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.4; }
 
 
-/* ===== BOUTON WHATSAPP FLOTTANT ===== */
+/* ===== BOUTON WHATSAPP FLOTTANT : le rond vert reconnaissable (choix de la cliente) ===== */
 .wa-float {
   position: fixed;               /* fixe par rapport à l'écran (suit le scroll) */
-  bottom: 20px;
-  right: 20px;
+  bottom: 16px;
+  right: 16px;
   width: 56px;
   height: 56px;
+  display: grid;
+  place-items: center;
   background: var(--wa);
-  border-radius: 50%;            /* rond */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 20px rgba(37, 211, 102, .4);
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 6px 20px rgb(37 211 102 / .4);
   z-index: 150;                  /* au-dessus de tout */
 }
-.wa-float i { font-size: 30px; color: #fff; line-height: 1; }
+.wa-float i { font-size: 30px; }   /* en px : le picto suit son rond de 56 px, pas la taille du texte */
 
 
 /* ===== FOOTER ===== */
 .ft {
-  background: var(--txt);
-  color: rgba(255,255,255,.82);
-  padding: 36px 0 18px;   
-  margin-top: 40px;       
+  background: var(--bg2);
+  padding-top: clamp(56px, 7vw, 96px);
+  margin-top: 40px;
+  font-size: .875rem;
 }
-.ft-in { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 28px; 
+.ft-in {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));   /* mobile : la marque en entier, puis 2 colonnes */
+  gap: 40px;
 }
-@media (min-width: 768px) { 
-    .ft-in { 
-        flex-direction: row; 
-        justify-content: space-between; 
-        gap: 48px; } 
-    }
-.ft-brand { 
-    font-weight: 700; 
-    font-size: 20px; 
-    letter-spacing: .08em; 
-    text-transform: uppercase; 
-    color: #fff; 
-    margin-bottom: 12px; 
-}
-.ft-col { 
-    max-width: 320px; 
-}
-.ft-col p { 
-    font-size: 13px; 
-    color: rgba(255,255,255,.6); 
-    line-height: 1.7; 
-}
-.ft-col h4 { 
-    font-size: 12px; 
-    font-weight: 600; 
-    letter-spacing: .1em; 
-    text-transform: uppercase; 
-    color: rgba(255,255,255,.5); 
-    margin-bottom: 12px; }
-.ft-col a { 
-    display: block; 
-    font-size: 13.5px; 
-    color: rgba(255,255,255,.78); 
-    line-height: 2; 
-}
-.ft-col a:hover { 
-    color: #fff; 
-}
+.ft-col:first-child { grid-column: 1 / -1; }
+.ft-brand + p { margin-top: 20px; max-width: 22rem; }
+.ft-col h4 { margin-bottom: 14px; font-size: .8125rem; font-weight: 500; line-height: 1.4; }
+.ft p, .ft-copy { color: var(--txt2); }
+/* Liens hauts de 44 px pour le doigt, soulignés au survol */
+.ft a, .cookie-manage { display: flex; align-items: center; min-height: 44px; }
+.ft a:hover, .cookie-manage:hover { text-decoration: underline; }
 .ft-copy {
-    border-top: .5px solid rgba(255,255,255,.12);
-    margin-top: 32px;
-    padding-top: 20px;
-    font-size: 12px;
-    color: rgba(255,255,255,.5);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0 24px;
+  margin-top: clamp(48px, 6vw, 80px);
+  padding-block: 12px 88px;      /* en bas : la place du bouton WhatsApp flottant (56 px + 2 × 16) */
+  border-top: 1px solid var(--border);
+  font-size: .75rem;
 }
 .ft-legal {
-    display: flex;
-    flex-wrap: wrap;                /* les liens passent à la ligne sur mobile */
-    justify-content: center;
-    gap: 8px 16px;
+  display: flex;
+  flex-wrap: wrap;                /* les liens passent à la ligne sur mobile */
+  gap: 0 24px;
 }
-.ft-legal a, .ft-legal button {
-    color: rgba(255,255,255,.5);   /* même gris que le copyright */
-    text-decoration: none;          /* pas de soulignement */
-}
-.ft-legal a:hover, .ft-legal button:hover {
-    color: #fff;                    /* même hover que les autres liens du footer */
+@media (min-width: 900px) {
+  .ft-in { grid-template-columns: 2fr 1fr 1fr; }
+  .ft-col:first-child { grid-column: auto; }
 }
 
 /* Le contenu principal s'étire pour pousser le footer tout en bas */
@@ -182,24 +169,38 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 
 
 /* ===== BOUTONS (réutilisés partout) ===== */
+/* Par défaut un contour, de la couleur du texte autour : lisible sur fond clair comme sur photo.
+   Seuls éléments en capitales espacées du site. */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 22px;
-  border-radius: var(--r);
-  font-size: 15px; font-weight: 600;
-  border: 1px solid var(--border); background: #fff; color: var(--txt);
-  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  min-height: 52px; padding: 12px 28px;
+  border: 1px solid;
+  font-size: .75rem; font-weight: 500; line-height: 1.3; letter-spacing: .14em; text-transform: uppercase;
 }
-.btn:hover { background: var(--bg2); }
-.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn-primary:hover { background: var(--deep); }
-.btn-wa { background: var(--wa); color: #fff; border-color: var(--wa); }
-.btn-wa:hover { background: var(--wa-dark, #128C7E); border-color: var(--wa-dark, #128C7E); color: #fff; }
+.btn:not(:disabled):hover { background: var(--txt); border-color: var(--txt); color: var(--bg); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.btn-wa { background: var(--wa-fonce); border-color: var(--wa-fonce); color: #fff; }   /* WhatsApp : vert foncé, texte et picto blancs */
+
+/* ===== LIENS : souligné fin taupe clair, plein au survol (WhatsApp de l'en-tête, messages du bandeau) ===== */
+.hdr-wa, .band-track a { text-decoration: underline 1px var(--accent2); text-underline-offset: 6px; }
+.hdr-wa:hover, .band-track a:hover { text-decoration-color: currentColor; }
+
+/* ===== CHAMPS ===== */
+.search-form { display: flex; gap: 8px; margin: 24px 0 32px; }
+.search-form input { flex: 1; min-width: 0; }
+.search-form input, .quote-dims {
+  min-height: 52px;
+  padding: 0 16px;
+  color: var(--txt);
+  background: var(--bg);
+  border: 1px solid var(--txt2);   /* bord contrasté (3:1 au moins) : le champ se repère */
+}
 
 /* ===== HERO ===== */
+/* Petit écran : voile uniforme, le texte passe sur toute la photo (4,5:1 même sur la suspension claire) */
 .hero {
   background:
-    linear-gradient(90deg, rgba(26,26,24,.72) 0%, rgba(26,26,24,.45) 50%, rgba(26,26,24,.15) 100%),
+    linear-gradient(rgba(26,26,24,.62), rgba(26,26,24,.62)),
     url('/images/hero.jpg') center 60% / cover no-repeat;
   padding: 96px 0;
   color: #fff;
@@ -207,103 +208,92 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   display: flex;
   align-items: center;
 }
-.hero-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-.hero-title { font-size: 32px; line-height: 1.15; margin-bottom: 14px; }
-.hero-sub { font-size: 16px; color: var(--txt2); line-height: 1.5; margin-bottom: 22px; max-width: 480px; }
+.hero-eyebrow { font-size: .75rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.hero-title { font-size: 2rem; line-height: 1.15; margin-bottom: 14px; }
+.hero-sub { font-size: 1rem; color: var(--txt2); line-height: 1.5; margin-bottom: 22px; max-width: 480px; }
 .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; }
 /* Texte en blanc par-dessus la photo (surcharge les couleurs définies plus haut) */
 .hero-eyebrow, .hero-title, .hero-sub { color: #fff; }
 @media (min-width: 768px) {
-  .hero { padding: 80px 0; }
-  .hero-title { font-size: 44px; }
+  .hero { padding: 80px 0; background-image: linear-gradient(90deg, rgba(26,26,24,.72) 0%, rgba(26,26,24,.45) 50%, rgba(26,26,24,.15) 100%), url('/images/hero.jpg'); }
+  .hero-title { font-size: 2.75rem; }
 }
 
 
 /* ===== SECTIONS ===== */
 .section { padding: 40px 0; }
 .section-head { margin-bottom: 24px; }
-.section-head h2 { font-size: 26px; }
-.section-head p { font-size: 14px; color: var(--txt2); margin-top: 4px; }
-@media (min-width: 768px) { .section-head h2 { font-size: 32px; } }
+.section-head h2 { font-size: 1.625rem; }
+.section-head p { font-size: .875rem; color: var(--txt2); margin-top: 4px; }
+@media (min-width: 768px) { .section-head h2 { font-size: 2rem; } }
 
-/* ===== RANGÉE CATÉGORIES ===== */
-/* MOBILE : carrousel horizontal façon "stories" — 0 JS */
-.cats {
-  display: flex;
-  gap: 18px;
+/* ===== NOS UNIVERS : bande qui défile, quel que soit le nombre de catégories ===== */
+.section-tete { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.fleches { display: none; gap: 8px; margin-bottom: 24px; }   /* même pied que le titre et son sous-titre */
+.fleche { border: 1px solid var(--border); }
+.fleche:hover { border-color: var(--txt); }
+.univers {
+  /* le bord gauche des cartes s'aligne sur le contenu, la bande file jusqu'au bord de l'écran */
+  --bord: max(var(--marge), calc((100% - 1440px) / 2 + var(--marge)));
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 72%;
+  gap: var(--gouttiere);
   overflow-x: auto;
-  scroll-snap-type: x mandatory;   /* s'arrête pile sur une catégorie */
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  padding-bottom: 4px;
-  scrollbar-width: none;           /* masque la barre (Firefox) */
+  scrollbar-width: none;
+  padding: 4px var(--bord);         /* 4 px en haut et en bas : l'anneau de focus n'est pas rogné */
+  scroll-padding-inline: var(--bord);
 }
-.cats::-webkit-scrollbar { display: none; }   /* masque la barre (Safari, Chrome) */
-
-.cat {
-  flex: 0 0 auto;                  /* ne rétrécit pas : c'est ce qui crée le débordement */
-  scroll-snap-align: start;
-  min-width: 96px;
-  text-align: center;
+.univers::-webkit-scrollbar { display: none; }
+.univers li { scroll-snap-align: start; }
+.univers a { display: block; }
+.univers .cadre + span { display: block; margin-top: 14px; }
+.univers a:hover .cadre + span { text-decoration: underline; text-decoration-color: var(--accent2); text-underline-offset: 6px; }
+.cadre { display: block; background: var(--bg2); }
+.cadre-haut { aspect-ratio: 4 / 5; }
+/* Photo entière, jamais rognée ; le blanc des photos détourées prend la teinte sable du fond */
+.cadre img { width: 100%; height: 100%; object-fit: contain; padding: 3%; mix-blend-mode: multiply; }
+@media (min-width: 600px) { .univers { grid-auto-columns: 40%; } }
+@media (min-width: 900px) {
+  .univers { grid-auto-columns: calc((100% - 4 * var(--gouttiere)) / 4.4); }
+  .fleches { display: flex; }
 }
-
-/* DESKTOP : retour à la grille, les 6 tiennent sur une ligne */
-@media (min-width: 768px) {
-  .cats {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    overflow: visible;
-  }
-  .cat { min-width: 0; }
-}
-@media (min-width: 768px) { .cats { grid-template-columns: repeat(6, 1fr); } }  /* desktop : 6 */
-.cat { text-align: center; }
-.cat-ring {
-  width: 96px; height: 96px; border-radius: 50%;
-  margin: 0 auto 10px;
-    background: linear-gradient(135deg, #D8C7B2, #BFA98C);
-  overflow: hidden;
-}
-.cat-ring img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  padding: 8px;
-  box-sizing: border-box;
-  display: block;
-}
-.cat-name { font-size: 13px; font-weight: 600; }
-.cat:hover .cat-name { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .univers { scroll-behavior: auto; } }
 
 
 
 /* ===== GRILLE PRODUITS ===== */
 .grid-produits {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);   /* mobile : 2 par ligne */
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));   /* mobile : 2 par ligne */
+  gap: 40px var(--gouttiere);                         /* cartes sans cadre : l'air sépare les rangées */
 }
-@media (min-width: 640px)  { .grid-produits { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1024px) { .grid-produits { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 640px)  { .grid-produits { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .grid-produits { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* ===== CARTE PRODUIT ===== */
-.pcard { display: block; background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: box-shadow .2s, transform .2s; }
-.pcard:hover { box-shadow: 0 12px 30px rgba(26,26,24,.08); transform: translateY(-2px); }
-.pcard-photo { position: relative; aspect-ratio: 4/3; background: var(--bg2); }
-.pcard-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* ===== CARTE PRODUIT : sans bordure, la photo remplit son cadre ===== */
+.pcard { display: block; }
+/* 4:3 : le format qui rogne le moins les photos du catalogue (14 % en moyenne, contre 27 % en carré) */
+.pcard-photo { position: relative; aspect-ratio: 4 / 3; background: #fff; }
+.pcard-photo img { width: 100%; height: 100%; object-fit: cover; transition: opacity .35s ease; }
 /* Seconde photo, révélée au survol de la carte */
-.pcard-survol { position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease; }
+.pcard-survol { position: absolute; inset: 0; opacity: 0; }
 .pcard:hover .pcard-survol { opacity: 1; }
+/* La première s'efface : une seconde photo détourée sur fond transparent la laisserait voir (souris seulement) */
+@media (hover: hover) { .pcard:hover img:has(+ .pcard-survol) { opacity: 0; } }
 /* Écrans tactiles : pas de survol, donc pas d'image à charger */
 @media (hover: none) { .pcard-survol { display: none; } }
-.pcard-noimg { width: 100%; height: 100%; background: var(--bg2); }
-.pcard-badge { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; color: #fff; text-transform: uppercase; letter-spacing: .03em; }
-.pcard-badge.promo { background: var(--promo); }
-.pcard-badge.stock { background: var(--ok); }
-.pcard-info { padding: 12px 14px 14px; }
-.pcard-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.pcard-price { font-size: 15px; font-weight: 700; }
+.pcard-badge { position: absolute; top: 12px; left: 12px; padding: 4px 8px; font-size: .75rem; font-weight: 500; line-height: 1.4; }
+.pcard-badge.promo { background: var(--promo); color: var(--bg); }
+.pcard-badge.stock { background: var(--bg); }
+.pcard-info { margin-top: 14px; font-size: .875rem; line-height: 1.45; }
+.pcard-price { margin-top: 4px; font-weight: 500; }
 .pcard-price .promo { color: var(--promo); }
-.pcard-price del { font-size: 13px; font-weight: 400; color: var(--txt2); margin-left: 6px; }
-.pcard-from { font-size: 13px; font-weight: 400; color: var(--txt2); }
+.pcard-price del, .pcard-from { color: var(--txt2); font-weight: 400; }
+.pcard-price del { margin-left: 8px; }
 
 
 
@@ -311,15 +301,15 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .reassu { background: var(--bg2); padding: 48px 0; }
 /* Petite étiquette au-dessus des titres (réutilisable) */
 .eyebrow {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: .75rem;
+  font-weight: 500;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 8px;
 }
-.reassu h2 { font-size: 26px; margin-bottom: 28px; }
-@media (min-width: 768px) { .reassu h2 { font-size: 30px; } }
+.reassu h2 { font-size: 1.625rem; margin-bottom: 28px; }
+@media (min-width: 768px) { .reassu h2 { font-size: 1.875rem; } }
 .reassu-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);   /* mobile : 2 par ligne (2×2) */
@@ -330,8 +320,8 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 }
 @media (min-width: 1024px) { .reassu-grid { grid-template-columns: repeat(4, 1fr); } }
 .rcard { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
-.rcard h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-.rcard p { font-size: 13px; color: var(--txt2); line-height: 1.5; }
+.rcard h3 { font-size: 1rem; font-weight: 500; margin-bottom: 6px; }
+.rcard p { font-size: .8125rem; color: var(--txt2); line-height: 1.5; }
 
 
 /* ===== BLOC SOMBRE (expertise) ===== */
@@ -339,9 +329,9 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .dark-in { display: flex; flex-direction: column; gap: 24px; }
 @media (min-width: 768px) { .dark-in { flex-direction: row; align-items: center; gap: 48px; } }
 .dark-col { flex: 1; }
-.eyebrow-light { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
-.dark h2 { font-size: 26px; color: #fff; margin-bottom: 14px; }
-@media (min-width: 768px) { .dark h2 { font-size: 32px; } }
+.eyebrow-light { font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
+.dark h2 { font-size: 1.625rem; color: #fff; margin-bottom: 14px; }
+@media (min-width: 768px) { .dark h2 { font-size: 2rem; } }
 .dark-txt { color: rgba(255,255,255,.78); line-height: 1.6; margin-bottom: 18px; }
 
 
@@ -349,24 +339,24 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .showroom-in { display: flex; flex-direction: column; gap: 28px; }
 @media (min-width: 768px) { .showroom-in { flex-direction: row; align-items: stretch; gap: 48px; } }
 .showroom-col { flex: 1; }
-.showroom-col h2 { font-size: 26px; margin-bottom: 12px; }
-@media (min-width: 768px) { .showroom-col h2 { font-size: 32px; } }
+.showroom-col h2 { font-size: 1.625rem; margin-bottom: 12px; }
+@media (min-width: 768px) { .showroom-col h2 { font-size: 2rem; } }
 .showroom-txt { color: var(--txt2); line-height: 1.6; margin-bottom: 20px; }
-.showroom-addr { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
-.showroom-hours { font-size: 14px; color: var(--txt2); margin-bottom: 20px; }
+.showroom-addr { font-size: .9375rem; font-weight: 500; margin-bottom: 2px; }
+.showroom-hours { font-size: .875rem; color: var(--txt2); margin-bottom: 20px; }
 .showroom-map { flex: 1; border-radius: 16px; overflow: hidden; height: 260px; }
 @media (min-width: 768px) { .showroom-map { height: auto; min-height: 320px; } }
 .showroom-map iframe { display: block; width: 100%; height: 100%; border: 0; }
 /* Façade de la carte : rien de Google avant le clic */
 .map-facade { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; background: var(--bg2); text-align: center; }
-.map-facade i { font-size: 32px; color: var(--accent); }
-.map-facade small { max-width: 320px; font-size: 12px; line-height: 1.4; color: var(--txt2); }
+.map-facade i { font-size: 2rem; color: var(--accent); }
+.map-facade small { max-width: 320px; font-size: .75rem; line-height: 1.4; color: var(--txt2); }
 
 
 /* ===== RÉSEAUX SOCIAUX ===== */
-.socials-label { font-size: 14px; font-weight: 600; margin-top: 14px; margin-bottom: 10px; text-align: center; }
+.socials-label { font-size: .875rem; font-weight: 500; margin-top: 14px; margin-bottom: 10px; text-align: center; }
 .socials { display: flex; gap: 16px; justify-content: center; }   /* mobile : centré */
-.socials a { font-size: 26px; line-height: 1; transition: transform .2s; }
+.socials a { font-size: 1.625rem; line-height: 1; transition: transform .2s; }
 .socials a:hover { transform: translateY(-3px); }
 
 /* Couleurs officielles des marques */
@@ -390,7 +380,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   border-radius: 8px;
   width: 30px; height: 30px;
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 17px;
+  font-size: 1.0625rem;
   -webkit-text-stroke: 1px #fff;   /* ← épaissit le blanc du ghost */
 }
 @media (min-width: 768px) {
@@ -401,8 +391,8 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 
 
 /* ===== FAQ ===== */
-.faq-title { font-size: 26px; margin-bottom: 24px; text-align: center; }
-@media (min-width: 768px) { .faq-title { font-size: 32px; } }
+.faq-title { font-size: 1.625rem; margin-bottom: 24px; text-align: center; }
+@media (min-width: 768px) { .faq-title { font-size: 2rem; } }
 .faq-wrap { max-width: 780px; }
 .faq-item { border-bottom: 1px solid var(--border); }
 .faq-item summary {
@@ -413,12 +403,12 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
 }
 .faq-item summary::-webkit-details-marker { display: none; }
-.faq-pm { color: var(--accent); font-size: 22px; flex-shrink: 0; }
-.faq-item p { padding: 0 0 18px; color: var(--txt2); line-height: 1.7; font-size: 15px; }
+.faq-pm { color: var(--accent); font-size: 1.375rem; flex-shrink: 0; }
+.faq-item p { padding: 0 0 18px; color: var(--txt2); line-height: 1.7; font-size: .9375rem; }
 
 
 /* ===== CTA WHATSAPP ===== */
@@ -440,116 +430,93 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     text-align: left;
   }
 }
-.cta-wa-txt h2 { font-size: 24px; margin-bottom: 4px; }
-.cta-wa-txt p { font-size: 14px; color: var(--txt2); }
-.cta-wa .btn-wa i { color: #fff; }
+.cta-wa-txt h2 { font-size: 1.5rem; margin-bottom: 4px; }
+.cta-wa-txt p { font-size: .875rem; color: var(--txt2); }
 
 
-/* ===== BANDEAU DÉFILANT (un message à la fois) ===== */
+/* ===== BANDEAU DÉFILANT ===== */
 .band {
-  background: var(--txt);   /* noir — le même que le footer */     
-  color: #fff;
-  height: 40px; 
-  overflow: hidden;
+  overflow: clip;            /* jamais défilé par le navigateur, même quand un lien reçoit le focus */
+  background: var(--txt);    /* encre : le bandeau se détache du fond clair de la page */
+  color: var(--bg);
+  font-size: .75rem;
 }
+/* La liste y est deux fois. Chaque copie couvre au moins l'écran (200vw pour les deux) et les messages
+   s'écartent à parts égales : à -50 %, la seconde copie prend pile la place de la première. */
 .band-track {
   display: flex;
-  width: max-content;                        /* le ruban s'ajuste à son contenu */
-  animation: band-scroll 55s linear infinite;
+  width: max-content;
+  min-width: 200vw;
+  animation: band-scroll 50s linear infinite;
 }
-.band-track span {
-  width: 100vw;
-  height: 40px;
-  flex-shrink: 0;
+.band:hover .band-track { animation-play-state: paused; }
+/* Au clavier : le bandeau s'arrête au début et défile à la main jusqu'au lien */
+.band:focus-within { overflow-x: auto; }
+.band:focus-within .band-track { animation: none; }
+.band-track > * {
+  flex: 1 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12.5px;        /* ← MOBILE : plus petit pour tenir sur l'écran */
-  font-weight: 500;
-  letter-spacing: .05em;    /* ← MOBILE : peu d'espacement */
-  padding: 0 16px;
-  box-sizing: border-box;
+  gap: 24px;
+  padding: 10px 20px;
   white-space: nowrap;
 }
-.band-track span.band-promo {
-  color: #E01E1E;                /* rouge/vif */
-  font-weight: 700;
-  text-transform: uppercase;   /* ← lettres en MAJUSCULES */
-  letter-spacing: .1em;         /* optionnel : un peu plus d'espacement (effet promo) */
+/* Séparateur : l'hexagone du logo */
+.band-track > *::before {
+  content: "";
+  width: 7px;
+  height: 8px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 11'%3E%3Cpath d='M5 .5l4.5 2.6v5.2L5 10.9.5 8.3V3.1z' fill='none' stroke='%23C4A882'/%3E%3C/svg%3E") center / contain no-repeat;
 }
-
-/* DESKTOP : plus gros + plus étalé (la demande du client) */
-@media (min-width: 768px) {
-  .band-track span {
-    font-size: 14px;
-    letter-spacing: .12em;
-  }
-}
+.band-promo { color: var(--promo-clair); font-weight: 500; }
 @keyframes band-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  to { transform: translateX(-50%); }
+}
+/* Bouton pause (critère 2.2.2) : la zone ne bouge plus tant qu'il est enfoncé */
+.band-zone { position: relative; }
+.band-pause { position: absolute; top: 0; right: 0; z-index: 1; display: grid; place-items: center; width: 44px; height: 100%; background: var(--txt); color: var(--bg); }
+.band-pause svg { width: 14px; height: 14px; fill: currentColor; }
+.band-zone.is-paused .band-track { animation-play-state: paused; }
+.band-zone:not(.is-paused) .lecture, .band-zone.is-paused .pause { display: none; }
+/* Mouvement réduit demandé : le bandeau s'arrête et se fait défiler au doigt */
+@media (prefers-reduced-motion: reduce) {
+  .band { overflow-x: auto; }
+  .band-track { animation: none; }
+  .band-pause { display: none; }
 }
 
 
+/* ===== BURGER (mobile) : deux traits fins ===== */
+.burger { align-content: center; gap: 6px; }
+.burger span { width: 22px; height: 1.5px; background: currentColor; }
 
-
-/* ===== BURGER (mobile) ===== */
-.burger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; background: none; border: none; }
-.burger span { width: 24px; height: 2px; background: var(--txt); border-radius: 2px; }
-
-/* ===== NAV = tiroir mobile (caché par défaut) ===== */
+/* ===== NAV = tiroir plein écran sous l'en-tête (caché par défaut) ===== */
 .nav {
   display: none;
-  position: absolute;
-  top: 64px; left: 0; right: 0;
+  position: absolute;             /* repère : l'en-tête, collant donc positionné */
+  top: 100%; left: 0; right: 0;
+  height: calc(100dvh - 100%);    /* l'écran moins la hauteur de l'en-tête */
+  overflow-y: auto;
   flex-direction: column;
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 8px 20px 16px;
+  padding: 16px var(--marge) 40px;
 }
-.nav a { padding: 12px 0; font-size: 16px; }
-.nav a:hover { color: var(--accent); }
 .nav.open { display: flex; }   /* affiché quand la classe "open" est là */
+.nav a { padding: 10px 0; font-size: 1.5rem; font-weight: 300; letter-spacing: -.02em; }
+/* Souligné fin taupe clair : survol du menu, survol et page courante de la pagination */
+.nav a:hover, .pagination a:hover, .pagination [aria-current] { color: var(--txt); text-decoration: underline 1px var(--accent2); text-underline-offset: 8px; }
 
-/* mobile : le burger affiche tout à plat, pas de déroulant */
-.nav-univers-menu { display: flex; flex-direction: column; }
-.nav-univers-menu a { padding-left: 16px; opacity: .85; font-size: 15px; }
-.nav-univers-btn i { display: none; }
-
-/* ===== DESKTOP : nav horizontal, burger caché ===== */
-@media (min-width: 768px) {
+/* ===== GRAND ÉCRAN : catégories en ligne, centrées entre le logo et les pictos ; burger caché =====
+   68,75em (1100 px) : la largeur où tout tient sur une ligne ; en em, le seuil suit le texte agrandi (même seuil dans app.js) */
+@media (min-width: 68.75em) {
+  .hdr-in { display: grid; grid-template-columns: 1fr auto 1fr; gap: 32px; min-height: 76px; }   /* deux colonnes égales : le menu est au centre */
+  .logo { justify-self: start; }
+  .logo-text { white-space: nowrap; }   /* le menu en ligne a la place de garder le nom sur une ligne */
   .burger { display: none; }
-  .nav { display: flex; align-items: center; position: static; flex-direction: row; background: none; border: none; padding: 0; gap: 18px; }
-  .nav a { padding: 6px 0; font-size: 14px; }
-
-/* ⬇️ Logo isolé à gauche, nav + recherche groupées à droite */
-  .hdr-in { justify-content: flex-start; }
-  .nav { margin-left: auto; }
-  .hdr-actions { margin-left: 28px; }
-
-  /* le menu déroulant « Nos univers » */
-  .nav-univers { position: relative; }
-  .nav-univers-btn i { display: inline; font-size: 10px; margin-left: 5px; }
-
-  .nav-univers-menu {
-    display: none;
-    position: absolute;
-    top: 100%; left: 50%;
-    transform: translateX(-50%);
-    min-width: 190px;
-    padding: 8px 0;
-    background: var(--bg);
-    border: 1px solid #E7E2DC;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,.10);
-    flex-direction: column;
-  }
-
-  .nav-univers:hover .nav-univers-menu,
-  .nav-univers:focus-within .nav-univers-menu { display: flex; }
-
-  .nav-univers-menu a { padding: 9px 18px; font-size: 14px; }
-  .nav-univers-menu a:hover { background: var(--bg2); color: var(--accent); }
+  .nav { display: flex; position: static; flex-direction: row; height: auto; overflow: visible; background: none; padding: 0; gap: 28px; }
+  .nav a { padding: 12px 0; font-size: .8125rem; font-weight: 400; letter-spacing: 0; }   /* 44 px de haut */
+  .hdr-wa { display: block; }
 }
 
 
@@ -558,7 +525,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: .8125rem;
     color: var(--txt2);
     margin-bottom: 24px;
 }
@@ -582,34 +549,15 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 }
 
 /* ===== Pagination ===== */
-.pagination {
-    margin-top: 48px;
-    text-align: center;
-}
-.pagination a,
-.pagination span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 40px;
-    padding: 0 10px;
-    margin: 0 3px;
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    color: var(--txt);
-    text-decoration: none;
-    font-size: 14px;
-    transition: all .15s;
-}
-.pagination a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-.pagination .current {
-    background: var(--txt);
-    color: #fff;
-    border-color: var(--txt);
+/* front/_pagination.html.twig : chiffres sans cadre, cibles de 44 px ; souligné du survol et de la page courante avec le menu */
+.pagination { margin-top: 48px; font-size: .875rem; font-variant-numeric: tabular-nums; }
+.pagination ul { display: flex; flex-wrap: wrap; justify-content: center; }
+.pagination li > * { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 8px; color: var(--txt2); }
+.pagination svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+/* Petit écran : chevrons seuls (le texte reste lu par les lecteurs d'écran) et pages voisines de la courante */
+@media (max-width: 599px) {
+    .pagination-loin { display: none; }
+    .pagination-pas span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
 
@@ -629,7 +577,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-radius: 999px;   /* pilule bien ronde */
     color: var(--txt);
     text-decoration: none;
-    font-size: 14px;
+    font-size: .875rem;
     transition: all .15s;
 }
 .chip:hover {
@@ -660,7 +608,8 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     flex: 0 0 100%;
     scroll-snap-align: start;
 }
-.gal-photo:focus-visible { outline-offset: -4px; }   /* à l'intérieur : le cadre rognerait l'anneau */
+/* À l'intérieur : le cadre (ou l'écran, pour la visionneuse) rognerait l'anneau */
+.gal-photo:focus-visible, .map-facade:focus-visible, .visionneuse .gal-viewport:focus-visible { outline-offset: -4px; }
 .gal-photo img {
     width: 100%;
     aspect-ratio: 4 / 3;
@@ -725,7 +674,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-radius: 50%;            /* rondes */
     background: rgba(255, 255, 255, .85);
     color: var(--txt);
-    font-size: 24px;
+    font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
     display: flex;
@@ -764,7 +713,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-radius: 50%;
     background: rgba(255, 255, 255, .9);
     color: var(--txt);
-    font-size: 24px;
+    font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
     display: flex;
@@ -784,7 +733,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     padding: 6px 10px;
     background: rgba(0, 0, 0, .55);
     color: #fff;
-    font-size: 11px;
+    font-size: .6875rem;
     line-height: 1.3;
 }
 
@@ -813,7 +762,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     left: 50%;
     transform: translate(-50%, -50%);
     color: #fff;
-    font-size: 16px;
+    font-size: 1rem;
     text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
     pointer-events: none;
 }
@@ -865,8 +814,8 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .config { margin: 24px 0; }
 .cfg-group { margin-bottom: 22px; }
 .cfg-title { 
-    font-size: 14px; 
-    font-weight: 600; 
+    font-size: .875rem; 
+    font-weight: 500; 
     text-transform: none; 
     letter-spacing: 0; 
     color: var(--txt); 
@@ -888,7 +837,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     border-radius: var(--r);
     background: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: .875rem;
     transition: all .15s;
 }
 .mat-opt:hover { border-color: var(--accent); }
@@ -911,6 +860,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     outline: 1px solid var(--txt);   /* liseré fin autour */
     outline-offset: 3px;             /* ⭐ l'écart blanc entre la pastille et le liseré */
 }
+.col-dot.is-active:focus-visible { outline-width: 3px; outline-offset: 5px; }
 /* --- Touches de variantes (configurations, dimensions) --- */
 .variant-row {
     display: grid;
@@ -933,16 +883,12 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 }
 .variant-chip:hover { border-color: var(--accent); }
 .variant-chip .variant-dim {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: .875rem;
+    font-weight: 500;
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-align: center;              /* le nom se lit en entier : il passe à la ligne au lieu d'être coupé */
 }
-.variant-chip .variant-price { font-size: 12px; color: var(--txt2); }
-/* Une taille ou une matière se lit en entier : elle passe à la ligne au lieu d'être coupée */
-.taille-opt .variant-dim, .matiere-opt .variant-dim { white-space: normal; text-align: center; }
+.variant-chip .variant-price { font-size: .75rem; color: var(--txt2); }
 .variant-chip.is-active {
     border-color: var(--txt);
     background: var(--txt);
@@ -957,8 +903,8 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     height: auto;
     padding: 10px 12px;
     border-radius: var(--r);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: .875rem;
+    font-weight: 500;
 }
 /* Le « +N » des tissus prend la forme d'un bouton tissu, pas d'un échantillon carré */
 .mat-row .swatch-more {
@@ -966,7 +912,7 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     height: auto;
     padding: 8px 16px;
     border-radius: var(--r);
-    font-size: 14px;
+    font-size: .875rem;
 }
 /* Chaque ligne de tissus occupe toute la largeur : les boutons se partagent l'espace libre */
 .mat-row .mat-opt {
@@ -999,37 +945,8 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
 .buybox-lead { 
     display: flex; 
     align-items: center; 
-    gap: 8px; font-size: 14px; 
+    gap: 8px; font-size: .875rem; 
     color: var(--txt2); 
-}
-.buybox .btn-devis { 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 10px; 
-    padding: 14px 20px; 
-    background: var(--wa); 
-    color: #fff; 
-    border-radius: var(--r); 
-    font-weight: 600; 
-    font-size: 15px; 
-}
-.buybox .btn-devis:hover { filter: brightness(.95); }
-.buybox-pay { 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    font-size: 13px; 
-    color: var(--txt2); 
-}
-.buybox-help { 
-    font-size: 13px; 
-    color: var(--txt2); 
-    line-height: 1.5; 
-}
-.buybox-help a { 
-    color: var(--accent); 
-    font-weight: 500; 
 }
 
 
@@ -1070,16 +987,19 @@ h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; }
     box-shadow: 0 4px 20px rgba(0,0,0,.2);
     flex-direction: column;
     gap: 12px;
-    font-size: 14px;
+    font-size: .875rem;
 }
 .cookie-banner.show { display: flex; }   /* rendu visible par le JS */
 body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsApp cachait « Accepter » sur mobile */
-.cookie-banner a { color: #fff; }
+/* Bandeau affiché : le focus s'arrête au-dessus de lui, et le bas du pied de page peut remonter au-dessus */
+html:has(.cookie-banner.show) { scroll-padding-bottom: 300px; }
+body:has(.cookie-banner.show) .ft-copy { padding-bottom: 300px; }
+.cookie-banner a { color: #fff; text-decoration: underline; }
 .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .cookie-actions button {
     padding: 8px 16px;
     border-radius: var(--r);
-    font-size: 14px;
+    font-size: .875rem;
     cursor: pointer;
     background: #fff;              /* Refuser et Accepter : même poids visuel (CNIL) */
     color: var(--txt);
@@ -1088,13 +1008,13 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
 
 /* ===== Pages de texte : mentions légales, CGV, confidentialité, offres ===== */
 .wrap-legal { max-width: 860px; line-height: 1.6; }
-.wrap-legal h1 { font-size: 28px; margin-bottom: 8px; }
-.wrap-legal h2 { font-size: 20px; margin: 32px 0 10px; }
-.wrap-legal h3 { font-size: 16px; margin: 20px 0 6px; }
+.wrap-legal h1 { margin-bottom: 8px; }
+.wrap-legal h2 { font-size: 1.25rem; margin: 32px 0 10px; }
+.wrap-legal h3 { font-size: 1rem; margin: 20px 0 6px; }
 .wrap-legal p, .wrap-legal ul, .wrap-legal ol, .wrap-legal table { margin-bottom: 12px; }
 .wrap-legal ul, .wrap-legal ol { list-style: revert; padding-left: 22px; }   /* retrouve les puces retirées par Tailwind */
 .wrap-legal a { color: var(--accent); text-decoration: underline; }
-.wrap-legal table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 14px; }   /* défile sur mobile au lieu de déborder */
+.wrap-legal table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; }   /* défile sur mobile au lieu de déborder */
 .wrap-legal th, .wrap-legal td { padding: 8px 10px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
 .wrap-legal th { background: var(--bg2); }
 .legal-box { margin: 16px 0; padding: 20px; border: 1px solid var(--txt); border-radius: var(--r); }   /* encadré exigé pour les garanties légales */
@@ -1105,22 +1025,6 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
 .error-404 h1 { margin: 8px 0 16px; }
 
 
-.hdr-actions { display: flex; align-items: center; gap: 14px; }
-.hdr-search { font-size: 18px; color: var(--txt); display: flex; }
-.hdr-search:hover { color: var(--accent); }
-
-
-.variant-select {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 13px;               /* police plus petite */
-    font-family: inherit;
-    color: var(--txt);
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    cursor: pointer;
-}
 
 /* ===== Accordéons ===== */
 .accordions { margin-top: 8px; }
@@ -1132,30 +1036,28 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     align-items: center;
     padding: 16px 0;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 15px;
+    font-weight: 500;
+    font-size: .9375rem;
     list-style: none;               /* enlève le triangle par défaut */
 }
 .accord summary::-webkit-details-marker { display: none; }   /* idem Safari */
-.accord summary::after { content: '+'; font-size: 20px; color: var(--txt2); font-weight: 400; }
+.accord summary::after { content: '+'; font-size: 1.25rem; color: var(--txt2); font-weight: 400; }
 .accord[open] summary::after { content: '−'; }               /* + devient − à l'ouverture */
 .accord p { padding: 0 0 16px; margin: 0; color: var(--txt2); line-height: 1.7; }
 
 
 .custom-quote { margin-top: 24px; padding: 18px 20px; background: var(--bg2); border-left: 3px solid var(--accent); border-radius: var(--r); }
-.custom-quote p { margin: 0 0 12px; font-size: 14px; color: var(--txt); line-height: 1.6; }
-.quote-dims { width: 100%; padding: 10px 12px; margin-bottom: 10px; font-size: 16px; font-family: inherit; color: var(--txt); background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); }
-.custom-quote .btn-quote, .compo-commander { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--wa); color: #fff; border: none; border-radius: var(--r); font-weight: 600; font-size: 14px; cursor: pointer; }
-.custom-quote .btn-quote:hover, .compo-commander:hover { filter: brightness(.95); }
+.custom-quote p { margin: 0 0 12px; font-size: .875rem; color: var(--txt); line-height: 1.6; }
+.quote-dims { width: 100%; margin-bottom: 10px; }
 
 
 
-.product-info h1 { font-size: clamp(24px, 4vw, 30px); line-height: 1.2; margin-bottom: 10px; }
+.product-info h1 { font-size: clamp(1.5rem, 4vw, 1.875rem); line-height: 1.2; margin-bottom: 10px; }
 .price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
-.price { font-size: 26px; font-weight: 700; color: var(--txt); }
-.price-old { font-size: 16px; color: var(--txt2); }
-.price-remise { font-size: 14px; font-weight: 600; color: var(--promo); }
-.price-facilities { font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 24px; }
+.price { font-size: 1.625rem; font-weight: 400; color: var(--txt); }
+.price-old { font-size: 1rem; color: var(--txt2); }
+.price-remise { font-size: .875rem; font-weight: 500; color: var(--promo); }
+.price-facilities { font-size: .8125rem; color: var(--accent); font-weight: 500; margin-bottom: 24px; }
 
 
 /* Un élément masqué par l'attribut hidden le reste, même si sa classe lui donne un display */
@@ -1171,7 +1073,7 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-radius: 4px;
     background: none;
     color: var(--txt2);
-    font-size: 13px;
+    font-size: .8125rem;
     cursor: pointer;
 }
 .swatch-more:hover { border-color: var(--accent); color: var(--accent); }
@@ -1223,8 +1125,8 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-bottom: 1px solid var(--border);
     flex: 0 0 auto;
 }
-.panneau-head h2 { font-size: 17px; font-weight: 600; margin: 0; }
-.panneau-head p { font-size: 13px; color: var(--txt2); margin: 2px 0 0; }
+.panneau-head h2 { font-size: 1.0625rem; font-weight: 500; margin: 0; }
+.panneau-head p { font-size: .8125rem; color: var(--txt2); margin: 2px 0 0; }
 .panneau-close {
     width: 36px;
     height: 36px;
@@ -1232,7 +1134,7 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-radius: 50%;
     background: var(--bg2);
     color: var(--txt);
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1;
     cursor: pointer;
     flex: 0 0 auto;
@@ -1266,8 +1168,8 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
 }
 .panneau-opt:hover .echantillon { border-color: var(--accent); }
 .panneau-opt.is-active .echantillon { outline: 2px solid var(--txt); outline-offset: 2px; }
-.panneau-opt .echantillon-nom { font-size: 12px; color: var(--txt2); text-align: center; }
-.panneau-opt.is-active .echantillon-nom { color: var(--txt); font-weight: 600; }
+.panneau-opt .echantillon-nom { font-size: .75rem; color: var(--txt2); text-align: center; }
+.panneau-opt.is-active .echantillon-nom { color: var(--txt); font-weight: 500; }
 
 .panneau-foot {
     display: flex;
@@ -1278,16 +1180,16 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-top: 1px solid var(--border);
     flex: 0 0 auto;
 }
-.panneau-courant { font-size: 13px; color: var(--txt2); }
-.panneau-courant strong { color: var(--txt); font-weight: 600; }
+.panneau-courant { font-size: .8125rem; color: var(--txt2); }
+.panneau-courant strong { color: var(--txt); }
 .btn-valider {
     padding: 12px 22px;
     border: none;
     border-radius: 999px;
     background: var(--txt);
     color: #fff;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: .875rem;
+    font-weight: 500;
     cursor: pointer;
     font-family: inherit;
 }
@@ -1323,8 +1225,8 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     background: var(--txt);
     color: #fff;
 }
-.ligne-nom { font-size: 14px; font-weight: 600; }
-.ligne-info { font-size: 12px; color: var(--txt2); }
+.ligne-nom { font-size: .875rem; font-weight: 500; }
+.ligne-info { font-size: .75rem; color: var(--txt2); }
 .panneau-ligne.is-active .ligne-info { color: rgba(255, 255, 255, .7); }
 
 /* Un nom de tissu très long ne doit pas occuper toute la ligne */
@@ -1354,31 +1256,31 @@ body:has(.cookie-banner.show) .wa-float { display: none; }   /* le bouton WhatsA
     border-radius: var(--r);
     text-align: center;
 }
-.reassurance-card i { font-size: 24px; color: var(--accent); }
-.reassurance-card h3 { font-size: 16px; margin: 12px 0 6px; }
-.reassurance-card p { font-size: 14px; color: var(--txt2); line-height: 1.5; }
+.reassurance-card i { font-size: 1.5rem; color: var(--accent); }
+.reassurance-card h3 { font-size: 1rem; margin: 12px 0 6px; }
+.reassurance-card p { font-size: .875rem; color: var(--txt2); line-height: 1.5; }
 
 .similar { margin: 48px 0 24px; }
-.similar h2 { font-size: 22px; margin-bottom: 20px; }
+.similar h2 { font-size: 1.375rem; margin-bottom: 20px; }
 
 
 /* ===== MODULES D'UN PRODUIT MODULABLE ===== */
 .modules-produit { margin: 48px 0 24px; }
-.modules-produit h2 { font-size: 22px; margin-bottom: 8px; }
-.modules-intro { color: var(--txt2); font-size: 15px; margin-bottom: 20px; }
+.modules-produit h2 { font-size: 1.375rem; margin-bottom: 8px; }
+.modules-intro { color: var(--txt2); font-size: .9375rem; margin-bottom: 20px; }
 
 /* Composition module par module : − quantité + sous chaque carte, puis le récapitulatif.
    La carte remplit la case : les − + d'une même rangée restent alignés, quel que soit le nom. */
 .compo-module { display: flex; flex-direction: column; }
 .compo-module .pcard { flex: 1; }
 .compo-qte { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
-.compo-qte button { width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 50%; background: #fff; font-size: 20px; cursor: pointer; }
+.compo-qte button { width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 50%; background: #fff; font-size: 1.25rem; cursor: pointer; }
 .compo-qte [aria-disabled="true"] { opacity: .35; cursor: default; }
-.compo-nb { min-width: 2ch; text-align: center; font-weight: 700; }
+.compo-nb { min-width: 2ch; text-align: center; font-weight: 500; }
 .compo-recap { margin-top: 24px; padding: 18px 20px; background: var(--bg2); border-radius: var(--r); }
-.compo-liste li { font-size: 14px; line-height: 1.7; }
-.compo-somme { margin: 8px 0 4px; font-size: 16px; }
-.compo-mention { margin-bottom: 12px; font-size: 13px; color: var(--txt2); }
+.compo-liste li { font-size: .875rem; line-height: 1.7; }
+.compo-somme { margin: 8px 0 4px; font-size: 1rem; }
+.compo-mention { margin-bottom: 12px; font-size: .8125rem; color: var(--txt2); }
 .compo-commander:disabled { opacity: .5; cursor: not-allowed; }
 
 

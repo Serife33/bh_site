@@ -12,7 +12,7 @@
 
         <form action="{{ path('front_search') }}" method="get" class="search-form" role="search">
             <input type="search" name="q" value="{{ q }}" placeholder="Rechercher un produit…" aria-label="Rechercher">
-            <button type="submit">Rechercher</button>
+            <button type="submit" class="btn btn-primary">Rechercher</button>
         </form>
 
         {% if q %}
@@ -23,7 +23,7 @@
                         {{ include('front/_product_card.html.twig', { product: product }) }}
                     {% endfor %}
                 </div>
-                <div class="pagination">{{ knp_pagination_render(pagination) }}</div>
+                {{ knp_pagination_render(pagination, 'front/_pagination.html.twig') }}
             {% else %}
                 <p class="empty">Aucun produit ne correspond à « {{ q }} ».</p>
             {% endif %}

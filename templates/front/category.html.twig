@@ -58,10 +58,8 @@
             {% endfor %}
         </div>
 
-        {# --- Liens « ‹ 1 2 3 › » générés par KnpPaginator --- #}
-        <div class="pagination">
-            {{ knp_pagination_render(pagination) }}
-        </div>
+        {# --- Pagination : Précédent, pages, Suivant --- #}
+        {{ knp_pagination_render(pagination, 'front/_pagination.html.twig') }}
 
         {# --- Suite du texte de catégorie --- #}
         {% if paragraphes|length > 1 %}

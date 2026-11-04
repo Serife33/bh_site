@@ -1,0 +1,38 @@
+{# Pagination du site public : knp_pagination_render(pagination, 'front/_pagination.html.twig').
+   La fenêtre glissante de Knp est encadrée par la première et la dernière page ; « … » remplace au moins deux pages.
+   Sur petit écran, seules les pages voisines de la page courante restent (les autres portent « pagination-loin »). #}
+{% if pageCount > 1 %}
+    {% set avant = startPage > 3 ? [1, '…'] : (startPage > 1 ? range(1, startPage - 1) : []) %}
+    {% set apres = endPage < pageCount - 2 ? ['…', pageCount] : (endPage < pageCount ? range(endPage + 1, pageCount) : []) %}
+    <nav class="pagination" aria-label="Pagination">
+        <ul>
+            {% if previous is defined %}
+                <li>
+                    <a class="pagination-pas" rel="prev" href="{{ path(route, knp_pagination_query(query, previous, options)) }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Précédent</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for page in avant|merge(pagesInRange)|merge(apres) %}
+                <li{% if page is same as('…') or (page - current)|abs > 1 %} class="pagination-loin"{% endif %}>
+                    {% if page is same as('…') %}
+                        <span>…</span>
+                    {% elseif page == current %}
+                        <span aria-current="page">{{ page }}</span>
+                    {% else %}
+                        <a href="{{ path(route, knp_pagination_query(query, page, options)) }}">{{ page }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+
+            {% if next is defined %}
+                <li>
+                    <a class="pagination-pas" rel="next" href="{{ path(route, knp_pagination_query(query, next, options)) }}">
+                        <span>Suivant</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}

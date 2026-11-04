@@ -10,10 +10,13 @@ import './styles/app.css';
 
 // ===== Outils communs =====
 
-// Rend `element` seul porteur de `classe` parmi les éléments `selecteur` de `racine`.
-function activerSeul(element, selecteur, racine = document, classe = 'is-active') {
-    racine.querySelectorAll(selecteur + '.' + classe).forEach(e => e.classList.remove(classe));
-    element.classList.add(classe);
+// Rend `element` seul choisi parmi les éléments `selecteur` de `racine` :
+// la classe `is-active` pour l'œil, aria-pressed pour les lecteurs d'écran.
+function activerSeul(element, selecteur, racine = document) {
+    racine.querySelectorAll(selecteur).forEach((e) => {
+        e.classList.toggle('is-active', e === element);
+        e.setAttribute('aria-pressed', e === element);
+    });
 }
 
 // Une option choisie derrière un « +N » doit rester visible sur la fiche.
@@ -29,16 +32,62 @@ function lienWhatsApp(numero, message) {
 
 
 // ===== Menu mobile =====
+// Plein écran, il cache la page : tant qu'il est ouvert, la page dessous est inerte (ni focus ni clic).
+function basculerMenu(ouvrir) {
+    document.querySelector('.nav')?.classList.toggle('open', ouvrir);
+    document.querySelector('.burger')?.setAttribute('aria-expanded', ouvrir);
+    document.querySelectorAll('.main, .ft').forEach(e => e.inert = ouvrir);
+}
+
 document.addEventListener('click', (e) => {
     if (e.target.closest('.burger')) {
-        const nav = document.querySelector('.nav');
-        const burger = document.querySelector('.burger');
-        burger.setAttribute('aria-expanded', nav.classList.toggle('open') ? 'true' : 'false');
+        const ouvrir = !document.querySelector('.nav').classList.contains('open');
+        basculerMenu(ouvrir);
+        if (ouvrir) document.querySelector('.nav a').focus();   // le clavier part du premier lien du menu
         return;
     }
-    if (e.target.closest('.nav a')) {
-        document.querySelector('.nav')?.classList.remove('open');
+    if (e.target.closest('.nav a')) basculerMenu(false);
+});
+
+// Échap ferme le menu et rend le focus au burger
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.querySelector('.nav.open')) {
+        basculerMenu(false);
+        document.querySelector('.burger').focus();
     }
+});
+
+// Passage en largeur bureau (tablette tournée) : le menu redevient la barre, la page ne doit pas rester inerte
+matchMedia('(min-width: 68.75em)').addEventListener('change', () => basculerMenu(false));   // même seuil que le CSS du menu
+
+
+// ===== Bandeau défilant : bouton pause (critère 2.2.2), état gardé le temps de la session =====
+function pauseBandeau(pause) {
+    const zone = document.querySelector('.band-zone');
+    if (!zone) return;
+    zone.classList.toggle('is-paused', pause);
+    zone.querySelector('.band-pause').setAttribute('aria-label', pause ? 'Relancer le bandeau' : 'Mettre en pause le bandeau');
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.band-pause')) return;
+    const pause = !document.querySelector('.band-zone').classList.contains('is-paused');
+    pauseBandeau(pause);
+    try { sessionStorage.setItem('bandeau-pause', pause); } catch (err) { /* ignoré : la pause vaut pour cette page */ }
+});
+
+// Chaque page affichée par Turbo reprend l'état choisi
+document.addEventListener('turbo:load', () => {
+    try { pauseBandeau(sessionStorage.getItem('bandeau-pause') === 'true'); } catch (err) { /* ignoré */ }
+});
+
+
+// ===== Bande « Nos univers » : une flèche avance d'une carte, l'accroche (scroll-snap) cale la position =====
+document.addEventListener('click', (e) => {
+    const fleche = e.target.closest('.fleche');
+    if (!fleche) return;
+    const bande = document.getElementById(fleche.getAttribute('aria-controls'));
+    bande.scrollBy({ left: fleche.dataset.sens * bande.firstElementChild.offsetWidth });
 });
 
 
@@ -55,8 +104,12 @@ function photoCourante(viewport) {
     return index;
 }
 
-// Souligne la miniature correspondante et la ramène dans le champ de vision
+// Souligne la miniature correspondante et la ramène dans le champ de vision.
+// Seule la photo affichée se prend au clavier : un seul arrêt de Tab, jamais hors du cadre.
 function marquerMiniature(gallery, index) {
+    const photo = gallery.querySelector('.gal-viewport').children[index];
+    gallery.querySelectorAll('.gal-photo').forEach(p => p.tabIndex = p === photo ? 0 : -1);
+
     const active = [...gallery.querySelectorAll('.gal-thumb')][index];
     if (!active) return;
 
@@ -251,6 +304,8 @@ function choisirTissu(bouton) {
 
     rendreVisible(bouton, '.mat-opt');
     activerSeul(bouton, '.mat-opt', bouton.parentElement);
+    const ligne = document.querySelector('.panneau-ligne[data-fabric-id="' + bouton.dataset.fabricId + '"]');
+    if (ligne) activerSeul(ligne, '.panneau-ligne', ligne.parentElement);   // le panneau des tissus coche le même
 
     document.querySelectorAll('[data-nuancier]').forEach((groupe) => {
         groupe.classList.toggle('is-visible', groupe.dataset.nuancier === bouton.dataset.fabricId);
