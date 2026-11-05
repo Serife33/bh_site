@@ -59,7 +59,7 @@ final class BedGroupingListCommandTest extends KernelTestCase
         self::assertSame([
             ['160x200', 'Lit coffre TESTLIT', 'lit-coffre-testlit', 'Testlit - Lit coffre à bandes | Brillance Home', 'face.jpg', 'coffre.jpg'],
             ['140x190', '', '', '', '', ''],
-            ['90x190', 'Lit coffre TESTLIT SINGLE', 'lit-coffre-testlit-single', 'Testlit - Lit coffre 1 place en arc | Brillance Home', '', ''],
+            ['90x190', 'Lit coffre TESTLIT SINGLE', 'lit-coffre-testlit-single', 'Testlit Single - Lit coffre en arc | Brillance Home', '', ''],
             ['100x190', '', '', '', '', ''],
         ], array_map(static fn (array $row) => [$row['taille'], $row['nouveau_nom'], $row['nouvelle_adresse'], $row['titre_google'], $row['photo_1'], $row['photo_2']], $this->rows()));
 

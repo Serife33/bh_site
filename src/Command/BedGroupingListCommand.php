@@ -19,7 +19,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * Les règles de Serife (4/11) : un groupe par modèle (la famille de la fiche) et par type de lit, une place (largeur
  * jusqu'à 120 cm) ou deux places ; la fiche gardée, dont la taille s'affiche en premier, est la 160x200 en deux places
- * et la 90x190 en une place ; le nouveau nom est celui de la fiche gardée sans sa taille (« SINGLE » reste), l'adresse suit.
+ * et la 90x190 en une place ; le nouveau nom et le titre Google sont ceux de la fiche gardée sans sa taille (« Single »
+ * reste, 5/11), l'adresse suit.
  *
  * Les choix déjà faits sur la ligne d'une fiche gardée (nom, adresse, textes Google, photos 1 et 2 reconnues à l'œil)
  * sont repris de la liste existante : la refaire ne les perd pas. Les faits (adresses, tailles, prix, stocks) sont relus.
@@ -110,7 +111,7 @@ final class BedGroupingListCommand
                         'prix_actuel' => $product->getActualPrice(),
                         'stock' => $product->getStock(),
                         'photos' => $product->getMedia()->count(),
-                        ...($product === $kept ? $this->choices($io, $kept, $type, $previous[$kept->getId()] ?? []) : array_fill_keys(self::CHOICES, '')),
+                        ...($product === $kept ? $this->choices($io, $kept, $previous[$kept->getId()] ?? []) : array_fill_keys(self::CHOICES, '')),
                     ];
                 }
                 ++$groupCount;
@@ -129,7 +130,7 @@ final class BedGroupingListCommand
     }
 
     // Les colonnes de la nouvelle fiche : calculées, sauf les choix déjà faits dans la liste existante
-    private function choices(SymfonyStyle $io, Product $kept, string $type, array $previous): array
+    private function choices(SymfonyStyle $io, Product $kept, array $previous): array
     {
         $name = $this->oneLine(ProductVariant::withoutSize($kept->getName()));
         $photos = array_values(array_filter($kept->getMedia()->toArray(), static fn (Media $media) => $media->isPhoto()));
@@ -139,7 +140,7 @@ final class BedGroupingListCommand
         $computed = [
             'nouveau_nom' => $name,
             'nouvelle_adresse' => Product::slugFrom($name),
-            'titre_google' => $this->googleTitle($kept->getMetaTitle(), $type),
+            'titre_google' => $this->oneLine(ProductVariant::withoutSize($kept->getMetaTitle())),
             'description_google' => $this->oneLine(ProductVariant::withoutSize($kept->getMetaDescription())),
             'photo_1' => $urls[0] ?? '',
             'photo_2' => $urls[1] ?? '',
@@ -154,20 +155,6 @@ final class BedGroupingListCommand
         }
 
         return $choices;
-    }
-
-    // Le titre Google sans la taille. En une place, « Single » y devient « 1 place », le mot des descriptions Google.
-    private function googleTitle(?string $title, string $type): string
-    {
-        $title = $this->oneLine(ProductVariant::withoutSize($title));
-        if ($type === 'une place' && preg_match('/\bsingle\b/i', $title)) {
-            $title = $this->oneLine(preg_replace('/\bsingle\b/i', '', $title));
-            if (!str_contains($title, '1 place')) {
-                $title = preg_replace('/Lit coffre/i', '$0 1 place', $title, 1);
-            }
-        }
-
-        return $title;
     }
 
     private function oneLine(?string $text): string
