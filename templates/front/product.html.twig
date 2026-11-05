@@ -282,8 +282,9 @@
                         </div>
                     {% endif %}
 
-                {# Variantes : une touche par configuration, chacune menant à sa fiche #}
-                {% set variants = product.family and product.isModular.value != 'module'
+                {# Variantes : une touche par configuration, chacune menant à sa fiche.
+                   Pas sur un produit à variantes : sa taille ou sa matière se choisit plus haut (décision du 4/11). #}
+                {% set variants = product.family and product.isModular.value != 'module' and product.variants is empty
                     ? product.family.products|filter(v => v.isActive and v.isModular.value != 'module')|sort((a, b) => a.position - b.position)
                     : [] %}
                 {% if variants|length > 1 %}

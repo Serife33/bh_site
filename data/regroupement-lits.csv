@@ -1,0 +1,195 @@
+﻿fiche_gardee;id;adresse;nom;taille;prix_initial;prix_actuel;stock;photos;nouveau_nom;nouvelle_adresse;titre_google;description_google;photo_1;photo_2
+107;107;lit-coffre-alara-160x200;"Lit coffre ALARA 160x200";160x200;1245.00;1245.00;0;8;"Lit coffre ALARA";lit-coffre-alara;"Alara - Lit coffre à tête de lit coquillage | Brillance Home";"Lit coffre Alara : tête de lit en coquillage, sommier relevable sur vérins, bas de lit cannelé. Tissu et coloris au choix. Showroom à Bordeaux.";img-9061-6abf9e4668d97773004609-2721f432-c23efce5.jpg;img-9088-6abfa33fea010494275018-e2a5cd57-91d96dad.jpg
+107;105;lit-coffre-alara-140x190;"Lit coffre ALARA 140x190";140x190;1245.00;1245.00;0;8;;;;;;
+107;106;lit-coffre-alara-140x200;"Lit coffre ALARA 140x200";140x200;1245.00;1245.00;0;8;;;;;;
+107;108;lit-coffre-alara-180x200;"Lit coffre ALARA 180x200";180x200;1395.00;1395.00;0;8;;;;;;
+109;109;lit-coffre-alara-single-90x190;"Lit coffre ALARA SINGLE 90x190";90x190;840.00;840.00;0;8;"Lit coffre ALARA SINGLE";lit-coffre-alara-single;"Alara Single - Lit coffre tête coquillage | Brillance Home";"Lit coffre Alara 1 place : tête de lit en coquillage, sommier relevable sur vérins, cadre cannelé. Tissu et coloris au choix. Showroom à Bordeaux.";img-9460-6abfbd4070ff1807150556.jpg;img-9459-6abfbdacccb71080613691.jpg
+109;110;lit-coffre-alara-single-100x190;"Lit coffre ALARA SINGLE 100x190";100x190;855.00;855.00;0;8;;;;;;
+109;111;lit-coffre-alara-single-120x190;"Lit coffre ALARA SINGLE 120x190";120x190;1035.00;1035.00;0;8;;;;;;
+102;102;lit-coffre-alissa-90x190;"Lit coffre ALISSA 90x190";90x190;465.00;465.00;2;7;"Lit coffre ALISSA";lit-coffre-alissa;"Alissa - Lit coffre à tête de lit en fleur | Brillance Home";"Lit coffre Alissa 1 place : tête de lit en pétales, sommier relevable sur vérins, pieds chromés. Tissu et coloris au choix. Showroom à Bordeaux.";1s0a0857-6abf98d17568e485440657.jpg;1s0a0867-6abf9965a7b8d759682831.jpg
+102;103;lit-coffre-alissa-100x190;"Lit coffre ALISSA 100x190";100x190;480.00;480.00;0;7;;;;;;
+102;104;lit-coffre-alissa-120x190;"Lit coffre ALISSA 120x190";120x190;585.00;585.00;5;7;;;;;;
+123;123;lit-coffre-aqua-160x200;"Lit coffre AQUA 160x200";160x200;795.00;795.00;0;7;"Lit coffre AQUA";lit-coffre-aqua;"Aqua — Lit coffre à découpes géométriques | Brillance Home";"Lit coffre Aqua : tête de lit à découpes géométriques et sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace34af7d098530154218.jpg;02-6ace34af9e440735979560.jpg
+123;152;lit-coffre-aqua-140x190;"Lit coffre AQUA 140x190";140x190;795.00;795.00;0;7;;;;;;
+123;153;lit-coffre-aqua-140x200;"Lit coffre AQUA 140x200";140x200;795.00;795.00;0;7;;;;;;
+123;154;lit-coffre-aqua-180x200;"Lit coffre AQUA 180x200";180x200;900.00;900.00;0;7;;;;;;
+124;124;lit-coffre-berlin-160x200;"Lit coffre BERLIN 160x200";160x200;1080.00;1080.00;0;7;"Lit coffre BERLIN";lit-coffre-berlin;"Berlin — Lit coffre à six bandes verticales | Brillance Home";"Lit coffre Berlin : tête de lit haute à six bandes verticales, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace36b864592531999262.jpg;02-6ace36b881878420684701.jpg
+124;155;lit-coffre-berlin-140x190;"Lit coffre BERLIN 140x190";140x190;1065.00;1065.00;0;7;;;;;;
+124;156;lit-coffre-berlin-140x200;"Lit coffre BERLIN 140x200";140x200;1065.00;1065.00;0;7;;;;;;
+124;157;lit-coffre-berlin-180x200;"Lit coffre BERLIN 180x200";180x200;1200.00;1200.00;0;7;;;;;;
+125;125;lit-coffre-bohem-160x200;"Lit coffre BOHEM 160x200";160x200;825.00;825.00;0;7;"Lit coffre BOHEM";lit-coffre-bohem;"Bohem — Lit coffre à tête de lit en arches | Brillance Home";"Lit coffre Bohem : tête de lit à quatre arches rembourrées, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace36d617057315303915.jpg;02-6ace36d6338e3277747501.jpg
+125;158;lit-coffre-bohem-140x190;"Lit coffre BOHEM 140x190";140x190;825.00;825.00;0;7;;;;;;
+125;159;lit-coffre-bohem-140x200;"Lit coffre BOHEM 140x200";140x200;825.00;825.00;0;7;;;;;;
+125;160;lit-coffre-bohem-180x200;"Lit coffre BOHEM 180x200";180x200;930.00;930.00;0;7;;;;;;
+126;126;lit-coffre-cloudy-160x200;"Lit coffre CLOUDY 160x200";160x200;1245.00;1245.00;0;7;"Lit coffre CLOUDY";lit-coffre-cloudy;"Cloudy — Lit coffre à tête de lit nuage | Brillance Home";"Lit coffre Cloudy : tête de lit nuage à joues et cadre bombé, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace36f8b8017957780527.jpg;02-6ace36f8d797c119377845.jpg
+126;161;lit-coffre-cloudy-140x190;"Lit coffre CLOUDY 140x190";140x190;1245.00;1245.00;0;7;;;;;;
+126;162;lit-coffre-cloudy-140x200;"Lit coffre CLOUDY 140x200";140x200;1245.00;1245.00;0;7;;;;;;
+126;163;lit-coffre-cloudy-180x200;"Lit coffre CLOUDY 180x200";180x200;1395.00;1395.00;0;7;;;;;;
+127;127;lit-coffre-comfort-160x200;"Lit coffre COMFORT 160x200";160x200;885.00;885.00;0;7;"Lit coffre COMFORT";lit-coffre-comfort;"Comfort — Lit coffre style Chesterfield | Brillance Home";"Lit coffre Comfort : lit Chesterfield boutonné de la tête de lit au socle, pieds chromés. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace371e7ee24507610304.jpg;02-6ace371e9dd1a539355513.jpg
+127;164;lit-coffre-comfort-140x190;"Lit coffre COMFORT 140x190";140x190;885.00;885.00;0;7;;;;;;
+127;165;lit-coffre-comfort-140x200;"Lit coffre COMFORT 140x200";140x200;885.00;885.00;0;7;;;;;;
+127;166;lit-coffre-comfort-180x200;"Lit coffre COMFORT 180x200";180x200;990.00;990.00;0;7;;;;;;
+128;128;lit-coffre-dakkar-160x200;"Lit coffre DAKKAR 160x200";160x200;885.00;885.00;0;7;"Lit coffre DAKKAR";lit-coffre-dakkar;"Dakkar — Lit coffre à tête enveloppante | Brillance Home";"Lit coffre Dakkar : tête de lit enveloppante à boutons, socle assorti et pieds effilés dorés. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace372732d96744917200.jpg;02-6ace37274f601510528672.jpg
+128;167;lit-coffre-dakkar-140x190;"Lit coffre DAKKAR 140x190";140x190;885.00;885.00;0;7;;;;;;
+128;168;lit-coffre-dakkar-140x200;"Lit coffre DAKKAR 140x200";140x200;885.00;885.00;0;7;;;;;;
+128;169;lit-coffre-dakkar-180x200;"Lit coffre DAKKAR 180x200";180x200;990.00;990.00;0;7;;;;;;
+129;129;lit-coffre-diamond-160x200;"Lit coffre DIAMOND 160x200";160x200;1185.00;1185.00;0;7;"Lit coffre DIAMOND";lit-coffre-diamond;"Diamond — Lit coffre à tête en coussins | Brillance Home";"Lit coffre Diamond : tête de lit à deux coussins arrondis et cadre large aux angles adoucis. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace374bdf77d709756641.jpg;02-6ace374c0b8d7067982768.jpg
+129;170;lit-coffre-diamond-140x190;"Lit coffre DIAMOND 140x190";140x190;1185.00;1185.00;0;7;;;;;;
+129;171;lit-coffre-diamond-140x200;"Lit coffre DIAMOND 140x200";140x200;1185.00;1185.00;0;7;;;;;;
+129;172;lit-coffre-diamond-180x200;"Lit coffre DIAMOND 180x200";180x200;1335.00;1335.00;0;7;;;;;;
+143;143;lit-coffre-enzo-90x190;"Lit coffre ENZO 90x190";90x190;480.00;480.00;0;7;"Lit coffre ENZO";lit-coffre-enzo;"Enzo — Lit coffre à tête de lit cintrée | Brillance Home";"Lit coffre Enzo 1 place : tête de lit cintrée à boutons, socle assorti et pieds effilés chromés. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace398a460b7307334487.jpg;02-6ace398a7661f057279191.jpg
+143;212;lit-coffre-enzo-100x190;"Lit coffre ENZO 100x190";100x190;495.00;495.00;0;7;;;;;;
+143;213;lit-coffre-enzo-120x190;"Lit coffre ENZO 120x190";120x190;600.00;600.00;0;7;;;;;;
+130;130;lit-coffre-ethena-160x200;"Lit coffre ETHENA 160x200";160x200;1065.00;1065.00;0;7;"Lit coffre ETHENA";lit-coffre-ethena;"Ethena — Lit coffre à tête de lit en dôme | Brillance Home";"Lit coffre Ethena : tête de lit en dôme à quatre panneaux arrondis, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace3753eedf5418329622.jpg;02-6ace3754181ab376926984.jpg
+130;173;lit-coffre-ethena-140x190;"Lit coffre ETHENA 140x190";140x190;1050.00;1050.00;0;7;;;;;;
+130;174;lit-coffre-ethena-140x200;"Lit coffre ETHENA 140x200";140x200;1050.00;1050.00;0;7;;;;;;
+130;175;lit-coffre-ethena-180x200;"Lit coffre ETHENA 180x200";180x200;1200.00;1200.00;0;7;;;;;;
+131;131;lit-coffre-florida-160x200;"Lit coffre FLORIDA 160x200";160x200;1020.00;1020.00;0;7;"Lit coffre FLORIDA";lit-coffre-florida;"Florida — Lit coffre à joncs dorés croisés | Brillance Home";"Lit coffre Florida : tête de lit encadrée parcourue de joncs dorés entrecroisés, pieds effilés. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace378548e24008526131.jpg;02-6ace378565e68535900895.jpg
+131;176;lit-coffre-florida-140x190;"Lit coffre FLORIDA 140x190";140x190;1020.00;1020.00;0;7;;;;;;
+131;177;lit-coffre-florida-140x200;"Lit coffre FLORIDA 140x200";140x200;1020.00;1020.00;0;7;;;;;;
+131;178;lit-coffre-florida-180x200;"Lit coffre FLORIDA 180x200";180x200;1155.00;1155.00;0;7;;;;;;
+51;51;lit-coffre-genova-160x200;"Lit coffre GENOVA 160x200";160x200;855.00;855.00;0;8;"Lit coffre GENOVA";lit-coffre-genova;"Genova — Lit coffre tête de lit à oreilles | Brillance Home";"Lit coffre Genova : grand rangement, tête de lit à oreilles godronnée et socle assorti. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-8440-6ab3ce1039925296372082-3b4a655b-6da72f52.jpg;img-8437-6ab3ce5c31971805346733-cd0a615c-e340ae04.jpg
+51;49;lit-coffre-genova-140x190;"Lit coffre GENOVA 140x190";140x190;855.00;855.00;0;8;;;;;;
+51;50;lit-coffre-genova-140x200;"Lit coffre GENOVA 140x200";140x200;855.00;855.00;0;8;;;;;;
+51;52;lit-coffre-genova-180x200;"Lit coffre GENOVA 180x200";180x200;960.00;960.00;0;8;;;;;;
+43;43;lit-coffre-gold-160x200;"Lit coffre GOLD 160x200";160x200;855.00;855.00;3;6;"Lit coffre GOLD";lit-coffre-gold;"Gold — Lit coffre aux finitions dorées | Brillance Home";"Lit coffre Gold : grand rangement, tête de lit à arcs capitonnés et finitions dorées. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-8946-6ab3b433af656490003681-1b6bb8c2-b85ee62b.jpg;img-8944-6ab3b47e43a4e042580627-281d883f-71011d61.jpg
+43;41;lit-coffre-gold-140x190;"Lit coffre GOLD 140x190";140x190;855.00;855.00;0;6;;;;;;
+43;42;lit-coffre-gold-140x200;"Lit coffre GOLD 140x200";140x200;855.00;855.00;0;6;;;;;;
+43;44;lit-coffre-gold-180x200;"Lit coffre GOLD 180x200";180x200;960.00;960.00;0;6;;;;;;
+58;58;lit-coffre-hayal-160x200;"Lit Coffre HAYAL 160x200";160x200;795.00;795.00;0;7;"Lit Coffre HAYAL";lit-coffre-hayal;"Hayal — Lit coffre capitonné | Brillance Home";"Lit coffre Hayal : grand rangement et tête de lit capitonnée à larges carreaux. Tissu et coloris au choix, sans supplément. Showroom à Bordeaux.";img-8572-6ab4d922def4d842492382-74befc27-d67bf27e.jpg;img-8571-6ab4d972c14ed909472648-0dc4b68b-8a69edbf.jpg
+58;56;lit-coffre-hayal-140x190;"Lit Coffre HAYAL 140x190";140x190;795.00;795.00;0;7;;;;;;
+58;57;lit-coffre-hayal-140x200;"Lit Coffre HAYAL 140x200";140x200;795.00;795.00;0;7;;;;;;
+58;59;lit-coffre-hayal-180x200;"Lit Coffre HAYAL 180x200";180x200;900.00;900.00;0;7;;;;;;
+53;53;lit-coffre-hera-single-90x190;"Lit coffre HERA SINGLE 90x190";90x190;480.00;480.00;0;7;"Lit coffre HERA SINGLE";lit-coffre-hera-single;"Hera Single - Lit coffre 1 place | Brillance Home";"Lit coffre - 1 place Hera Single : rangement sous tout le couchage, tête de lit à blocs rembourrés et liserés dorés. Tissu au choix. Showroom à Bordeaux.";img-8908-6ab3d7ac83425448187814.jpg;img-8922-6ab3d8f479ae8225666019.jpg
+53;54;lit-coffre-hera-single-100x190;"Lit coffre HERA SINGLE 100x190";100x190;495.00;495.00;0;7;;;;;;
+53;55;lit-coffre-hera-single-120x190;"Lit coffre HERA SINGLE 120x190";120x190;600.00;600.00;0;7;;;;;;
+84;84;lit-coffre-infinity-160x200;"Lit coffre INFINITY 160x200";160x200;930.00;930.00;0;8;"Lit coffre INFINITY";lit-coffre-infinity;"Lit coffre Infinity Tête rembourrée & liseuses Brillance Home";"Lit coffre Infinity : tête de lit capitonnée, liseuses LED intégrées, tissu texturé gris, double rangement. À découvrir au showroom Brillance Home Bordeaux.";img-8177-6ab532722bf90567826871-f38a8522-e2dc8a8b.jpg;img-8212-6ab5343795892259786491-330ac41f-fa8cfeac.jpg
+84;82;lit-coffre-infinity-140x190;"Lit coffre INFINITY 140x190";140x190;930.00;930.00;0;8;;;;;;
+84;83;lit-coffre-infinity-140x200;"Lit coffre INFINITY 140x200";140x200;930.00;930.00;0;8;;;;;;
+84;85;lit-coffre-infinity-180x200;"Lit coffre INFINITY 180x200";180x200;1050.00;1050.00;0;8;;;;;;
+100;100;lit-coffre-jumbo-160x200;"Lit coffre JUMBO 160x200";160x200;899.00;899.00;0;7;"Lit coffre JUMBO";lit-coffre-jumbo;"Jumbo - Lit coffre à tête de lit cannelée | Brillance Home";"Lit coffre Jumbo : sommier relevable sur vérins, tête de lit à fines cannelures verticales, pieds chromés. Tissu et coloris au choix. Showroom à Bordeaux.";img-9249-6abf90a1000e6751314592-9bfeb3b5-3f900ebe.jpg;img-9247-6abf912a1c272614584614-65a7d923-672b1a8c.jpg
+100;98;lit-coffre-jumbo-140x190;"Lit coffre JUMBO 140x190";140x190;899.00;899.00;0;7;;;;;;
+100;99;lit-coffre-jumbo-140x200;"Lit coffre JUMBO 140x200";140x200;899.00;899.00;0;7;;;;;;
+100;101;lit-coffre-jumbo-180x200;"Lit coffre JUMBO 180x200";180x200;999.00;999.00;0;7;;;;;;
+96;96;lit-coffre-king-160x200;"Lit coffre KING 160x200";160x200;720.00;720.00;0;7;"Lit coffre KING";lit-coffre-king;"King — Lit coffre à tête de lit à blocs | Brillance Home";"Lit coffre King : grand rangement et haute tête de lit à blocs rembourrés décalés. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-8997-6abf5bccd633f169483427-5c0ad947-592956f8.jpg;img-8994-6abf5d509d1ac314951642-08e1d8d4-52496a32.jpg
+96;94;lit-coffre-king-140x190;"Lit coffre KING 140x190";140x190;720.00;720.00;0;7;;;;;;
+96;95;lit-coffre-king-140x200;"Lit coffre KING 140x200";140x200;720.00;720.00;0;7;;;;;;
+96;97;lit-coffre-king-180x200;"Lit coffre KING 180x200";180x200;720.00;720.00;0;7;;;;;;
+92;92;lit-coffre-kristal-160x200;"Lit coffre KRISTAL 160x200";160x200;1050.00;1050.00;0;7;"Lit coffre KRISTAL";lit-coffre-kristal;"Kristal — Lit coffre à tête de lit sculptée | Brillance Home";"Lit coffre Kristal : grand rangement et tête de lit sculptée à liserés dorés. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-8970-6abe6426e3bd5720407596-7bf83242-343c6fd7.jpg;img-8969-6abe646e3ba53828874905-c498f2c3-f00543ce.jpg
+92;90;lit-coffre-lina-140x190-90;"Lit coffre KRISTAL 140x190";140x190;1050.00;1050.00;0;7;;;;;;
+92;91;lit-coffre-kristal-140x200;"Lit coffre KRISTAL 140x200";140x200;1050.00;1050.00;0;7;;;;;;
+92;93;lit-coffre-kristal-180x200;"Lit coffre KRISTAL 180x200";180x200;1185.00;1185.00;0;7;;;;;;
+88;88;lit-coffre-lina-160x200;"Lit Coffre LINA 160x200";160x200;885.00;885.00;0;8;"Lit Coffre LINA";lit-coffre-lina;"Lina — Lit coffre à liseuses intégrées | Brillance Home";"Lit coffre Lina : grand rangement et tête de lit à deux liseuses intégrées. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-8348-6abe578eb5963484938332-3285793e-083c797d.jpg;img-8377-6abe5858195e9087085068-84b83aa5-0ea6329e.jpg
+88;86;lit-coffre-lina-140x190;"Lit Coffre LINA 140x190";140x190;885.00;885.00;0;8;;;;;;
+88;87;lit-coffre-lina-140x200;"Lit Coffre LINA 140x200";140x200;885.00;885.00;0;8;;;;;;
+88;89;lit-coffre-lina-180x200;"Lit Coffre LINA 180x200";180x200;1005.00;1005.00;0;8;;;;;;
+132;132;lit-coffre-lion-160x200;"Lit coffre LION 160x200";160x200;825.00;825.00;0;7;"Lit coffre LION";lit-coffre-lion;"Lion — Lit coffre à bandes obliques | Brillance Home";"Lit coffre Lion : tête de lit droite à surpiqûres en diagonale, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace378e24709594890440.jpg;02-6ace378e425ce089034087.jpg
+132;179;lit-coffre-lion-140x190;"Lit coffre LION 140x190";140x190;825.00;825.00;0;7;;;;;;
+132;180;lit-coffre-lion-140x200;"Lit coffre LION 140x200";140x200;825.00;825.00;0;7;;;;;;
+132;181;lit-coffre-lion-180x200;"Lit coffre LION 180x200";180x200;930.00;930.00;0;7;;;;;;
+133;133;lit-coffre-madrid-160x200;"Lit coffre MADRID 160x200";160x200;1020.00;1020.00;0;7;"Lit coffre MADRID";lit-coffre-madrid;"Madrid — Lit coffre à tête de lit extra-large | Brillance Home";"Lit coffre Madrid : tête de lit extra-large qui déborde de chaque côté du lit, sommier relevable. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace3797be9b1921882867.jpg;02-6ace3797dcf76679555691.jpg
+133;182;lit-coffre-madrid-140x190;"Lit coffre MADRID 140x190";140x190;1020.00;1020.00;0;7;;;;;;
+133;183;lit-coffre-madrid-140x200;"Lit coffre MADRID 140x200";140x200;1020.00;1020.00;0;7;;;;;;
+133;184;lit-coffre-madrid-180x200;"Lit coffre MADRID 180x200";180x200;1155.00;1155.00;0;7;;;;;;
+134;134;lit-coffre-mistral-160x200;"Lit coffre MISTRAL 160x200";160x200;1200.00;1200.00;0;7;"Lit coffre MISTRAL";lit-coffre-mistral;"Mistral — Lit coffre à tête en éventail | Brillance Home";"Lit coffre Mistral : tête de lit en éventail aux sommets arrondis, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace37c4873ec576906931.jpg;02-6ace37c4a61d5499653818.jpg
+134;185;lit-coffre-mistral-140x190;"Lit coffre MISTRAL 140x190";140x190;1125.00;1125.00;0;7;;;;;;
+134;186;lit-coffre-mistral-140x200;"Lit coffre MISTRAL 140x200";140x200;1125.00;1125.00;0;7;;;;;;
+134;187;lit-coffre-mistral-180x200;"Lit coffre MISTRAL 180x200";180x200;1350.00;1350.00;0;7;;;;;;
+146;146;lit-coffre-mistral-single-90x190;"Lit coffre MISTRAL SINGLE 90x190";90x190;465.00;465.00;0;7;"Lit coffre MISTRAL SINGLE";lit-coffre-mistral-single;"Mistral Single — Lit coffre en éventail | Brillance Home";"Lit coffre Mistral Single 1 place : tête de lit en éventail, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace39c8af27c443886544.jpg;02-6ace39c8cda96568046282.jpg
+146;218;lit-coffre-mistral-single-100x190;"Lit coffre MISTRAL SINGLE 100x190";100x190;480.00;480.00;0;7;;;;;;
+146;219;lit-coffre-mistral-single-120x190;"Lit coffre MISTRAL SINGLE 120x190";120x190;570.00;570.00;0;7;;;;;;
+135;135;lit-coffre-moonrest-160x200;"Lit coffre MOONREST 160x200";160x200;855.00;855.00;0;7;"Lit coffre MOONREST";lit-coffre-moonrest;"Moonrest — Lit coffre à tête en corolle | Brillance Home";"Lit coffre Moonrest : tête de lit en corolle à cinq lobes, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace37cd3f3e1527727131.jpg;02-6ace37cd5be3e682380256.jpg
+135;188;lit-coffre-moonrest-140x190;"Lit coffre MOONREST 140x190";140x190;855.00;855.00;0;7;;;;;;
+135;189;lit-coffre-moonrest-140x200;"Lit coffre MOONREST 140x200";140x200;855.00;855.00;0;7;;;;;;
+135;190;lit-coffre-moonrest-180x200;"Lit coffre MOONREST 180x200";180x200;930.00;930.00;0;7;;;;;;
+136;136;lit-coffre-pandora-160x200;"Lit coffre PANDORA 160x200";160x200;1155.00;1155.00;0;7;"Lit coffre PANDORA";lit-coffre-pandora;"Pandora — Lit coffre à tête ovale lumineuse | Brillance Home";"Lit coffre Pandora : tête de lit ovale cernée d'un éclairage LED, cadre aux flancs bombés. Tissu et coloris au choix. Showroom à Bordeaux.";01b-6ace7ffbc0fb1811928374.jpg;02-6ace37d648137696601156.jpg
+136;191;lit-coffre-pandora-140x190;"Lit coffre PANDORA 140x190";140x190;1155.00;1155.00;0;7;;;;;;
+136;192;lit-coffre-pandora-140x200;"Lit coffre PANDORA 140x200";140x200;1155.00;1155.00;0;7;;;;;;
+136;193;lit-coffre-pandora-180x200;"Lit coffre PANDORA 180x200";180x200;1305.00;1305.00;0;7;;;;;;
+137;137;lit-coffre-paris-160x200;"Lit coffre PARIS 160x200";160x200;1155.00;1155.00;0;7;"Lit coffre PARIS";lit-coffre-paris;"Paris — Lit coffre à quatre panneaux | Brillance Home";"Lit coffre Paris : tête de lit à quatre panneaux verticaux, cadre et pied de lit segmentés. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace38061e90d362467692.jpg;02-6ace38063c2aa187920220.jpg
+137;194;lit-coffre-paris-140x190;"Lit coffre PARIS 140x190";140x190;1155.00;1155.00;0;7;;;;;;
+137;195;lit-coffre-paris-140x200;"Lit coffre PARIS 140x200";140x200;1155.00;1155.00;0;7;;;;;;
+137;196;lit-coffre-paris-180x200;"Lit coffre PARIS 180x200";180x200;1320.00;1320.00;0;7;;;;;;
+39;39;lit-coffre-parma-160x200;"Lit coffre PARMA 160x200";160x200;690.00;690.00;0;6;"Lit coffre PARMA";lit-coffre-parma;"Parma — Lit coffre à sommier relevable | Brillance Home";"Lit coffre Parma : sommier relevable en deux parties et tête de lit rembourrée à bandes horizontales. Tissu et coloris au choix. Showroom à Bordeaux.";img-8741-6ab304b135ea1948268713-f2011379-82a196ea.jpg;img-8740-6ab304d58424b083698715-9617ae0a-461d40fe.jpg
+39;34;lit-coffre-parma-140x190;"Lit coffre PARMA 140x190";140x190;690.00;690.00;0;6;;;;;;
+39;38;lit-coffre-parma-140x200;"Lit coffre PARMA 140x200";140x200;690.00;690.00;0;6;;;;;;
+39;40;lit-coffre-parma-180x200;"Lit coffre PARMA 180x200";180x200;780.00;780.00;0;6;;;;;;
+145;145;lit-coffre-parma-single-90x190;"Lit coffre PARMA SINGLE 90x190";90x190;390.00;390.00;0;6;"Lit coffre PARMA SINGLE";lit-coffre-parma-single;"Parma Single — Lit coffre à deux bandes | Brillance Home";"Lit coffre Parma Single 1 place : tête de lit encadrée à deux bandes horizontales, pieds chromés. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace39c0b51c0224385105.jpg;02-6ace39c0d3523689836731.jpg
+145;216;lit-coffre-parma-single-100x190;"Lit coffre PARMA SINGLE 100x190";100x190;405.00;405.00;0;6;;;;;;
+145;217;lit-coffre-parma-single-120x190;"Lit coffre PARMA SINGLE 120x190";120x190;495.00;495.00;0;6;;;;;;
+47;47;lit-coffre-petek-160x200;"Lit coffre PETEK 160x200";160x200;795.00;795.00;0;8;"Lit coffre PETEK";lit-coffre-petek;"Petek — Lit coffre à tête de lit godronnée | Brillance Home";"Lit coffre Petek : grand rangement, tête de lit godronnée et socle assorti sur pieds chromés. Tissu et coloris au choix. Showroom à Bordeaux.";img-9303-6ab3bfd3dc638559367092-bf233347-433f637b.jpg;img-9327-6ab3c08c93125852042531-30311294-fd3a56e4.jpg
+47;45;lit-coffre-petek-140x190;"Lit coffre PETEK 140x190";140x190;795.00;795.00;0;8;;;;;;
+47;46;lit-coffre-petek-140x200;"Lit coffre PETEK 140x200";140x200;795.00;795.00;0;8;;;;;;
+47;48;lit-coffre-petek-180x200;"Lit coffre PETEK 180x200";180x200;885.00;885.00;0;8;;;;;;
+27;27;lit-coffre-platin-avec-led-et-recharge-sans-fil-160-200;"Lit Coffre PLATIN avec LED et recharge sans fil 160x200";160x200;1455.00;1455.00;0;8;"Lit Coffre PLATIN avec LED et recharge sans fil";lit-coffre-platin-avec-led-et-recharge-sans-fil;"Platin — Lit coffre LED à recharge sans fil | Brillance Home";"Lit coffre Platin : grand rangement, recharge sans fil et lumière LED tactile. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-8630-6ab27e6af1bdd668410822-7582e21f.jpg;img-8629-6ab27faa5ed26660471060-1bbb5722.jpg
+27;29;lit-coffre-platin-avec-led-et-recharge-sans-fil-140-190;"Lit Coffre PLATIN avec LED et recharge sans fil 140x190";140x190;1455.00;1455.00;0;8;;;;;;
+27;26;lit-coffre-platin-avec-led-et-recharge-sans-fil-140-200;"Lit Coffre PLATIN avec LED et recharge sans fil 140x200";140x200;1455.00;1455.00;0;8;;;;;;
+27;28;lit-coffre-platin-avec-led-et-recharge-sans-fil-180-200-copie;"Lit Coffre PLATIN avec LED et recharge sans fil 180*200";180x200;1620.00;1620.00;0;8;;;;;;
+30;30;lit-coffre-platinium-160x200;"Lit coffre PLATINIUM 160x200";160x200;899.00;899.00;1;6;"Lit coffre PLATINIUM";lit-coffre-platinium;"Platinium — Lit coffre à tête de lit haute | Brillance Home";"Lit coffre Platinium : grand rangement sous le sommier et haute tête de lit matelassée. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-8291-6ab2fb2cf0e80688055419.jpg;img-8316-6ab2fbc54c2e9194850218.jpg
+30;33;lit-coffre-platinium-140x190;"Lit coffre PLATINIUM 140x190";140x190;899.00;899.00;1;6;;;;;;
+30;31;lit-coffre-platinium-140x200;"Lit coffre PLATINIUM 140X200";140x200;899.00;899.00;0;6;;;;;;
+30;32;lit-coffre-platinium-180x200;"Lit coffre PLATINIUM 180x200";180x200;999.00;999.00;0;6;;;;;;
+60;60;lit-coffre-prestij-single-90x190;"Lit coffre PRESTIJ SINGLE 90x190";90x190;585.00;585.00;0;7;"Lit coffre PRESTIJ SINGLE";lit-coffre-prestij-single;"Prestij — Lit coffre - 1 place à liseré doré | Brillance Home";"Lit coffre - 1 place Prestij : rangement sous tout le couchage, tête de lit à liseré doré et pieds dorés. Tissu au choix. Showroom à Bordeaux.";img-9229-6ab4de1e8ccb1687500206.jpg;img-9244-6ab4de6ab523d206064657.jpg
+60;61;lit-coffre-prestij-single-100x190;"Lit coffre PRESTIJ SINGLE 100x190";100x190;615.00;615.00;0;7;;;;;;
+60;62;lit-coffre-prestij-single-120x190;"Lit coffre PRESTIJ SINGLE 120x190";120x190;735.00;735.00;0;7;;;;;;
+65;65;lit-coffre-roma-160x200;"Lit coffre ROMA 160x200";160x200;1305.00;1305.00;0;8;"Lit coffre ROMA";lit-coffre-roma;"Roma — Lit coffre à cadre rembourré | Brillance Home";"Lit coffre Roma : cadre rembourré arrondi qui entoure le matelas, tête de lit festonnée. Tissu et coloris au choix. À voir en showroom à Bordeaux.";img-9163-6ab4e9c055dce284591022-fead8f78-a58990d4.jpg;img-9161-6ab4e9e79c1ad458314459-eeec1ee1-1f9c3228.jpg
+65;63;lit-coffre-roma-140x190;"Lit coffre ROMA 140x190";140x190;1305.00;1305.00;0;8;;;;;;
+65;64;lit-coffre-roma-140x200;"Lit coffre ROMA 140x200";140x200;1305.00;1305.00;0;8;;;;;;
+65;66;lit-coffre-roma-180x200;"Lit coffre ROMA 180x200";180x200;1470.00;1470.00;0;8;;;;;;
+69;69;lit-coffre-roza-160x200;"Lit coffre ROZA 160x200";160x200;870.00;870.00;0;6;"Lit coffre ROZA";lit-coffre-roza;"Roza — Lit coffre, tête de lit à losanges | Brillance Home";"Lit coffre Roza : grand rangement et haute tête de lit à losanges matelassés. Tissu et coloris au choix, sans supplément. Showroom à Bordeaux.";img-8548-6ab4f11cb8603526660503-e82d484e-33c997c3.jpg;img-8542-6ab4f14dd1852032546224-365b4051-dedd4f22.jpg
+69;67;lit-coffre-roza-140x190;"Lit coffre ROZA 140x190";140x190;870.00;870.00;0;6;;;;;;
+69;68;lit-coffre-roza-140x200;"Lit coffre ROZA 140x200";140x200;870.00;870.00;0;6;;;;;;
+69;70;lit-coffre-roza-180x200;"Lit coffre ROZA 180x200";180x200;975.00;975.00;0;6;;;;;;
+71;71;lit-coffre-serenity-single-90x190;"Lit coffre SERENITY SINGLE 90x190";90x190;525.00;525.00;0;7;"Lit coffre SERENITY SINGLE";lit-coffre-serenity-single;"Serenity Single - Lit coffre, tête en arc | Brillance Home";"Lit coffre Serenity Single : rangement sous le matelas et tête de lit arrondie façon arcade. Tissu au choix sans supplément. Showroom à Bordeaux.";img-9209-6ab50da709faf905812504.jpg;img-9226-6ab5114f6dea7330062991.jpg
+71;72;lit-coffre-serenity-single-100x190;"Lit coffre SERENITY SINGLE 100x190";100x190;540.00;540.00;0;7;;;;;;
+71;73;lit-coffre-serenity-single-120x190;"Lit coffre SERENITY SINGLE 120x190";120x190;630.00;630.00;0;7;;;;;;
+76;76;lit-coffre-siesta-160x200;"Lit Coffre SIESTA 160x200";160x200;990.00;990.00;0;9;"Lit Coffre SIESTA";lit-coffre-siesta;"Siesta — Lit coffre moderne avec LED et USB | Brillance Home";"Lit coffre Siesta : grand espace de rangement, tête de lit à boudins rembourrés, éclairage LED et port USB intégrés. Showroom à Bordeaux.";img-9353-6ab516b978588130410100-ca8372c4-96b1d1d1.jpg;img-9352-6ab517242a1ca573557047-d7b8da5a-6e97af76.jpg
+76;74;lit-coffre-siesta-140x190;"Lit Coffre SIESTA 140x190";140x190;990.00;990.00;0;9;;;;;;
+76;75;lit-coffre-siesta-140x200;"Lit Coffre SIESTA 140x200";140x200;990.00;990.00;0;9;;;;;;
+76;77;lit-coffre-siesta-180x200;"Lit Coffre SIESTA 180x200";180x200;1125.00;1125.00;0;9;;;;;;
+147;147;lit-coffre-siesta-single-90x190;"Lit coffre SIESTA SINGLE 90x190";90x190;585.00;585.00;0;7;"Lit coffre SIESTA SINGLE";lit-coffre-siesta-single;"Siesta Single — Lit coffre à tête de lit LED | Brillance Home";"Lit coffre Siesta Single 1 place : tête de lit à trois boudins et listel LED, sommier relevable. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace39d1091cf686228390.jpg;02-6ace39d127820516955395.jpg
+147;220;lit-coffre-siesta-single-100x190;"Lit coffre SIESTA SINGLE 100x190";100x190;600.00;600.00;0;7;;;;;;
+147;221;lit-coffre-siesta-single-120x190;"Lit coffre SIESTA SINGLE 120x190";120x190;705.00;705.00;0;7;;;;;;
+80;80;lit-coffre-sleepnova-160x200;"Lit coffre SLEEPNOVA 160x200";160x200;825.00;825.00;0;7;"Lit coffre SLEEPNOVA";lit-coffre-sleepnova;"Lit coffre Sleepnova Tête arrondie & rangement Brillance Home";"Lit coffre Sleepnova : tête de lit arrondie, tissu chenille texturé marron, grand coffre double rangement. À découvrir au showroom Brillance Home Bordeaux.";img-9419-6ab52b52b0677084005349-065d0b26-4514bff2.jpg;img-9439-6ab52d375e7aa820274560-fa526e04-34cd7a95.jpg
+80;78;lit-coffre-sleepnova-140x190;"Lit coffre SLEEPNOVA 140x190";140x190;825.00;825.00;0;7;;;;;;
+80;79;lit-coffre-sleepnova-140x200;"Lit coffre SLEEPNOVA 140x200";140x200;825.00;825.00;0;7;;;;;;
+80;81;lit-coffre-sleepnova-180x200;"Lit coffre SLEEPNOVA 180x200";180x200;930.00;930.00;0;7;;;;;;
+148;148;lit-coffre-sleepnova-single-90x190;"Lit coffre SLEEPNOVA SINGLE 90x190";90x190;480.00;480.00;0;7;"Lit coffre SLEEPNOVA SINGLE";lit-coffre-sleepnova-single;"Sleepnova Single — Lit coffre à tête en arche | Brillance Home";"Lit coffre Sleepnova Single 1 place : tête de lit arrondie et encadrée, sommier relevable. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace39f76af56409754009.jpg;02-6ace39f79077e575342596.jpg
+148;222;lit-coffre-sleepnova-single-100x190;"Lit coffre SLEEPNOVA SINGLE 100x190";100x190;495.00;495.00;0;7;;;;;;
+148;223;lit-coffre-sleepnova-single-120x190;"Lit coffre SLEEPNOVA SINGLE 120x190";120x190;600.00;600.00;0;7;;;;;;
+138;138;lit-coffre-sleepwest-160x200;"Lit coffre SLEEPWEST 160x200";160x200;765.00;765.00;0;7;"Lit coffre SLEEPWEST";lit-coffre-sleepwest;"Sleepwest — Lit coffre à tête de lit ondulée | Brillance Home";"Lit coffre Sleepwest : tête de lit basse au contour ondulé, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace380f443be785001883.jpg;02-6ace380f69d38965143264.jpg
+138;197;lit-coffre-sleepwest-140x190;"Lit coffre SLEEPWEST 140x190";140x190;765.00;765.00;0;7;;;;;;
+138;198;lit-coffre-sleepwest-140x200;"Lit coffre SLEEPWEST 140x200";140x200;765.00;765.00;0;7;;;;;;
+138;199;lit-coffre-sleepwest-180x200;"Lit coffre SLEEPWEST 180x200";180x200;855.00;855.00;0;7;;;;;;
+139;139;lit-coffre-terra-160x200;"Lit coffre TERRA 160x200";160x200;990.00;990.00;0;7;"Lit coffre TERRA";lit-coffre-terra;"Terra — Lit coffre à spots de lecture | Brillance Home";"Lit coffre Terra : tête de lit encadrée à deux spots de lecture rétroéclairés, sommier relevable. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace3818b6a66150708133.jpg;02-6ace3818d7cb3247546467.jpg
+139;200;lit-coffre-terra-140x190;"Lit coffre TERRA 140x190";140x190;990.00;990.00;0;7;;;;;;
+139;201;lit-coffre-terra-140x200;"Lit coffre TERRA 140x200";140x200;990.00;990.00;0;7;;;;;;
+139;202;lit-coffre-terra-180x200;"Lit coffre TERRA 180x200";180x200;1125.00;1125.00;0;7;;;;;;
+149;149;lit-coffre-terra-single-90x190;"Lit coffre TERRA SINGLE 90x190";90x190;585.00;585.00;0;7;"Lit coffre TERRA SINGLE";lit-coffre-terra-single;"Terra Single — Lit coffre à spots de lecture | Brillance Home";"Lit coffre Terra Single 1 place : tête de lit à deux spots de lecture encastrés et rétroéclairés. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace39ffa9bca421922895.jpg;02-6ace39ffc7d33983307011.jpg
+149;224;lit-coffre-terra-single-100x190;"Lit coffre TERRA SINGLE 100x190";100x190;600.00;600.00;0;7;;;;;;
+149;225;lit-coffre-terra-single-120x190;"Lit coffre TERRA SINGLE 120x190";120x190;705.00;705.00;0;7;;;;;;
+140;140;lit-coffre-therapy-160x200;"Lit coffre THERAPY 160x200";160x200;825.00;825.00;0;7;"Lit coffre THERAPY";lit-coffre-therapy;"Therapy — Lit coffre à surpiqûres verticales | Brillance Home";"Lit coffre Therapy : tête de lit encadrée à surpiqûres verticales, sommier relevable sur vérins. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace3946a2d80956091820.jpg;02-6ace3946c94c2592728018.jpg
+140;203;lit-coffre-therapy-140x190;"Lit coffre THERAPY 140x190";140x190;825.00;825.00;0;7;;;;;;
+140;204;lit-coffre-therapy-140x200;"Lit coffre THERAPY 140x200";140x200;825.00;825.00;0;7;;;;;;
+140;205;lit-coffre-therapy-180x200;"Lit coffre THERAPY 180x200";180x200;930.00;930.00;0;7;;;;;;
+150;150;lit-coffre-therapy-single-90x190;"Lit coffre THERAPY SINGLE 90x190";90x190;465.00;465.00;0;7;"Lit coffre THERAPY SINGLE";lit-coffre-therapy-single;"Therapy Single — Lit coffre à deux panneaux | Brillance Home";"Lit coffre Therapy Single 1 place : tête de lit encadrée à deux panneaux, sommier relevable. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace3ba0621c3128588732.jpg;02-6ace3ba07e57d793161867.jpg
+150;226;lit-coffre-therapy-single-100x190;"Lit coffre THERAPY SINGLE 100x190";100x190;480.00;480.00;0;7;;;;;;
+150;227;lit-coffre-therapy-single-120x190;"Lit coffre THERAPY SINGLE 120x190";120x190;570.00;570.00;0;7;;;;;;
+151;151;lit-coffre-tiffany-single-90x190;"Lit coffre TIFFANY SINGLE 90x190";90x190;495.00;495.00;0;7;"Lit coffre TIFFANY SINGLE";lit-coffre-tiffany-single;"Tiffany Single — Lit coffre en demi-lune | Brillance Home";"Lit coffre Tiffany Single 1 place : tête de lit en demi-lune rainurée, sommier relevable. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace3bb93db14190155958.jpg;02-6ace3bb960ee1282580951.jpg
+151;228;lit-coffre-tiffany-single-100x190;"Lit coffre TIFFANY SINGLE 100x190";100x190;510.00;510.00;0;7;;;;;;
+151;229;lit-coffre-tiffany-single-120x190;"Lit coffre TIFFANY SINGLE 120x190";120x190;615.00;615.00;0;7;;;;;;
+141;141;lit-coffre-venedik-160x200;"Lit coffre VENEDIK 160x200";160x200;1305.00;1305.00;0;7;"Lit coffre VENEDIK";lit-coffre-venedik;"Venedik — Lit coffre à cadre en boudins | Brillance Home";"Lit coffre Venedik : cadre en gros boudins arrondis et tête de lit à six panneaux verticaux. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace394f2e0b4942362480.jpg;02-6ace394f4bc8c645794367.jpg
+141;206;lit-coffre-venedik-140x190;"Lit coffre VENEDIK 140x190";140x190;1305.00;1305.00;0;7;;;;;;
+141;207;lit-coffre-venedik-140x200;"Lit coffre VENEDIK 140x200";140x200;1305.00;1305.00;0;7;;;;;;
+141;208;lit-coffre-venedik-180x200;"Lit coffre VENEDIK 180x200";180x200;1470.00;1470.00;0;7;;;;;;
+144;144;lit-coffre-verona-90x190;"Lit coffre VERONA 90x190";90x190;450.00;450.00;0;6;"Lit coffre VERONA";lit-coffre-verona;"Verona — Lit coffre à tête de lit à fronton | Brillance Home";"Lit coffre Verona 1 place : tête de lit à fronton cintré aux angles découpés, socle rainuré. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace3992d5fc0459450581.jpg;02-6ace3992f3777073916340.jpg
+144;214;lit-coffre-verona-100x190;"Lit coffre VERONA 100x190";100x190;465.00;465.00;0;6;;;;;;
+144;215;lit-coffre-verona-120x190;"Lit coffre VERONA 120x190";120x190;555.00;555.00;0;6;;;;;;
+231;231;lit-coffre-wool-160x200;"Lit coffre WOOL 160x200";160x200;930.00;930.00;0;8;"Lit coffre WOOL";lit-coffre-wool;"Wool - Lit coffre à tête de lit à bandeau | Brillance Home";"Lit coffre Wool à tête de lit à bandeau et panneaux verticaux, tissu et coloris au choix. À voir dans notre showroom Brillance Home, à Bordeaux.";img-8254-6ac8efcdb4579917473309-75f5dcf5.jpg;img-8283-6ac8effbe8f5a085496328-cafa03cc.jpg
+231;122;lit-coffre-wool-140x190;"Lit Coffre WOOL 140x190";140x190;930.00;930.00;4;8;;;;;;
+231;230;lit-coffre-wool-140x200;"Lit coffre WOOL 140x200";140x200;930.00;930.00;0;8;;;;;;
+231;232;lit-coffre-wool-180x200;"Lit coffre WOOL 180x200";180x200;1050.00;1050.00;0;8;;;;;;
+142;142;lit-coffre-zenpura-160x200;"Lit coffre ZENPURA 160x200";160x200;1215.00;1215.00;0;7;"Lit coffre ZENPURA";lit-coffre-zenpura;"Zenpura — Lit coffre à cadre enveloppant | Brillance Home";"Lit coffre Zenpura : cadre épais enveloppant posé au sol et tête de lit à médaillon surpiqué. Tissu et coloris au choix. Showroom à Bordeaux.";01-6ace398164fce734168769.jpg;02-6ace398184952970459912.jpg
+142;209;lit-coffre-zenpura-140x190;"Lit coffre ZENPURA 140x190";140x190;1215.00;1215.00;0;7;;;;;;
+142;210;lit-coffre-zenpura-140x200;"Lit coffre ZENPURA 140x200";140x200;1215.00;1215.00;0;7;;;;;;
+142;211;lit-coffre-zenpura-180x200;"Lit coffre ZENPURA 180x200";180x200;1365.00;1365.00;0;7;;;;;;

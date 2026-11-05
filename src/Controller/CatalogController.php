@@ -124,6 +124,11 @@ final class CatalogController extends AbstractController
         // Retrouver le produit ACTIF par son slug (ou 404)
         $product = $productRepository->findActiveBySlug($slug);
         if (!$product) {
+            // L'adresse d'une ancienne fiche regroupée dans une variante : redirection définitive vers sa taille
+            $redirect = $productRepository->findRedirectForLegacySlug($slug);
+            if ($redirect) {
+                return $this->redirectToRoute('front_product', ['slug' => $redirect['slug'], 'taille' => $redirect['size']], 301);
+            }
             throw $this->createNotFoundException('Ce produit n\'existe pas.');
         }
 

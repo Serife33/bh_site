@@ -253,12 +253,9 @@ final class ImportCatalogueCommand
         return sprintf('#%06x', imagecolorat($pixel, 0, 0) & 0xFFFFFF);
     }
 
-    // Un prix en euros, point décimal : « 1050 » ou « 1050.50 ».
-    // Vérifié ici : le validateur compare un texte comme « 1 050,00 » à 0 sans signaler que ce n'est pas un nombre.
+    // Un prix en euros, point décimal : « 1050 » ou « 1050.50 »
     private function price(array $row, string $column): string
     {
-        return preg_match('/^\d+(\.\d{1,2})?$/', $row[$column])
-            ? $row[$column]
-            : throw new \RuntimeException(sprintf('%s invalide « %s » : %s, %s, %s.', $column, $row[$column], $row['nom_fournisseur'], $row['taille'], $row['gamme']));
+        return $this->csv->decimal($row, $column, "{$row['nom_fournisseur']}, {$row['taille']}, {$row['gamme']}");
     }
 }

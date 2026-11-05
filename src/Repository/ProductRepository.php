@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Category;
 use App\Entity\Fabric;
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\SubCategory;
 use App\Enum\ProductModular;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -125,6 +126,32 @@ class ProductRepository extends ServiceEntityRepository
         return $slug;
     }
 
+    // Les fiches d'un regroupement et leurs photos, en une requête, indexées par identifiant
+    public function findWithMediaByIds(array $ids): array
+    {
+        return $this->createQueryBuilder('p', 'p.id')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('m')
+            ->andWhere('p.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
+
+    // Toutes les fiches d'une catégorie, masquées comprises, avec leur famille et leurs photos : la liste du regroupement des lits
+    public function findByCategoryWithMedia(Category $category): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.family', 'f')
+            ->leftJoin('p.media', 'm')
+            ->addSelect('f', 'm')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $category)
+            ->orderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // Un produit a-t-il déjà cette adresse ? L'import ne recrée pas un modèle déjà en base.
     public function slugExists(string $slug): bool
     {
@@ -201,6 +228,20 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $product;
+    }
+
+    // L'adresse et la taille de la variante qui a repris une ancienne fiche, si son produit est visible ; sinon null
+    public function findRedirectForLegacySlug(string $slug): ?array
+    {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('p.slug', 'v.size')
+            ->from(ProductVariant::class, 'v')
+            ->join('v.product', 'p')
+            ->andWhere('v.legacySlug = :slug')
+            ->andWhere('p.isActive = true')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findSimilar(Product $product, int $limit = 4): array

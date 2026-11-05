@@ -14,6 +14,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 class ProductVariant
 {
+    // Une taille écrite dans un texte, avec l'espace qui la précède : « 140x190 », « 140X200 », « 180*200 »
+    public const SIZE_IN_TEXT = '\s*(?<!\d)(\d{2,3})\s*[x×X*]\s*(\d{2,3})(?!\d)';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -162,6 +165,13 @@ class ProductVariant
         $this->legacySlug = $legacySlug;
 
         return $this;
+    }
+
+    // Le texte d'une fiche regroupée, qui vend toutes les tailles : la sienne en disparaît (« Lit coffre CLOUDY 160x200 » devient
+    // « Lit coffre CLOUDY »). Collée au mot suivant (« 160x200à cadre »), elle laisse une espace à sa place.
+    public static function withoutSize(?string $text): ?string
+    {
+        return $text === null ? null : preg_replace(['/' . self::SIZE_IN_TEXT . '(?=\p{L})/u', '/' . self::SIZE_IN_TEXT . '/u'], [' ', ''], $text);
     }
 
     // Ce qui distingue deux variantes d'un même produit : sa taille et sa matière (contrainte Unique de Product::$variants)
