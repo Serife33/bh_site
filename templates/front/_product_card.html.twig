@@ -1,16 +1,18 @@
 
-{# Carte produit réutilisable. Attend une variable "product". #}
+{# Carte produit réutilisable. Attend une variable "product", et en_avant (facultatif) pour la grande carte : photo en grand format et bouton. #}
+{% set en_avant = en_avant|default(false) %}
+{% set format = en_avant ? 'galerie' : 'vignette' %}
 <a href="{{ path('front_product', { slug: product.slug }) }}" class="pcard">
     <div class="pcard-photo">
         {% set photo = product.mainMedia %}
         {% set survol = product.hoverMedia %}
         {% if photo %}
-            <img src="{{ vich_uploader_asset(photo, 'imageFile') | imagine_filter('vignette') }}"
+            <img src="{{ vich_uploader_asset(photo, 'imageFile') | imagine_filter(format) }}"
                  alt="{{ photo.alt ?? product.name }}" loading="lazy">
             {% if survol %}
                 {# Décorative : la première image porte déjà la description du produit #}
                 <img class="pcard-survol"
-                     src="{{ vich_uploader_asset(survol, 'imageFile') | imagine_filter('vignette') }}"
+                     src="{{ vich_uploader_asset(survol, 'imageFile') | imagine_filter(format) }}"
                      alt="" aria-hidden="true" loading="lazy">
             {% endif %}
         {% endif %}
@@ -35,5 +37,6 @@
                 {{ product.actualPrice|prix }}
             {% endif %}
         </div>
+        {% if en_avant %}<span class="pcard-voir">Voir le produit</span>{% endif %}
     </div>
 </a>

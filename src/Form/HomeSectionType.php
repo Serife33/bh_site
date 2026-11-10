@@ -31,6 +31,11 @@ class HomeSectionType extends AbstractType
                 'label' => "Section visible sur l'accueil",
                 'required' => false,
             ])
+            ->add('isFeatured', CheckboxType::class, [
+                'label' => "Afficher en grand, en haut de l'accueil",
+                'required' => false,
+                'help' => 'Une bande noire juste sous la grande photo, pensée pour deux produits.',
+            ])
             // Comme les modules d'un ensemble (ProductType) : des pastilles à cocher.
             // HomeSection::addProduct() et removeProduct() tiennent à jour les lignes de liaison.
             ->add('products', EntityType::class, [

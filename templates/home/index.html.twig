@@ -16,6 +16,16 @@
         </div>
     </section>
 
+    {# ===== MISE EN AVANT : les sections cochées « en grand » dans l'admin ===== #}
+    {% for section in sections|filter(s => s.isFeatured) %}
+        {{ include('front/_product_section.html.twig', {
+            titre: section.title,
+            sous_titre: section.subtitle,
+            products: section.products,
+            en_avant: true
+        }) }}
+    {% endfor %}
+
     {# ===== NOS UNIVERS (catégories) : bande qui défile au doigt, flèches à partir de 900 px ===== #}
     <section class="section" id="univers">
         <div class="wrap section-tete">
@@ -52,7 +62,8 @@
     {# ===== PRODUITS : les sections choisies dans l'admin, entrecoupées des blocs fixes ===== #}
     {# Réassurance après la 1re section, expertise après la 2e. Avec moins de sections, les blocs restants suivent. #}
     {% set blocs = ['front/_reassurance.html.twig', 'front/_expertise.html.twig'] %}
-    {% for section in sections %}
+    {% set rangees = sections|filter(s => not s.isFeatured) %}
+    {% for section in rangees %}
         {{ include('front/_product_section.html.twig', {
             titre: section.title,
             sous_titre: section.subtitle,
@@ -61,7 +72,7 @@
 
         {% if blocs[loop.index0] is defined %}{{ include(blocs[loop.index0]) }}{% endif %}
     {% endfor %}
-    {% for bloc in blocs|slice(sections|length) %}{{ include(bloc) }}{% endfor %}
+    {% for bloc in blocs|slice(rangees|length) %}{{ include(bloc) }}{% endfor %}
 
     {{ include('front/_showroom.html.twig') }}
 

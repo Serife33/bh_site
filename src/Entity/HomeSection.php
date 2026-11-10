@@ -33,6 +33,10 @@ class HomeSection
     #[ORM\Column]
     private ?bool $isVisible = true;
 
+    // Affichée en grand, en bande noire sous la photo de l'accueil, au lieu de prendre sa place parmi les sections
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isFeatured = false;
+
     /**
      * Les produits avec leur rang : une ManyToMany ne garderait pas l'ordre, d'où l'entité de liaison.
      *
@@ -96,6 +100,18 @@ class HomeSection
     public function setIsVisible(bool $isVisible): static
     {
         $this->isVisible = $isVisible;
+
+        return $this;
+    }
+
+    public function isFeatured(): bool
+    {
+        return $this->isFeatured;
+    }
+
+    public function setIsFeatured(bool $isFeatured): static
+    {
+        $this->isFeatured = $isFeatured;
 
         return $this;
     }

@@ -297,6 +297,26 @@ b, strong, th { font-weight: 500; }
 .pcard-price del, .pcard-from { color: var(--txt2); font-weight: 400; }
 .pcard-price del { margin-left: 8px; }
 
+/* ===== MISE EN AVANT : la section cochée « en grand » de l'accueil, de grandes cartes sur la bande noire ===== */
+.avant { padding: clamp(36px, 5vw, 64px) 0; }
+.avant .section-head { margin-bottom: clamp(18px, 2.4vw, 32px); }
+.avant .section-head h2 { margin-bottom: 0; font-size: clamp(1.75rem, 3.4vw, 2.75rem); }
+.avant .section-head p { margin-top: 6px; color: rgba(255,255,255,.78); font-size: .95rem; }
+.avant .grid-produits { grid-template-columns: minmax(0, 1fr); gap: var(--gouttiere); }
+.avant .pcard { background: #26241F; }
+.avant .pcard-badge.stock { color: var(--txt); }   /* sinon le blanc de la bande, illisible sur le badge clair */
+.avant .pcard-info { display: grid; justify-items: start; margin-top: 0; padding: 18px 20px; }
+.avant .pcard-name { font-size: 1.15rem; font-weight: 500; }
+.avant .pcard-price { font-size: 1.5rem; font-weight: 600; }
+.avant .pcard-price .promo { color: #fff; }
+.avant .pcard-price del, .avant .pcard-from { color: #A9A29A; font-size: .95rem; }
+.pcard-voir { margin-top: 10px; padding: 12px 18px; background: #fff; color: var(--txt); font-size: .875rem; font-weight: 600; white-space: nowrap; }
+@media (min-width: 768px) {
+  .avant .grid-produits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .avant .pcard-info { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 16px; }
+  .pcard-voir { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+}
+
 
 
 /* ===== RÉASSURANCE ===== */

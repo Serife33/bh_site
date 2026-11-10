@@ -95,6 +95,35 @@ final class HomeSectionControllerTest extends WebTestCase
         self::assertSelectorExists('section.dark');
     }
 
+    public function testFeaturedSectionShowsInTheBlackBandRightUnderTheHero(): void
+    {
+        foreach (static::getContainer()->get(HomeSectionRepository::class)->findForIndex() as $section) {
+            $section->setIsVisible(false);
+        }
+        $category = (new Category())->setName('Catégorie test');
+        $this->em->persist($category);
+        $bed = $this->product('Test lit', $category);
+        $this->logIn();
+
+        $form = $this->client->request('GET', '/admin/home-section/new')->selectButton('Enregistrer')->form();
+        $values = $form->getPhpValues();
+        $values['home_section']['title'] = 'Spécial test';
+        $values['home_section']['isFeatured'] = '1';
+        $values['home_section']['products'] = [$bed->getId()];
+        $this->client->request('POST', $form->getUri(), $values);
+        self::assertResponseRedirects();
+
+        $crawler = $this->client->request('GET', '/');
+        self::assertSame('Spécial test', $crawler->filter('.hero + section.avant h2')->text());
+        self::assertSame('Test lit', $crawler->filter('.avant .pcard-name')->text());
+        self::assertSelectorTextContains('.avant .pcard', 'Voir le produit');
+        self::assertCount(1, $crawler->filter('.pcard'));   // elle ne reprend pas sa place parmi les sections
+
+        // Elle ne compte pas parmi les sections : les blocs fixes restent tous affichés
+        self::assertSelectorExists('.reassu');
+        self::assertSelectorExists('section.dark:not(.avant)');
+    }
+
     private function product(string $name, Category $category): Product
     {
         $product = (new Product())
