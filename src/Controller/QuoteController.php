@@ -8,6 +8,7 @@ use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
+use App\Enum\InvoiceType;
 use App\Enum\ProductModular;
 use App\Enum\QuoteStatus;
 use App\Form\QuoteType;
@@ -209,6 +210,7 @@ final class QuoteController extends AbstractController
             'quote'   => $quote,
             'totaux'  => $this->calculator->totals($quote),
             'invoice' => $invoiceRepository->findOneForQuote($quote),
+            'balance' => $invoiceRepository->findOneForQuote($quote, InvoiceType::Balance),
         ]);
     }
 

@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
+use App\Enum\InvoiceType;
 use App\Repository\InvoiceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-// La facture d'acompte d'un devis accepté (la facture de solde et les avoirs viendront ensuite).
+// La facture d'acompte ou de solde d'un devis accepté (les avoirs viendront ensuite).
 // Brouillon tant qu'elle n'a pas de numéro : elle se supprime. Émise, elle ne se modifie ni ne se supprime plus,
 // et ses numéros se suivent sans trou : une erreur se corrigera par un avoir.
 #[ORM\Entity(repositoryClass: InvoiceRepository::class)]
@@ -24,7 +25,10 @@ class Invoice
     #[ORM\JoinColumn(nullable: false)]
     private Quote $quote;
 
-    // Attribué à l'émission (DocumentCounterRepository)
+    #[ORM\Column(enumType: InvoiceType::class, options: ['default' => 'deposit'])]
+    private InvoiceType $type;
+
+    // Attribué à l'émission (DocumentCounterRepository), dans une seule suite pour l'acompte et le solde
     #[ORM\Column(length: 20, unique: true, nullable: true)]
     private ?string $number = null;
 
@@ -38,10 +42,16 @@ class Invoice
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $customerAddress;
 
-    public function __construct(Quote $quote)
+    public function __construct(Quote $quote, InvoiceType $type = InvoiceType::Deposit)
     {
         $this->quote = $quote;
+        $this->type = $type;
         $this->copyCustomer();
+    }
+
+    public function getType(): InvoiceType
+    {
+        return $this->type;
     }
 
     public function issue(string $number, \DateTimeImmutable $issuedAt): void

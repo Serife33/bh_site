@@ -5,8 +5,9 @@
 {% set tva = doc.taux(quote.vatRate) %}
 {# L'acompte demandé : le taux du devis, ou le montant saisi par le vendeur #}
 {% set acompte_demande = quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) %}
+{% set solde = invoice.type.value == 'balance' %}
 
-{% block title %}Facture d'acompte {{ invoice.number ?? 'brouillon' }}{% endblock %}
+{% block title %}{{ invoice.type.label }} {{ invoice.number ?? 'brouillon' }}{% endblock %}
 
 {% block retour %}{{ path('app_quote_print', {id: quote.id}) }}{% endblock %}
 
@@ -27,12 +28,13 @@
 {% endblock %}
 
 {% block document %}
-    <h1 class="long">Facture d'acompte</h1>
+    <h1 class="long">{{ invoice.type.label }}</h1>
     <dl>
         <dt>Numéro</dt><dd>{{ invoice.number ?? 'Brouillon, attribué à l\'émission' }}</dd>
         <dt>Date d'émission</dt><dd>{{ invoice.issuedAt ? invoice.issuedAt|date_longue : 'Pas encore émise' }}</dd>
         <dt>Devis de référence</dt><dd>{{ quote.number }}</dd>
         <dt>Devis signé le</dt><dd>{{ quote.acceptedAt|date_longue }}</dd>
+        {% if solde %}<dt>Facture d'acompte</dt><dd>{{ acompte.number }}</dd>{% endif %}
     </dl>
 {% endblock %}
 
@@ -58,21 +60,32 @@
     <section class="objet">
         <div>
             <h2 class="titre">Objet</h2>
-            <p>Acompte de {{ acompte_demande }} versé à la commande, selon le devis {{ quote.number }} accepté et signé le {{ quote.acceptedAt|date_longue }}.</p>
-            <p class="reste">Reste à payer {{ doc.reste(quote) }} : <strong>{{ totaux.balance|prix(2) }} TTC</strong> ({{ totaux.balanceHt|prix(2) }} HT, TVA {{ totaux.balanceTva|prix(2) }}), sur la facture de solde.</p>
+            {% if solde %}
+                <p>Solde de la commande, selon le devis {{ quote.number }} accepté et signé le {{ quote.acceptedAt|date_longue }}, après déduction de l'acompte de {{ totaux.deposit|prix(2) }} TTC facturé le {{ acompte.issuedAt|date_longue }} (facture {{ acompte.number }}).</p>
+            {% else %}
+                <p>Acompte de {{ acompte_demande }} versé à la commande, selon le devis {{ quote.number }} accepté et signé le {{ quote.acceptedAt|date_longue }}.</p>
+                <p class="reste">Reste à payer {{ doc.reste(quote) }} : <strong>{{ totaux.balance|prix(2) }} TTC</strong> ({{ totaux.balanceHt|prix(2) }} HT, TVA {{ totaux.balanceTva|prix(2) }}), sur la facture de solde.</p>
+            {% endif %}
         </div>
         <div class="encadre-acompte">
-            <h2>Acompte facturé : {{ doc.taux(totaux.depositShare) }} du total TTC</h2>
+            <h2>{% if solde %}Solde facturé{% else %}Acompte facturé : {{ doc.taux(totaux.depositShare) }} du total TTC{% endif %}</h2>
+            {% set montants_factures = solde
+                ? {ht: totaux.balanceHt, tva: totaux.balanceTva, ttc: totaux.balance}
+                : {ht: totaux.depositHt, tva: totaux.depositTva, ttc: totaux.deposit} %}
             <table>
-                <tr><th>Montant HT</th><td>{{ totaux.depositHt|prix(2) }}</td></tr>
-                <tr><th>TVA {{ tva }}</th><td>{{ totaux.depositTva|prix(2) }}</td></tr>
-                <tr class="ttc"><th>Montant TTC</th><td>{{ totaux.deposit|prix(2) }}</td></tr>
+                {% if solde %}
+                    <tr><th>Total de la commande TTC</th><td>{{ totaux.ttc|prix(2) }}</td></tr>
+                    <tr><th>Acompte déjà facturé TTC</th><td>-{{ totaux.deposit|prix(2) }}</td></tr>
+                {% endif %}
+                <tr><th>Montant HT</th><td>{{ montants_factures.ht|prix(2) }}</td></tr>
+                <tr><th>TVA {{ tva }}</th><td>{{ montants_factures.tva|prix(2) }}</td></tr>
+                <tr class="ttc"><th>Montant TTC</th><td>{{ montants_factures.ttc|prix(2) }}</td></tr>
             </table>
             {% if invoice.issued %}<p class="acquittee">Facture acquittée le {{ invoice.issuedAt|date_longue }}</p>{% endif %}
         </div>
     </section>
 
-    <h2 class="titre">Rappel de la commande (devis {{ quote.number }} du {{ quote.createdAt|date_longue }})</h2>
+    <h2 class="titre">{{ solde ? 'Détail' : 'Rappel' }} de la commande (devis {{ quote.number }} du {{ quote.createdAt|date_longue }})</h2>
     {% set colonneRemise = totaux.discount > 0 or totaux.lines|filter(l => l.discount > 0)|length > 0 %}
     {% set colonnes = colonneRemise ? 6 : 5 %}
     <table class="lignes">
@@ -156,8 +169,8 @@
         <div class="conditions">
             <h2 class="titre">Paiement</h2>
             <dl>
-                <dt>Conditions</dt><dd>Acompte de {{ acompte_demande }} à la signature du devis. Reste à payer {{ doc.reste(quote) }}.</dd>
-                {% if invoice.issued %}<dt>Date de paiement</dt><dd>Acompte réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}
+                <dt>Conditions</dt><dd>Acompte de {{ acompte_demande }} à la signature du devis. {{ solde ? 'Solde payable' : 'Reste à payer' }} {{ doc.reste(quote) }}.</dd>
+                {% if invoice.issued %}<dt>Date de paiement</dt><dd>{{ solde ? 'Solde' : 'Acompte' }} réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}
                 <dt>Escompte</dt><dd>{{ doc.info(company.early_payment) }}</dd>
                 <dt>Retard de paiement</dt><dd>{{ doc.info(company.late_payment) }}</dd>
             </dl>

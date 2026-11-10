@@ -64,7 +64,8 @@
                     <td class="actions">
                         {% if quote.status.value != 'accepted' %}<a href="{{ path('app_quote_edit', {id: quote.id}) }}">Modifier</a>{% endif %}
                         <a href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Imprimer</a>
-                        {% if quote.invoiceId %}<br><a href="{{ path('app_invoice_print', {id: quote.invoiceId}) }}" data-turbo="false">Facture {{ quote.invoiceNumber ?? '(brouillon)' }}</a>{% endif %}
+                        {% if quote.invoiceId %}<br><a href="{{ path('app_invoice_print', {id: quote.invoiceId}) }}" data-turbo="false">Acompte {{ quote.invoiceNumber ?? '(brouillon)' }}</a>{% endif %}
+                        {% if quote.balanceId %}<br><a href="{{ path('app_invoice_print', {id: quote.balanceId}) }}" data-turbo="false">Solde {{ quote.balanceNumber ?? '(brouillon)' }}</a>{% endif %}
                     </td>
                 </tr>
             {% else %}

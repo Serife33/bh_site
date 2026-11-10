@@ -14,6 +14,7 @@ use App\Entity\ProductVariant;
 use App\Entity\Quote;
 use App\Entity\QuoteLine;
 use App\Enum\DiscountType;
+use App\Enum\InvoiceType;
 use App\Enum\ProductModular;
 use App\Enum\ProductSide;
 use App\Enum\QuoteStatus;
@@ -473,6 +474,69 @@ final class QuoteControllerTest extends WebTestCase
         // Le devis qui a une facture ne se supprime plus
         $this->client->submit($this->client->request('GET', '/admin/devis/' . $quote->getId())->selectButton('Supprimer')->form());
         self::assertNotNull($this->em->find(Quote::class, $quote->getId()));
+    }
+
+    // Le solde attend l'émission de l'acompte, le déduit, et continue la même suite de numéros
+    public function testBalanceInvoiceDeductsTheDepositAndContinuesTheNumbering(): void
+    {
+        $quote = $this->quote(QuoteStatus::Accepted);   // une ligne à 100 € : acompte de 30 €, solde de 70 € dont 58,33 € HT
+        $invoices = self::getContainer()->get(InvoiceRepository::class);
+        $this->client->loginUser($this->seller);
+        $quotePage = fn () => $this->client->request('GET', '/admin/devis/' . $quote->getId());
+        $issue = function (Invoice $invoice) use ($invoices): string {
+            $this->client->submit($this->client->request('GET', '/admin/facture/' . $invoice->getId())->selectButton('Émettre la facture')->form());
+
+            return $invoices->find($invoice->getId())->getNumber();
+        };
+
+        $this->client->submit($quotePage()->selectButton("Créer la facture d'acompte")->form());
+        $deposit = $invoices->findOneForQuote($quote);
+        self::assertCount(0, $quotePage()->selectButton('Créer la facture de solde'));
+        $depositNumber = $issue($deposit);
+
+        // Le formulaire envoyé deux fois, comme un double clic : un seul brouillon, sans numéro
+        $form = $quotePage()->selectButton('Créer la facture de solde')->form();
+        $this->client->submit($form);
+        $this->client->submit($form);
+        $balance = $invoices->findOneForQuote($quote, InvoiceType::Balance);
+        self::assertResponseRedirects('/admin/facture/' . $balance->getId());
+        self::assertCount(2, $invoices->findBy(['quote' => $quote]));
+        self::assertNull($balance->getNumber());
+
+        $balanceNumber = $issue($balance);
+        self::assertSame(sprintf('BHF-%s-%03d', date('Y-m'), (int) substr($depositNumber, -3) + 1), $balanceNumber);
+
+        $this->client->request('GET', '/admin/facture/' . $balance->getId());
+        self::assertSelectorTextContains('h1', 'Facture de solde');
+        self::assertSelectorTextContains('.encadre-acompte', "-30,00\u{A0}€");
+        self::assertSelectorTextContains('.encadre-acompte', "58,33\u{A0}€");
+        self::assertSelectorTextContains('.encadre-acompte', "70,00\u{A0}€");
+        self::assertSelectorTextContains('.doc', $depositNumber);
+        self::assertSelectorNotExists('.barre-ecran form');
+
+        // Deux factures, mais une seule ligne dans la liste des devis, avec les deux liens
+        $list = $this->client->request('GET', '/admin/devis?q=' . $quote->getNumber());
+        self::assertCount(1, $list->filter('table tbody tr'));
+        self::assertStringContainsString($depositNumber, $list->filter('table')->text());
+        self::assertStringContainsString($balanceNumber, $list->filter('table')->text());
+    }
+
+    public function testBalanceInvoiceIsRefusedWithoutAnIssuedDeposit(): void
+    {
+        $quote = $this->quote(QuoteStatus::Accepted);
+        $deposit = new Invoice($quote);
+        $deposit->issue('BHF-2000-01-901', new \DateTimeImmutable());
+        $this->em->persist($deposit);
+        $this->em->flush();
+        $this->client->loginUser($this->seller);
+        $staleForm = $this->client->request('GET', '/admin/devis/' . $quote->getId())->selectButton('Créer la facture de solde')->form();
+        $this->em->remove($deposit);
+        $this->em->flush();
+
+        $this->client->submit($staleForm);
+
+        self::assertResponseRedirects('/admin/devis/' . $quote->getId());
+        self::assertNull(self::getContainer()->get(InvoiceRepository::class)->findOneForQuote($quote, InvoiceType::Balance));
     }
 
     // Double clic sur « Émettre la facture » : la seconde requête attend que la première ait fini,

@@ -6,15 +6,17 @@
 {# Un devis accepté ne se modifie plus : retour à la liste #}
 {% block retour %}{{ quote.locked ? path('app_quote_index') : path('app_quote_edit', {id: quote.id}) }}{% endblock %}
 
-{# La facture d'acompte, à créer une fois le devis accepté. La suppression, ouverte même au devis accepté. #}
+{# La facture d'acompte une fois le devis accepté, la facture de solde une fois l'acompte émis. La suppression, ouverte même au devis accepté. #}
 {% block actions %}
     {% if invoice %}
         <a href="{{ path('app_invoice_print', {id: invoice.id}) }}">Facture d'acompte {{ invoice.number ?? '(brouillon)' }}</a>
+        {% if balance %}
+            <a href="{{ path('app_invoice_print', {id: balance.id}) }}">Facture de solde {{ balance.number ?? '(brouillon)' }}</a>
+        {% elseif invoice.issued %}
+            {{ doc.creer_facture(quote, 'balance', 'Créer la facture de solde') }}
+        {% endif %}
     {% elseif quote.locked %}
-        <form method="post" action="{{ path('app_invoice_new', {id: quote.id}) }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('invoice' ~ quote.id) }}">
-            <button type="submit">Créer la facture d'acompte</button>
-        </form>
+        {{ doc.creer_facture(quote, 'deposit', "Créer la facture d'acompte") }}
     {% endif %}
     {{ include('admin/_delete_form.html.twig', {
         action: path('app_quote_delete', {id: quote.id}),

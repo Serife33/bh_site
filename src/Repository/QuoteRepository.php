@@ -6,6 +6,7 @@ use App\Entity\AdminUser;
 use App\Entity\Customer;
 use App\Entity\Invoice;
 use App\Entity\Quote;
+use App\Enum\InvoiceType;
 use App\Enum\QuoteStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query;
@@ -27,10 +28,15 @@ class QuoteRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('q')
             ->select('q.id', 'q.number', 'q.createdAt', 'q.validUntil', 'q.acceptedAt', 'q.status', 'q.total',
-                'c.lastName', 'c.firstName', 's.email AS sellerEmail', 'i.id AS invoiceId', 'i.number AS invoiceNumber')
+                'c.lastName', 'c.firstName', 's.email AS sellerEmail', 'i.id AS invoiceId', 'i.number AS invoiceNumber',
+                'b.id AS balanceId', 'b.number AS balanceNumber')
             ->join('q.customer', 'c')
             ->join('q.seller', 's')
-            ->leftJoin(Invoice::class, 'i', 'WITH', 'i.quote = q')   // sa facture d'acompte, s'il en a une
+            // Ses factures d'acompte et de solde, s'il en a : une ligne par devis
+            ->leftJoin(Invoice::class, 'i', 'WITH', 'i.quote = q AND i.type = :deposit')
+            ->leftJoin(Invoice::class, 'b', 'WITH', 'b.quote = q AND b.type = :balance')
+            ->setParameter('deposit', InvoiceType::Deposit)
+            ->setParameter('balance', InvoiceType::Balance)
             ->orderBy('q.createdAt', 'DESC')
             ->addOrderBy('q.id', 'DESC');   // départage pour la pagination
 

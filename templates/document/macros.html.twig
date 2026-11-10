@@ -6,3 +6,11 @@
 
 {# Où et quand le client paie le reste : toujours au showroom, avant la livraison ou au retrait (CGV 6.2) #}
 {% macro reste(quote) %}au showroom, {{ quote.delivery ? 'avant la livraison' : 'au retrait de la commande' }}{% endmacro %}
+
+{# Le bouton de la page du devis qui crée sa facture d'acompte ou de solde #}
+{% macro creer_facture(quote, type, libelle) %}
+    <form method="post" action="{{ path('app_invoice_new', {id: quote.id, type: type}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('invoice' ~ quote.id) }}">
+        <button type="submit">{{ libelle }}</button>
+    </form>
+{% endmacro %}

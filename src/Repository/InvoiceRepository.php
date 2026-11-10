@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Invoice;
 use App\Entity\Quote;
+use App\Enum\InvoiceType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -18,16 +19,16 @@ class InvoiceRepository extends ServiceEntityRepository
         parent::__construct($registry, Invoice::class);
     }
 
-    // La facture d'acompte d'un devis, brouillon ou émise
-    public function findOneForQuote(Quote $quote): ?Invoice
+    // La facture d'un devis pour ce type, brouillon ou émise
+    public function findOneForQuote(Quote $quote, InvoiceType $type = InvoiceType::Deposit): ?Invoice
     {
-        return $this->findOneBy(['quote' => $quote]);
+        return $this->findOneBy(['quote' => $quote, 'type' => $type]);
     }
 
-    // Relit la facture et verrouille sa ligne jusqu'à la fin de la transaction : une autre requête
-    // (double clic, autre onglet) a pu l'émettre ou la supprimer depuis son chargement
-    public function lock(Invoice $invoice): void
+    // Relit le document et verrouille sa ligne jusqu'à la fin de la transaction : une autre requête
+    // (double clic, autre onglet) a pu créer, émettre ou supprimer une facture depuis son chargement
+    public function lock(Invoice|Quote $document): void
     {
-        $this->getEntityManager()->refresh($invoice, LockMode::PESSIMISTIC_WRITE);
+        $this->getEntityManager()->refresh($document, LockMode::PESSIMISTIC_WRITE);
     }
 }
