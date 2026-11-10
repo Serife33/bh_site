@@ -1,0 +1,53 @@
+{# Un article du devis, en carte : un groupe nommé « Article n ». Le produit lié (données de la recherche, voir
+   QuoteController::productData) est porté par la carte : assets/devis.js en tire les tailles, matières et finitions.
+   Taille et Matière n'ont pas de nom : elles choisissent la variante, envoyée par son champ caché.
+   « Retirer » replie la carte et désactive ses champs : non envoyés, l'article est supprimé à l'enregistrement. #}
+{% macro article(ligne, numero, catalogue) %}
+    {%- set id = ligne.vars.id -%}
+    {%- set produit = ligne.vars.data.product ?? null -%}
+    <section class="article" role="group" aria-labelledby="{{ id }}_titre" data-numero="{{ numero }}"
+             data-produit="{{ produit ? catalogue[produit.id]|json_encode }}">
+        <div class="article-corps">
+            <div class="article-tete">
+                <h3 id="{{ id }}_titre">Article {{ numero }}</h3>
+                <span class="etiquette" data-etiquette></span>
+            </div>
+            {{ form_errors(ligne) }}
+            <div class="g-quoi">
+                {{ form_row(ligne.label) }}
+                {{ form_widget(ligne.product) }}
+                {{ form_widget(ligne.variant) }}
+                <div class="champ">
+                    <label for="{{ id }}_taille">Taille (cm)</label>
+                    <select id="{{ id }}_taille" data-taille aria-describedby="{{ id }}_variante_aide"></select>
+                </div>
+                <div class="champ">
+                    <label for="{{ id }}_matiere">Matière</label>
+                    <select id="{{ id }}_matiere" data-matiere aria-describedby="{{ id }}_variante_aide"></select>
+                </div>
+                <p class="resultat c-var-aide deux" id="{{ id }}_variante_aide" data-variante-aide></p>
+            </div>
+            <div class="g-texte">
+                {{ form_row(ligne.finish) }}
+                {{ form_row(ligne.details) }}
+            </div>
+            <div class="g-prix">
+                {{ form_row(ligne.quantity, {row_attr: {class: 'c-qte'}, label_attr: {class: 'lib2'}}) }}
+                {{ form_row(ligne.unitPrice, {row_attr: {class: 'c-pu'}, label_attr: {class: 'lib2'}}) }}
+                {{ form_row(ligne.discountType) }}
+                <div class="champ c-total">
+                    <span class="libelle lib2" id="{{ id }}_total_libelle">Total de l'article</span>
+                    <output id="{{ id }}_total" aria-labelledby="{{ id }}_total_libelle" aria-live="off" data-total-article></output>
+                </div>
+            </div>
+            <div class="article-pied">
+                {{ form_row(ligne.customMade) }}
+                <button type="button" class="btn-retirer" data-action="retirer">Retirer</button>
+            </div>
+        </div>
+        <div class="article-retire" hidden>
+            <p><strong>Article {{ numero }} retiré</strong> : <span data-retire-nom></span>. Il sera supprimé à l'enregistrement.</p>
+            <button type="button" class="btn-secondaire" data-action="annuler">Annuler</button>
+        </div>
+    </section>
+{% endmacro %}

@@ -1,0 +1,8 @@
+{# Une information de la société (paramètre company de config/services.yaml) : encadrée en pointillés tant qu'elle reste à compléter #}
+{% macro info(valeur) %}{% if valeur starts with '[' %}<span class="ac">{{ valeur }}</span>{% else %}{{ valeur }}{% endif %}{% endmacro %}
+
+{# Un pourcentage (remise saisie, taux de TVA ou d'acompte du devis) : « 20 », « 12,50 » #}
+{% macro taux(valeur) %}{{ valeur|replace({'.00': '', '.': ','}) }}&nbsp;%{% endmacro %}
+
+{# Où et quand le client paie le reste : toujours au showroom, avant la livraison ou au retrait (CGV 6.2) #}
+{% macro reste(quote) %}au showroom, {{ quote.delivery ? 'avant la livraison' : 'au retrait de la commande' }}{% endmacro %}

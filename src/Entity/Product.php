@@ -657,6 +657,27 @@ class Product
         );
     }
 
+    /**
+     * Les tissus et coloris proposés, les finitions des matières de ses variantes et ses autres finitions,
+     * tels qu'on les écrit sur un devis : « Chenille Monica, Terra Cota - 1012 ». Suggérés à la saisie d'une ligne.
+     * Une finition de matière garde sa matière (« Céramique (Premium) ») : seules celles de la variante choisie sont proposées.
+     *
+     * @return list<array{material: ?string, label: string}>
+     */
+    public function getFinishes(): array
+    {
+        $finishes = $this->colors->map(static fn (Color $color) => ['material' => null, 'label' => $color->getName()])->toArray();
+        $fabrics = [...array_map(static fn (Fabric $fabric) => [null, $fabric], $this->fabrics->toArray()),
+            ...array_map(static fn (Fabric $fabric) => [(string) $fabric, $fabric], array_filter($this->variants->map(static fn (ProductVariant $variant) => $variant->getFabric())->toArray()))];
+        foreach ($fabrics as [$material, $fabric]) {
+            foreach ($fabric->getFabricColors() as $fabricColor) {
+                $finishes[] = ['material' => $material, 'label' => trim($fabric->getName() . ' ' . $fabric->getReference()) . ', ' . $fabricColor->getName()];
+            }
+        }
+
+        return array_values(array_unique($finishes, \SORT_REGULAR));
+    }
+
     // Représentation texte de l'entité — utilisée dans les listes de choix
     // (le champ « Modules » d'un ensemble modulable, notamment).
     public function __toString(): string

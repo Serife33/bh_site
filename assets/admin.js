@@ -1,5 +1,6 @@
 import './stimulus_bootstrap.js';
 import Sortable from 'sortablejs';
+import './devis.js';   // l'écran d'un devis
 
 // ===== Collections (nuancier d'un tissu, variantes d'un produit) : ajouter ou retirer une ligne =====
 // Le modèle de ligne, bouton Retirer compris, vient de templates/admin/_collection.html.twig.
@@ -23,7 +24,6 @@ document.addEventListener('click', (e) => {
         retirer.closest('.collection-ligne').remove();
     }
 });
-
 
 
 // ===== Page « Ordre d'affichage » : ranger les produits à la souris =====

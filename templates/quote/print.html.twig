@@ -1,0 +1,159 @@
+{% extends 'document/base.html.twig' %}
+{% import 'document/macros.html.twig' as doc %}
+
+{% block title %}Devis {{ quote.number }}{% endblock %}
+
+{# Un devis accepté ne se modifie plus : retour à la liste #}
+{% block retour %}{{ quote.locked ? path('app_quote_index') : path('app_quote_edit', {id: quote.id}) }}{% endblock %}
+
+{# La facture d'acompte, à créer une fois le devis accepté. La suppression, ouverte même au devis accepté. #}
+{% block actions %}
+    {% if invoice %}
+        <a href="{{ path('app_invoice_print', {id: invoice.id}) }}">Facture d'acompte {{ invoice.number ?? '(brouillon)' }}</a>
+    {% elseif quote.locked %}
+        <form method="post" action="{{ path('app_invoice_new', {id: quote.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('invoice' ~ quote.id) }}">
+            <button type="submit">Créer la facture d'acompte</button>
+        </form>
+    {% endif %}
+    {{ include('admin/_delete_form.html.twig', {
+        action: path('app_quote_delete', {id: quote.id}),
+        token_id: 'delete' ~ quote.id,
+        question: 'Supprimer complètement le devis ' ~ quote.number ~ ' ?',
+    }) }}
+{% endblock %}
+
+{% block document %}
+    <h1>Devis</h1>
+    <dl>
+        <dt>Numéro</dt><dd>{{ quote.number }}</dd>
+        <dt>Date</dt><dd>{{ quote.createdAt|date_longue }}</dd>
+        <dt>Valable jusqu'au</dt><dd>{{ quote.validUntil|date_longue }}</dd>
+    </dl>
+{% endblock %}
+
+{% block contenu %}
+    {% set customer = quote.customer %}
+    <section class="parties">
+        <div>
+            <h2 class="titre">Client</h2>
+            <p><strong>{{ customer }}</strong></p>
+            <p>{{ customer.phone }}</p>
+            <p>{{ customer.email }}</p>
+        </div>
+        <div>
+            {% if quote.delivery %}
+                <h2 class="titre">Livraison</h2>
+                <p>{{ customer.address ?: 'Adresse à préciser' }}</p>
+                <p>{{ quote.assembly ? 'Livraison et montage à cette adresse' : 'Livraison à cette adresse' }}</p>
+            {% else %}
+                <h2 class="titre">Retrait</h2>
+                <p>Retrait au showroom, {{ company.showroom }}</p>
+            {% endif %}
+        </div>
+    </section>
+
+    {# La colonne Remise seulement si une ligne est remisée : un devis sans remise n'en parle pas.
+       Un canapé composé module par module : son titre avant ses modules, son sous-total après (QuoteCalculator),
+       dans un tbody à lui pour que l'impression ne le coupe pas entre deux pages. #}
+    {% set colonneRemise = totaux.lines|filter(l => l.discount > 0)|length > 0 %}
+    {% set colonnes = colonneRemise ? 5 : 4 %}
+    <table class="lignes">
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th>Qté</th>
+                <th>Prix unitaire TTC</th>
+                {% if colonneRemise %}<th>Remise</th>{% endif %}
+                <th>Total TTC</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for key, line in quote.lines %}
+            {% set montants = totaux.lines[key] %}
+            {% set photo = line.product ? line.product.mainMedia : null %}
+            {% for composition in totaux.compositions|filter(c => c.first == key) %}
+                </tbody><tbody class="compo"><tr class="compo-titre"><td colspan="{{ colonnes }}">Canapé {{ composition.family }}, composition</td></tr>
+            {% endfor %}
+            <tr>
+                <td>
+                    <div class="produit">
+                        {% if photo %}
+                            <img src="{{ vich_uploader_asset(photo, 'imageFile')|imagine_filter('vignette') }}" alt="">
+                        {% else %}
+                            <span class="sans-photo"></span>
+                        {% endif %}
+                        <div>
+                            <strong>{{ line.label }}</strong>
+                            {% if line.finish %}<p class="detail">{{ line.finish }}</p>{% endif %}
+                            {% if line.details %}<p class="detail">{{ line.details|nl2br }}</p>{% endif %}
+                            {% if line.customMade %}<span class="choix">Fabriqué selon vos choix</span>{% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td>{{ line.quantity }}</td>
+                <td>{{ line.unitPrice|prix(2) }}</td>
+                {% if colonneRemise %}
+                <td>
+                    {# Une remise en % montre aussi les euros ; un prix final montre la remise qu'il donne, en euros et en % #}
+                    {% if montants.discount > 0 %}
+                        {% if line.discountType.value == 'percent' %}
+                            -{{ doc.taux(line.discountValue) }}<span class="remise-detail">soit -{{ montants.discount|prix(2) }}</span>
+                        {% else %}
+                            -{{ montants.discount|prix(2) }}
+                            {% if line.discountType.value == 'final' %}<span class="remise-detail">soit -{{ doc.taux(montants.rate) }}</span>{% endif %}
+                        {% endif %}
+                    {% endif %}
+                </td>
+                {% endif %}
+                <td>{{ montants.total|prix(2) }}</td>
+            </tr>
+            {% for composition in totaux.compositions|filter(c => c.last == key) %}
+                <tr class="compo-total"><td colspan="{{ colonnes - 1 }}">Sous-total de la composition</td><td>{{ composition.total|prix(2) }}</td></tr></tbody><tbody>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <section class="bas">
+        <div class="conditions">
+            <h2 class="titre">Conditions</h2>
+            <dl>
+                <dt>Délai de livraison</dt><dd>{{ quote.leadTime }}</dd>
+                <dt>Validité</dt><dd>Jusqu'au {{ quote.validUntil|date_longue }}</dd>
+                <dt>Paiement</dt><dd>Acompte de {{ quote.depositAmount is null ? doc.taux(quote.depositRate) : totaux.deposit|prix(2) }} à la signature. Reste à payer {{ doc.reste(quote) }}.{% if quote.delivery %} La livraison est planifiée une fois le paiement reçu.{% endif %}</dd>
+            </dl>
+        </div>
+        {{ include('quote/_totals.html.twig') }}
+    </section>
+
+    {# Informations, signature et identité légale : un seul bloc, que l'impression ne coupe jamais #}
+    <div class="fin">
+    <section class="mentions">
+        <h2 class="titre">Informations importantes</h2>
+        <ul>
+            <li><strong>Articles « Fabriqué selon vos choix » :</strong> ils sont fabriqués selon les spécifications du client (dimensions, tissu, coloris). Le droit de rétractation ne s'applique pas à ces articles (article L221-28, 3° du Code de la consommation).</li>
+            <li><strong>Acompte :</strong> les sommes versées à la commande sont des acomptes et non des arrhes (article L214-1 du Code de la consommation). Le devis signé vaut commande ferme ; la fabrication est lancée à l'encaissement de l'acompte.</li>
+            <li><strong>Conditions générales de vente :</strong> consultables sur {{ company.website }}/cgv. Signer ce devis vaut acceptation de ces conditions.</li>
+            <li>Prix en euros, TVA {{ doc.taux(quote.vatRate) }} incluse. Le délai de livraison court à partir de la réception de l'acompte.</li>
+        </ul>
+    </section>
+
+    <section class="accord">
+        <h2>Bon pour accord</h2>
+        <p class="sous">À signer ici, au showroom.</p>
+        <p class="case"><span></span>J'ai reçu les conditions générales de vente (par e-mail, WhatsApp ou en exemplaire papier) et je les accepte. J'ai pris connaissance des informations ci-dessus.</p>
+        <div class="signer">
+            <p class="champ">Date</p>
+            <p class="champ">Nom et prénom</p>
+            <p class="champ champ-signature">Signature, précédée de la mention « Bon pour accord »</p>
+        </div>
+    </section>
+
+    <footer class="pied">
+        <p>{{ company.name }} · {{ doc.info(company.legal_name) }} · Capital {{ doc.info(company.capital) }}</p>
+        <p>Siège {{ doc.info(company.head_office) }}</p>
+        <p>SIRET {{ doc.info(company.siret) }} · RCS {{ doc.info(company.rcs) }} · TVA intracommunautaire {{ doc.info(company.vat_number) }}</p>
+    </footer>
+    </div>
+{% endblock %}

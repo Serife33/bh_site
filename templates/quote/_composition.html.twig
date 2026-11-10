@@ -1,0 +1,37 @@
+{# Le contenu de la fenêtre « Composer un canapé » (QuoteController::composition), placé dans <dialog id="dialogue-composition">
+   par assets/devis.js : les modules de la gamme et leur nombre, un tissu pour tous. « Ajouter au devis » crée un article
+   par module choisi, à la suite, chacun avec ce tissu. Mêmes boutons − et + que le configurateur du site. #}
+<h2 id="compo-titre">Composer un canapé {{ gamme }}</h2>
+<p class="aide" id="compo-intro">Choisissez le nombre de chaque module. Chacun devient un article du devis, avec le tissu ci-dessous, modifiable ensuite article par article.</p>
+<ul class="compo-modules">
+    {% for module in modules %}
+        {% set photo = module.produit.mainMedia %}
+        <li class="compo-module" data-produit="{{ module.donnees|json_encode }}">
+            {% if photo %}
+                <img src="{{ vich_uploader_asset(photo, 'imageFile')|imagine_filter('vignette') }}" alt="">
+            {% else %}
+                <span class="sans-photo"></span>
+            {% endif %}
+            <p class="compo-nom">{{ module.produit.name }}</p>
+            <p class="compo-prix">{{ module.produit.actualPrice|prix(2) }}</p>
+            <div class="compo-qte">
+                <button type="button" data-pas="-1" aria-label="Retirer {{ module.produit.name }}" aria-disabled="{{ module.nombre ? 'false' : 'true' }}">−</button>
+                <output aria-live="off" data-nombre>{{ module.nombre }}</output>
+                <button type="button" data-pas="1" aria-label="Ajouter {{ module.produit.name }}" aria-disabled="false">+</button>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+<div class="compo-pied">
+    <div class="champ">
+        <label for="compo-tissu">Tissu et coloris pour tous les modules</label>
+        <input type="text" id="compo-tissu" list="compo-tissus" autocomplete="off" aria-describedby="compo-tissu-aide" data-tissu>
+        <datalist id="compo-tissus">{% for tissu in tissus %}<option value="{{ tissu }}">{% endfor %}</datalist>
+        <p class="aide" id="compo-tissu-aide">Choisissez dans les propositions, ou tapez librement.</p>
+    </div>
+    <p class="compo-somme" role="status" data-compo-somme></p>
+    <div class="dialogue-actions">
+        <button type="button" class="btn-secondaire" data-compo="annuler">Annuler</button>
+        <button type="button" data-compo="ajouter">Ajouter au devis</button>
+    </div>
+</div>

@@ -7,6 +7,22 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # L'identité de la société sur les devis et factures (templates/document/), jamais écrite en dur dans les gabarits.
+    # Tant qu'une valeur commence par « [À COMPLÉTER », elle s'affiche encadrée en pointillés sur le document.
+    company:
+        name: 'Brillance Home'
+        legal_name: 'SASU (société par actions simplifiée unipersonnelle)'
+        capital: '500,00 €'
+        head_office: '22 rue André Dupin, 33310 Lormont'
+        siret: '901 674 507 00016'
+        rcs: 'Bordeaux 901 674 507'
+        vat_number: 'FR53 901 674 507'
+        showroom: '12 bis rue Suffren, 33300 Bordeaux'
+        phones: '07 81 07 10 71 · 06 95 32 41 51'
+        website: 'brillancehome.fr'
+        email: 'brillancehome@gmail.com'
+        early_payment: "[À COMPLÉTER : conditions d'escompte pour paiement anticipé]"
+        late_payment: '[À COMPLÉTER : pénalités de retard, à indiquer seulement pour un client professionnel]'
 
 services:
     # default configuration for services in *this* file

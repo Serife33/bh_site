@@ -1,0 +1,53 @@
+{# La feuille A4 commune aux devis et aux factures, aux couleurs du site public.
+   À l'écran : la feuille posée sur un fond sable. À l'impression : la feuille seule, prête pour « Enregistrer au format PDF ». #}
+{% import 'document/macros.html.twig' as doc %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('styles/document.css') }}">
+    {# Le pied de chaque page imprimée : le document et sa pagination #}
+    <style>
+        @page {
+            @bottom-left { content: "{{ block('title')|e('css') }}"; }
+            @bottom-right { content: "Page " counter(page) " sur " counter(pages); }
+        }
+    </style>
+</head>
+<body>
+    {# Seulement à l'écran : retour, impression et les actions propres au document #}
+    <div class="barre-ecran">
+        <p>
+            <a href="{% block retour %}{% endblock %}">← Retour</a>
+            · Pour obtenir le PDF : <button type="button" onclick="print()">Imprimer</button> puis « Enregistrer au format PDF ».
+        </p>
+        {% block actions %}{% endblock %}
+        {% for messages in app.flashes %}{% for message in messages %}<p class="flash">{{ message }}</p>{% endfor %}{% endfor %}
+    </div>
+
+    <article class="feuille">
+        <header class="entete">
+            <div class="marque">
+                <img src="{{ asset('images/logo.png')|imagine_filter('vignette') }}" alt="Logo {{ company.name }}">
+                <div>
+                    <p class="nom">{{ company.name }}</p>
+                    <p>Showroom : {{ company.showroom }}</p>
+                    <p>{{ company.phones }}</p>
+                    <p>{{ company.website }} · {{ doc.info(company.email) }}</p>
+                </div>
+            </div>
+            <div class="doc">
+                {% block document %}{% endblock %}
+            </div>
+        </header>
+
+        {% block contenu %}{% endblock %}
+    </article>
+</body>
+</html>

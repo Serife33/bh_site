@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Devis{% endblock %}
+
+{% block body %}
+    <div class="titre-page">
+        <h1>Devis</h1>
+        <a class="btn" href="{{ path('app_quote_new') }}">+ Nouveau devis</a>
+    </div>
+
+    {# Formulaire en GET : les filtres restent dans l'adresse, donc dans les liens de pagination #}
+    <form method="get" class="filtres">
+        <input type="search" name="q" value="{{ filtres.q }}" placeholder="Numéro ou nom du client…" class="filtre-recherche" aria-label="Rechercher un devis">
+
+        <select name="statut" class="filtre-auto" aria-label="Statut">
+            <option value="">Statut : tous</option>
+            {% for status in statuses %}
+                <option value="{{ status.value }}"{{ filtres.statut == status ? ' selected' : '' }}>{{ status.label }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="vendeur" class="filtre-auto" aria-label="Vendeur">
+            <option value="">Vendeur : tous</option>
+            {% for seller in sellers %}
+                <option value="{{ seller.id }}"{{ filtres.vendeur == seller.id ? ' selected' : '' }}>{{ seller.email }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Filtrer</button>
+        <a href="{{ path('app_quote_index') }}" class="filtre-reset">Réinitialiser</a>
+    </form>
+
+    <div class="table-defile">
+        <table>
+            <thead>
+                <tr>
+                    <th>Numéro</th>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Vendeur</th>
+                    <th class="montant">Montant TTC</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for quote in pagination %}
+                <tr>
+                    <td class="num">{{ quote.number }}</td>
+                    <td class="num">{{ quote.createdAt|date('d/m/Y') }}</td>
+                    <td>{{ quote.firstName }} {{ quote.lastName }}</td>
+                    <td>{{ quote.sellerEmail }}</td>
+                    <td class="montant">{{ quote.total|prix(2) }}</td>
+                    <td>
+                        <span class="pastille st-{{ quote.status.value }}">{{ quote.status.label }}</span>
+                        {% if quote.acceptedAt %}
+                            <p class="aide">Signé le {{ quote.acceptedAt|date('d/m/Y') }}</p>
+                        {% elseif quote.status.value == 'sent' %}
+                            <p class="aide">Valable jusqu'au {{ quote.validUntil|date('d/m/Y') }}</p>
+                        {% elseif quote.status.value == 'expired' %}
+                            <p class="aide">Validité dépassée le {{ quote.validUntil|date('d/m/Y') }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="actions">
+                        {% if quote.status.value != 'accepted' %}<a href="{{ path('app_quote_edit', {id: quote.id}) }}">Modifier</a>{% endif %}
+                        <a href="{{ path('app_quote_print', {id: quote.id}) }}" data-turbo="false">Imprimer</a>
+                        {% if quote.invoiceId %}<br><a href="{{ path('app_invoice_print', {id: quote.invoiceId}) }}" data-turbo="false">Facture {{ quote.invoiceNumber ?? '(brouillon)' }}</a>{% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7">Aucun devis ne correspond à ces critères.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="navigation">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+
+    <ul class="legende" aria-label="Signification des statuts">
+        <li><span class="pastille st-draft">Brouillon</span> pas encore envoyé</li>
+        <li><span class="pastille st-sent">Envoyé</span> en attente de la signature du client</li>
+        <li><span class="pastille st-accepted">Accepté</span> signé, ne se modifie plus</li>
+        <li><span class="pastille st-refused">Refusé</span> mis à la main par le vendeur</li>
+        <li><span class="pastille st-expired">Expiré</span> automatique après la date de validité</li>
+    </ul>
+{% endblock %}

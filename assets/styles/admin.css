@@ -27,6 +27,10 @@
 
 
 
+/* Lien d'évitement : invisible jusqu'à ce que le clavier l'atteigne */
+.evitement { position: absolute; left: -9999px; top: 0; }
+.evitement:focus { left: 1rem; top: 1rem; z-index: 100; padding: .6rem 1rem; border-radius: 6px; background: #fff; color: #1A1A18; outline: 3px solid #6B4C3B; }
+
 /* ===== CONTENU ADMIN ===== */
 .admin-content {
   max-width: 1000px;
@@ -35,6 +39,7 @@
   font: 15px/1.5 system-ui, sans-serif;
   color: #1A1A18;
 }
+.admin-content:focus { outline: none; }
 .admin-content h1 { font-size: 1.6rem; margin: 0 0 1.2rem; }
 
 .admin-content a { color: #8B6F4E; text-decoration: none; }
@@ -84,6 +89,8 @@
 .admin-content input[type=text],
 .admin-content input[type=number],
 .admin-content input[type=email],
+.admin-content input[type=tel],
+.admin-content input[type=date],
 .admin-content input[type=password],
 .admin-content select,
 .admin-content textarea {
@@ -93,6 +100,7 @@
   border: 1px solid #8C857D;   /* 3,6:1 sur blanc : le contour d'un champ doit se voir (WCAG 1.4.11) */
   border-radius: 6px;
   font: inherit;
+  font-size: 16px;   /* en dessous, Safari zoome sur le champ à chaque focus */
   background: #fff;
 }
 .admin-content textarea { min-height: 90px; }
@@ -376,7 +384,7 @@
 
 .ordre-nom { flex: 1; }
 
-.ordre-etiquette {
+.ordre-etiquette, .resultats .etiquette {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: .04em;
@@ -598,3 +606,257 @@ tr.est-masque { opacity: .55; }
 .apercu-champ input[type=text] { max-width: none; }
 
 .photo-video  { background: #E2E6F0; color: #3A4466; }
+
+
+/* ===== Devis et clients ===== */
+
+/* Un tableau trop large pour un téléphone défile dans son cadre, la page ne déborde pas */
+.table-defile { overflow-x: auto; }
+.table-defile table { margin: 0; }
+
+.titre-page { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; }
+.titre-page h1 { margin: 0; }
+.num, .montant { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-content .montant { text-align: right; }
+.admin-content td.actions { white-space: nowrap; }
+.aide { margin: .3rem 0 0; font-size: 13px; font-weight: 400; color: #6B6560; }
+
+/* Pastilles de statut : mêmes formes que les étiquettes des photos */
+.pastille { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.st-draft    { background: #F1EDE6; color: #6B6B63; }
+.st-sent     { background: #E2E6F0; color: #3A4466; }
+.st-accepted { background: #E3EAE2; color: #3E5B45; }
+.st-refused  { background: #F6DEDE; color: #8C2F2F; }
+.st-expired  { background: #FBF0D9; color: #7A5A12; }
+
+.legende { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin: 1.5rem 0 0; padding: 0; list-style: none; font-size: 13px; color: #6B6560; }
+.legende li { display: flex; align-items: center; gap: .4rem; }
+
+/* ===== Écran d'un devis (quote/edit.html.twig, docs/UX-DEVIS.md) =====
+   La disposition ne bouge jamais : chaque aide et chaque résultat a une hauteur réservée. Cibles de 44 px. */
+.admin-content:has(#form-devis) { max-width: 1240px; }
+.retour { display: inline-block; padding: .3rem 0; font-size: 14px; }
+.tete { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin: .4rem 0 1.4rem; }
+.tete h1 { margin: 0; }
+.tete .aide { flex-basis: 100%; margin: 0; }
+.grille { display: grid; gap: 1.5rem; align-items: start; }
+.admin-content form.grille { margin: 0; }
+@media (min-width: 1000px) {
+  .grille { grid-template-columns: minmax(0, 1fr) 320px; }
+  .recap { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+}
+.bloc { background: #fff; border: 1px solid #E7E2DC; border-radius: 10px; padding: 1.1rem 1.2rem 1.2rem; margin-bottom: 1.5rem; }
+.bloc > h2 { display: flex; align-items: center; gap: .6rem; margin: 0 0 .5rem; font-size: 1.15rem; }
+.etape { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: #F2EDE8; color: #6B4C3B; font-size: .9rem; }
+
+#form-devis [hidden] { display: none !important; }
+#form-devis :focus-visible { outline: 3px solid #6B4C3B; outline-offset: 2px; }
+#form-devis fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+#form-devis legend { padding: 0; }
+#form-devis .champ { min-width: 0; }
+#form-devis .champ > label, #form-devis .libelle, #form-devis legend { display: block; margin: 0 0 .3rem; font-size: 14px; font-weight: 600; line-height: 1.35; }
+#form-devis .obl { font-weight: 400; font-size: 13px; color: #6B6560; }
+#form-devis input[type=text], #form-devis input[type=number], #form-devis input[type=date], #form-devis select, #form-devis textarea {
+  box-sizing: border-box; width: 100%; max-width: none; min-height: 44px; padding: .5rem .65rem;
+}
+#form-devis textarea { min-height: 68px; resize: vertical; }
+#form-devis input:disabled, #form-devis select:disabled, #form-devis textarea:disabled { background: #F2EFEB; color: #6B645D; border-style: dashed; cursor: not-allowed; }
+#form-devis [aria-invalid="true"] { border: 2px solid #8A2020; }
+#form-devis input[type=number] { -moz-appearance: textfield; }
+#form-devis input[type=number]::-webkit-outer-spin-button, #form-devis input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#form-devis input[type=checkbox], #form-devis input[type=radio] { flex: none; width: 22px; height: 22px; margin: 0; accent-color: #8B6F4E; }
+/* Le symbole d'un montant, à droite dans le champ */
+#form-devis .unite { position: relative; }
+#form-devis .unite input { padding-right: 2rem; }
+#form-devis .unite span { position: absolute; right: .7rem; top: 50%; transform: translateY(-50%); color: #6B6560; pointer-events: none; }
+#form-devis .case, #form-devis .champ > label.case { display: flex; align-items: center; gap: .6rem; min-height: 44px; margin: 0; font-size: 15px; font-weight: 400; cursor: pointer; }
+
+/* Aides et résultats : une ligne réservée, deux dans les colonnes étroites ; attention et erreur avec une pastille « ! » */
+#form-devis .aide, #form-devis .resultat { min-height: 1.45em; margin: .25rem 0 0; font-size: 13px; line-height: 1.45; color: #6B6560; }
+#form-devis .deux { min-height: 2.9em; }
+#form-devis .resultat.attention { color: #7A5A12; font-weight: 600; }
+#form-devis .resultat.faux { color: #8A2020; font-weight: 600; }
+#form-devis .resultat.attention::before, #form-devis .resultat.faux::before, #form-devis .erreur::before {
+  content: "!"; display: inline-grid; place-items: center; width: 1.15em; height: 1.15em; margin-right: .35em;
+  border-radius: 50%; color: #fff; font-size: .85em; font-weight: 700; vertical-align: .05em;
+}
+#form-devis .resultat.attention::before { background: #7A5A12; }
+#form-devis .resultat.faux::before, #form-devis .erreur::before { background: #8A2020; }
+#form-devis .erreur { margin: .3rem 0 0; font-size: 14px; font-weight: 600; color: #8A2020; }
+
+/* Boutons radio en segments : le choix d'abord, la valeur ensuite */
+#form-devis .segments { display: flex; margin: 0 0 .5rem; }
+#form-devis .segments input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+#form-devis .segments label { display: flex; flex: 1 1 auto; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 .85rem; border: 1px solid #C9C2BA; background: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+#form-devis .segments label + input + label { margin-left: -1px; }
+#form-devis .segments label:first-of-type { border-radius: 8px 0 0 8px; }
+#form-devis .segments label:last-of-type { border-radius: 0 8px 8px 0; }
+#form-devis .segments label:hover { background: #F2EDE8; }
+#form-devis .segments input:checked + label { position: relative; z-index: 1; background: #8B6F4E; border-color: #8B6F4E; color: #fff; }
+#form-devis .segments input:focus-visible + label { position: relative; z-index: 2; outline: 3px solid #6B4C3B; outline-offset: 2px; }
+
+/* Boutons */
+#form-devis button, #form-devis .btn { min-height: 44px; }
+#form-devis .btn-secondaire { background: #fff; color: #6B4C3B; border: 1px solid #8B6F4E; }
+#form-devis .btn-secondaire:hover { background: #F2EDE8; color: #6B4C3B; }
+#form-devis .btn-retirer { background: #fff; color: #8C2F2F; border: 1px solid #C9A3A3; }
+#form-devis .btn-retirer:hover { background: #F6DEDE; color: #8C2F2F; border-color: #8C2F2F; }
+
+/* Recherche avec liste de résultats (client, produit) */
+.recherche { position: relative; }
+.resultats { position: absolute; z-index: 10; left: 0; right: 0; max-height: 280px; overflow-y: auto; margin: 2px 0 0; padding: 0; list-style: none; background: #fff; border: 1px solid #C9C2BA; border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, .1); }
+.resultats li { box-sizing: border-box; min-height: 44px; padding: .6rem .7rem; font-size: 15px; cursor: pointer; }
+.resultats li[aria-selected="true"], .resultats li[data-rang]:hover { background: #F2EDE8; }
+.resultats li[aria-disabled] { color: #6B6560; cursor: default; font-size: 14px; }
+
+/* Section 1 : la fiche du client choisi, trois lignes réservées */
+.fiche-client { box-sizing: border-box; min-height: 6.2em; margin-top: .8rem; padding: .7rem 1rem; background: #FAF8F6; border: 1px solid #E7E2DC; border-radius: 6px; font-size: 14px; }
+.fiche-client p { margin: 0 0 .15rem; }
+.fiche-client .vide { color: #6B6560; }
+.lien-ajout { margin: .6rem 0 0; }
+.lien-ajout a, .fiche-client a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+
+/* Section 2 : un article. Sa disposition suit la largeur de sa carte */
+.article { container-type: inline-size; margin-top: 1rem; padding: 1rem; background: #FAF8F6; border: 1px solid #E7E2DC; border-radius: 8px; }
+.article.est-retire { background: #fff; border-style: dashed; }
+.article-tete { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+.article-tete h3 { margin: 0; font-size: 1.05rem; }
+.etiquette { padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.e-catalogue { background: #EDE7DC; color: #6B5B3E; }
+.e-libre { background: #E2E6F0; color: #3A4466; }
+.e-nouveau { background: #F1EDE6; color: #6B6B63; }
+.g-quoi, .g-texte, .g-prix { display: grid; gap: .2rem 1rem; }
+.g-texte, .g-prix { margin-top: .7rem; }
+/* La place du bouton « Revenir à » est réservée sous le champ Article : rien ne bouge quand il paraît */
+.c-article-aide { display: flow-root; min-height: calc(.25rem + 3 * 1.45 * 13px); }
+#form-devis .btn-revenir { max-width: 100%; margin-top: .3rem; font-size: 14px; text-align: left; }
+.g-prix { grid-template-columns: 5.5rem minmax(0, 1fr); grid-template-areas: "qte pu" "remise remise" "total total"; align-items: start; }
+.c-qte { grid-area: qte; } .c-pu { grid-area: pu; } .c-remise { grid-area: remise; margin-top: .4rem; } .c-total { grid-area: total; }
+#form-devis .g-prix .lib2 { display: flex; flex-wrap: wrap; align-content: flex-end; column-gap: .3em; min-height: 2.7em; }
+.c-rv { max-width: 14rem; }
+.c-total { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: .4rem; padding-top: .5rem; border-top: 1px solid #E7E2DC; }
+#form-devis .c-total .lib2 { min-height: 0; margin: 0; }
+.c-total output { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.article-pied { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .5rem 1rem; margin-top: .6rem; }
+.c-case { flex: 1 1 18rem; }
+#form-devis .c-case .aide { margin-left: calc(22px + .6rem); }
+.article-retire { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem 1rem; }
+.article-retire p { margin: 0; }
+@container (min-width: 480px) {
+  .g-quoi { grid-template-columns: 1fr 1fr; row-gap: .6rem; }
+  .c-article-aide { min-height: calc(44px + .3rem); }
+  .c-produit, .c-var-aide { grid-column: 1 / -1; }
+  .g-texte { grid-template-columns: 1fr 1fr; }
+  .g-prix { grid-template-columns: 6rem 12.5rem minmax(0, 1fr); grid-template-areas: "qte pu total" "remise remise remise"; }
+  .c-total { display: block; margin: 0; padding: 0; border: 0; text-align: right; }
+  #form-devis .c-total .lib2 { min-height: 2.7em; margin-bottom: .3rem; justify-content: flex-end; }
+  .c-total output { display: flex; align-items: center; justify-content: flex-end; min-height: 44px; }
+}
+@container (min-width: 700px) {
+  .g-quoi { grid-template-columns: minmax(0, 1fr) 8rem 19.5rem; row-gap: .2rem; }
+  .c-produit { grid-column: 1; grid-row: span 2; }
+  .c-var-aide { grid-column: 2 / 4; }
+  .g-prix { grid-template-columns: 6rem 12.5rem minmax(0, 1fr) auto; grid-template-areas: "qte pu remise total"; }
+  .c-remise { margin-top: 0; }
+  .c-remise > legend { padding-top: 1.35em; }
+}
+.btn-ajout { margin-top: 1rem; }
+.remise-globale { margin-top: 1.4rem; padding-top: 1.1rem; border-top: 1px solid #E7E2DC; }
+.remise-globale .segments { max-width: 14rem; }
+
+/* Sections 3 à 5 */
+.g-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem 1.5rem; }
+.g-options .champ { margin-top: .5rem; }
+#form-devis .segments.large label { flex: 1 1 0; padding: .35rem .6rem; line-height: 1.25; text-align: center; white-space: normal; }
+#form-devis .valeur { min-height: 2.9em; margin: 0; font-size: 14px; }
+#form-devis .valeur.attention { color: #7A5A12; font-weight: 600; }
+#form-devis .c-acompte { max-width: 16rem; margin: .2rem 0 0 calc(22px + .6rem); }
+.c-delai { margin-top: 1.4rem; padding-top: 1.1rem; border-top: 1px solid #E7E2DC; }
+.raccourcis { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+#form-devis .raccourcis button { font-size: 14px; }
+#form-devis .btn-secondaire:disabled { border-style: dashed; border-color: #C9C2BA; background: #fff; color: #8A847E; cursor: not-allowed; }
+.g-suivi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .8rem 1rem; margin-bottom: .8rem; }
+
+/* Avant d'enregistrer : coche verte pour ce qui est prêt, « ! » et lien pour ce qui reste à faire */
+.verifs { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.verifs li { display: flex; align-items: flex-start; gap: .5rem; }
+.verifs li::before { display: grid; flex: none; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; }
+.verifs .ok::before { content: "\2713"; background: #1E5B2A; }
+.verifs .ko::before { content: "!"; background: #7A5A12; }
+.admin-content .verifs .ko a { color: #7A5A12; font-weight: 600; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Tablette et téléphone : le total et Enregistrer restent visibles en bas de l'écran, sans cacher le champ qui a le focus */
+.barre-bas { display: none; }
+@media (max-width: 999px) {
+  html:has(#form-devis) { scroll-padding-bottom: 110px; }
+  body:has(#form-devis) { padding-bottom: 96px; }
+  .barre-bas { position: fixed; right: 0; bottom: 0; left: 0; z-index: 30; display: flex; align-items: center; gap: .75rem; padding: .6rem 1rem calc(.6rem + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #E7E2DC; box-shadow: 0 -4px 16px rgba(0, 0, 0, .07); font: 15px/1.35 system-ui, sans-serif; }
+  .bb-montants { flex: 1; min-width: 0; margin: 0; }
+  .bb-montants strong { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .bb-ligne2 { display: block; font-size: 13px; color: #6B6560; }
+  .admin-content .barre-bas a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .4rem; color: #6B4C3B; font-weight: 600; }
+}
+@media (max-width: 599px) {
+  .bb-lib { display: block; font-size: 13px; color: #6B6560; }
+  .bb-solde { display: none; }
+}
+
+/* Résumé des erreurs d'un enregistrement refusé, ligne d'état sous Enregistrer, confirmation avant « Accepté » */
+.resume-erreurs { margin-bottom: 1.5rem; padding: 1rem 1.2rem; border: 2px solid #8A2020; border-radius: 10px; background: #F7E1E1; }
+.resume-erreurs:focus { outline: 3px solid #6B4C3B; outline-offset: 2px; }
+.resume-erreurs h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #8A2020; }
+.resume-erreurs ul { margin: 0; padding-left: 1.2rem; }
+.admin-content .resume-erreurs a { color: #8A2020; font-weight: 600; }
+.resume-erreurs.corrige { border-color: #1E5B2A; background: #E4F1E4; }
+.resume-erreurs.corrige h2 { color: #1E5B2A; }
+.etat-enr { min-height: 1.45em; margin: 0; font-size: 13px; color: #6B6560; text-align: center; }
+.etat-enr.attention { color: #7A5A12; font-weight: 600; }
+.dialogue { box-sizing: border-box; max-width: min(440px, calc(100vw - 32px)); padding: 1.4rem; border: 0; border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); font: 15px/1.5 system-ui, sans-serif; color: #1A1A18; }
+.dialogue::backdrop { background: rgba(26, 26, 24, .45); }
+.dialogue h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
+.dialogue :focus-visible { outline: 3px solid #6B4C3B; outline-offset: 2px; }
+.dialogue-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+.dialogue-actions button { min-height: 44px; }
+.dialogue-actions .btn-secondaire { background: #fff; color: #6B4C3B; border: 1px solid #8B6F4E; }
+
+/* Composer un canapé : les modules défilent, le tissu, le total et les boutons restent visibles en bas */
+#dialogue-composition { width: min(880px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); }
+#dialogue-composition[open] { display: flex; flex-direction: column; }
+.compo-modules { flex: 1 1 auto; min-height: 160px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .8rem; margin: .8rem 0; padding: 0; list-style: none; }
+.compo-module { display: flex; flex-direction: column; gap: .2rem; padding: .6rem; border: 1px solid #E7E2DC; border-radius: 8px; }
+.compo-module img, .compo-module .sans-photo { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #F2EDE8; border-radius: 4px; }
+.compo-nom { margin: .3rem 0 0; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.compo-prix { margin: 0; font-size: 14px; color: #6B6560; }
+.compo-qte { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: .3rem; }
+.compo-qte button { width: 44px; height: 44px; padding: 0; font-size: 20px; }
+.compo-qte button[aria-disabled="true"] { opacity: .35; cursor: default; }
+.compo-qte output { font-size: 18px; font-weight: 700; }
+.compo-pied { flex: none; border-top: 1px solid #E7E2DC; padding-top: .8rem; }
+.compo-pied .champ > label { display: block; margin: 0 0 .3rem; font-size: 14px; font-weight: 600; }
+.compo-pied input { box-sizing: border-box; width: 100%; max-width: none; min-height: 44px; font-size: 16px; }
+.compo-somme { margin: .6rem 0 0; font-weight: 700; }
+@media (max-width: 599px) {
+  .dialogue { padding: 1rem; }
+  .compo-modules { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+}
+
+/* Le récapitulatif : même tableau que sur le devis imprimé (quote/_totals.html.twig) */
+.recap .bloc { margin-bottom: 1rem; }
+.recap .bloc > h2 { font-size: 1.1rem; }
+.admin-content .totaux { margin: 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+.admin-content .totaux tr:hover { background: none; }
+.admin-content .totaux th, .admin-content .totaux td { padding: .25rem 0; border: 0; background: none; }
+.admin-content .totaux th { font-weight: 400; color: #6B6560; }
+.admin-content .totaux td { padding-left: .5rem; text-align: right; white-space: nowrap; }
+.admin-content .totaux .ttc th, .admin-content .totaux .ttc td { padding-top: .6rem; border-top: 1px solid #1A1A18; font-weight: 700; font-size: 17px; color: #1A1A18; }
+.admin-content .totaux .acompte th, .admin-content .totaux .acompte td { padding-top: .6rem; color: #6B4C3B; font-weight: 600; }
+.recap .actions { display: grid; gap: .5rem; }
+#form-devis .actions button { width: 100%; min-height: 48px; font-size: 16px; }
+.recap .actions a { font-size: 14px; text-align: center; }
+
+@media (max-width: 599px) {
+  .admin-content:has(#form-devis) { padding: 1rem 1rem 3rem; }
+  .bloc { padding: 1rem .8rem; }
+  .article { padding: .8rem; }
+}

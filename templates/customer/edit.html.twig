@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ customer }}{% endblock %}
+
+{% block body %}
+    <h1>Modifier : {{ customer }}</h1>
+
+    {{ include('customer/_form.html.twig', {button_label: 'Enregistrer les modifications'}) }}
+
+    {{ include('admin/_delete_form.html.twig', {
+        action: path('app_customer_delete', {id: customer.id}),
+        token_id: 'delete' ~ customer.id,
+        question: 'Supprimer ce client définitivement ?',
+    }) }}
+
+    <a href="{{ path('app_customer_index') }}">← Retour à la liste</a>
+{% endblock %}

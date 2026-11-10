@@ -174,6 +174,15 @@ class ProductVariant
         return $text === null ? null : preg_replace(['/' . self::SIZE_IN_TEXT . '(?=\p{L})/u', '/' . self::SIZE_IN_TEXT . '/u'], [' ', ''], $text);
     }
 
+    // Son libellé sur un devis : « Taille 160x200, matière Céramique (Premium) »
+    public function getLabel(): string
+    {
+        return ucfirst(implode(', ', array_filter([
+            $this->size ? 'taille ' . $this->size : null,
+            $this->fabric ? 'matière ' . $this->fabric : null,
+        ])));
+    }
+
     // Ce qui distingue deux variantes d'un même produit : sa taille et sa matière (contrainte Unique de Product::$variants)
     public static function combination(self $variant): string
     {
