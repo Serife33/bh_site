@@ -4,6 +4,7 @@ namespace App\Tests\Controller;
 
 use App\Entity\AdminUser;
 use App\Entity\Category;
+use App\Entity\HomeSection;
 use App\Entity\Product;
 use App\Enum\ProductModular;
 use App\Enum\ProductSide;
@@ -95,14 +96,16 @@ final class HomeSectionControllerTest extends WebTestCase
         self::assertSelectorExists('section.dark');
     }
 
-    public function testFeaturedSectionShowsInTheBlackBandRightUnderTheHero(): void
+    public function testFeaturedSectionReplacesTheHero(): void
     {
-        foreach (static::getContainer()->get(HomeSectionRepository::class)->findForIndex() as $section) {
+        $sections = static::getContainer()->get(HomeSectionRepository::class);
+        foreach ($sections->findForIndex() as $section) {
             $section->setIsVisible(false);
         }
         $category = (new Category())->setName('Catégorie test');
         $this->em->persist($category);
         $bed = $this->product('Test lit', $category);
+        $chairId = $this->product('Test chaise', $category)->getId();
         $this->logIn();
 
         $form = $this->client->request('GET', '/admin/home-section/new')->selectButton('Enregistrer')->form();
@@ -113,15 +116,35 @@ final class HomeSectionControllerTest extends WebTestCase
         $this->client->request('POST', $form->getUri(), $values);
         self::assertResponseRedirects();
 
-        $crawler = $this->client->request('GET', '/');
-        self::assertSame('Spécial test', $crawler->filter('.hero + section.avant h2')->text());
-        self::assertSame('Test lit', $crawler->filter('.avant .pcard-name')->text());
-        self::assertSelectorTextContains('.avant .pcard', 'Voir le produit');
-        self::assertCount(1, $crawler->filter('.pcard'));   // elle ne reprend pas sa place parmi les sections
+        // Une seconde section cochée, rangée après : elle reste parmi les sections normales
+        $this->em->persist((new HomeSection())->setTitle('Seconde cochée')->setPosition(999)->setIsFeatured(true)->addProduct($this->em->find(Product::class, $chairId)));
+        $this->em->flush();
 
-        // Elle ne compte pas parmi les sections : les blocs fixes restent tous affichés
+        $crawler = $this->client->request('GET', '/');
+        self::assertSelectorNotExists('.hero');
+        self::assertCount(1, $crawler->filter('h1'));
+        self::assertSelectorTextContains('.avant h1', "Spécialiste de l'ameublement");
+        self::assertSame('Spécial test', $crawler->filter('.avant h2')->text());
+        $band = $crawler->filter('.avant-bande');
+        self::assertSame('Test lit', $band->filter('.pcard-name')->text());
+        self::assertStringContainsString('Voir le produit', $band->filter('.pcard')->text());
+        self::assertSame($band->attr('id'), $crawler->filter('.avant .fleche')->attr('aria-controls'));
+
+        self::assertCount(1, $crawler->filter('.avant'));
+        self::assertSame('Test chaise', $crawler->filter('section.section:not(.avant) .pcard-name')->text());
+
+        // Les blocs fixes suivent les sections normales : la réassurance après la première, l'expertise ensuite
         self::assertSelectorExists('.reassu');
         self::assertSelectorExists('section.dark:not(.avant)');
+
+        // Masquée dans l'admin, la grande photo revient d'elle-même
+        foreach ($sections->findForIndex() as $section) {
+            $section->setIsVisible(false);
+        }
+        $this->em->flush();
+        $this->client->request('GET', '/');
+        self::assertSelectorExists('.hero');
+        self::assertSelectorNotExists('.avant');
     }
 
     private function product(string $name, Category $category): Product

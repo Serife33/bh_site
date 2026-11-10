@@ -1,19 +1,39 @@
 
-{# Section produits réutilisable. Reçoit : titre, sous_titre (facultatif), products, en_avant (facultatif : la grande bande noire).
-   Ne s'affiche PAS si la liste est vide. #}
+{# Section produits réutilisable. Reçoit : titre, sous_titre (facultatif), products, en_avant (facultatif : le carrousel sur bande noire
+   qui remplace la grande photo de l'accueil, d'où son h1). Ne s'affiche PAS si la liste est vide. #}
+{% import 'front/_icons.html.twig' as icones %}
 {% set en_avant = en_avant|default(false) %}
 {% if products|length > 0 %}
-<section class="section{{ en_avant ? ' dark avant' }}">
+{% set tete %}
+    <div class="section-head">
+        <h2>{{ titre }}</h2>
+        {% if sous_titre %}<p>{{ sous_titre }}</p>{% endif %}
+    </div>
+{% endset %}
+{% if en_avant %}
+<section class="section dark avant">
+    <div class="wrap"><h1>Spécialiste de l'ameublement intérieur à Bordeaux</h1></div>
+    <div class="wrap section-tete">
+        {{ tete }}
+        {{ icones.fleches('bande-en-avant', 'Produits précédents', 'Produits suivants') }}
+    </div>
+    <ul class="univers avant-bande" id="bande-en-avant">
+        {% for product in products %}
+            {# Les trois premières sont visibles dès l'arrivée sur la page : pas de chargement différé #}
+            <li>{{ include('front/_product_card.html.twig', { product: product, en_avant: true, eager: loop.index <= 3 }) }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% else %}
+<section class="section">
     <div class="wrap">
-        <div class="section-head">
-            <h2>{{ titre }}</h2>
-            {% if sous_titre %}<p>{{ sous_titre }}</p>{% endif %}
-        </div>
+        {{ tete }}
         <div class="grid-produits">
             {% for product in products %}
-                {{ include('front/_product_card.html.twig', { product: product, en_avant: en_avant }) }}
+                {{ include('front/_product_card.html.twig', { product: product }) }}
             {% endfor %}
         </div>
     </div>
 </section>
+{% endif %}
 {% endif %}

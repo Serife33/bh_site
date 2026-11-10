@@ -42,3 +42,15 @@
   <path fill="#fff" d="M12 6.3a5.7 5.7 0 0 0-4.85 8.72L6.4 17.7l2.75-.72A5.7 5.7 0 1 0 12 6.3zm3.32 8.06c-.14.39-.8.75-1.1.79-.29.03-.65.04-1.04-.07-.24-.07-.55-.17-.94-.34-1.66-.72-2.74-2.4-2.82-2.5-.08-.11-.67-.89-.67-1.7s.42-1.2.58-1.37a.6.6 0 0 1 .43-.2c.1 0 .21 0 .3.01.1 0 .23-.04.36.28.13.32.46 1.13.5 1.2.04.08.06.18 0 .28-.34.65-.7.62-.35.9.5.5 1.02.72 1.15.14.34-.03.4-.63.44-.6.06.14.44.4z"/>
 </svg>
 {% endmacro %}
+
+{# Les flèches d'une bande qui défile : « cible » est l'id de la bande (assets/app.js) #}
+{% macro fleches(cible, precedent, suivant) %}
+<div class="fleches">
+    <button type="button" class="fleche" data-sens="-1" aria-controls="{{ cible }}" aria-label="{{ precedent }}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button type="button" class="fleche" data-sens="1" aria-controls="{{ cible }}" aria-label="{{ suivant }}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+</div>
+{% endmacro %}

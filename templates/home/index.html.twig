@@ -1,30 +1,31 @@
 {% extends 'front/base.html.twig' %}
+{% import 'front/_icons.html.twig' as icones %}
 
 {% block title %}Brillance Home — Ameublement intérieur à Bordeaux{% endblock %}
 
 {% block body %}
-    {# ===== HERO ===== #}
-    <section class="hero">
-        <div class="wrap hero-in">
-            <p class="hero-eyebrow">Showroom à Bordeaux</p>
-            <h1 class="hero-title">Spécialiste de l'ameublement intérieur.</h1>
-            <p class="hero-sub">Salon, salle à manger, chambre et literie — pensés pour toute la maison. Devis rapide sur WhatsApp.</p>
-            <div class="hero-btns">
-                <a href="#univers" class="btn btn-primary">Découvrir nos univers</a>
-                <a href="https://wa.me/{{ whatsapp_number }}" class="btn btn-wa" target="_blank" rel="noopener">Parler à un conseiller</a>
-            </div>
-        </div>
-    </section>
-
-    {# ===== MISE EN AVANT : les sections cochées « en grand » dans l'admin ===== #}
-    {% for section in sections|filter(s => s.isFeatured) %}
+    {# ===== HERO : la grande photo, ou à sa place la première section cochée « en grand » dans l'admin ===== #}
+    {% set section_en_avant = sections|filter(s => s.isFeatured)|first %}
+    {% if section_en_avant %}
         {{ include('front/_product_section.html.twig', {
-            titre: section.title,
-            sous_titre: section.subtitle,
-            products: section.products,
+            titre: section_en_avant.title,
+            sous_titre: section_en_avant.subtitle,
+            products: section_en_avant.products,
             en_avant: true
         }) }}
-    {% endfor %}
+    {% else %}
+        <section class="hero">
+            <div class="wrap hero-in">
+                <p class="hero-eyebrow">Showroom à Bordeaux</p>
+                <h1 class="hero-title">Spécialiste de l'ameublement intérieur.</h1>
+                <p class="hero-sub">Salon, salle à manger, chambre et literie — pensés pour toute la maison. Devis rapide sur WhatsApp.</p>
+                <div class="hero-btns">
+                    <a href="#univers" class="btn btn-primary">Découvrir nos univers</a>
+                    <a href="https://wa.me/{{ whatsapp_number }}" class="btn btn-wa" target="_blank" rel="noopener">Parler à un conseiller</a>
+                </div>
+            </div>
+        </section>
+    {% endif %}
 
     {# ===== NOS UNIVERS (catégories) : bande qui défile au doigt, flèches à partir de 900 px ===== #}
     <section class="section" id="univers">
@@ -33,14 +34,7 @@
                 <h2>Nos univers</h2>
                 <p>Explorez notre mobilier par catégorie</p>
             </div>
-            <div class="fleches">
-                <button type="button" class="fleche" data-sens="-1" aria-controls="bande-univers" aria-label="Univers précédents">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-                </button>
-                <button type="button" class="fleche" data-sens="1" aria-controls="bande-univers" aria-label="Univers suivants">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-                </button>
-            </div>
+            {{ icones.fleches('bande-univers', 'Univers précédents', 'Univers suivants') }}
         </div>
         <ul class="univers" id="bande-univers">
             {% for categorie in categories %}
@@ -62,7 +56,7 @@
     {# ===== PRODUITS : les sections choisies dans l'admin, entrecoupées des blocs fixes ===== #}
     {# Réassurance après la 1re section, expertise après la 2e. Avec moins de sections, les blocs restants suivent. #}
     {% set blocs = ['front/_reassurance.html.twig', 'front/_expertise.html.twig'] %}
-    {% set rangees = sections|filter(s => not s.isFeatured) %}
+    {% set rangees = section_en_avant ? sections|filter(s => s.id != section_en_avant.id) : sections %}
     {% for section in rangees %}
         {{ include('front/_product_section.html.twig', {
             titre: section.title,
