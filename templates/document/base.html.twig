@@ -1,6 +1,5 @@
 {# La feuille A4 commune aux devis et aux factures, aux couleurs du site public.
    À l'écran : la feuille posée sur un fond sable. À l'impression : la feuille seule, prête pour « Enregistrer au format PDF ». #}
-{% import 'document/macros.html.twig' as doc %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -39,7 +38,7 @@
                     <p class="nom">{{ company.name }}</p>
                     <p>Showroom : {{ company.showroom }}</p>
                     <p>{{ company.phones }}</p>
-                    <p>{{ company.website }} · {{ doc.info(company.email) }}</p>
+                    <p>{{ company.website }} · {{ company.email }}</p>
                 </div>
             </div>
             <div class="doc">

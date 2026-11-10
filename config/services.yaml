@@ -8,7 +8,6 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     # L'identité de la société sur les devis et factures (templates/document/), jamais écrite en dur dans les gabarits.
-    # Tant qu'une valeur commence par « [À COMPLÉTER », elle s'affiche encadrée en pointillés sur le document.
     company:
         name: 'Brillance Home'
         legal_name: 'SASU (société par actions simplifiée unipersonnelle)'
@@ -21,8 +20,6 @@ parameters:
         phones: '07 81 07 10 71 · 06 95 32 41 51'
         website: 'brillancehome.fr'
         email: 'brillancehome@gmail.com'
-        early_payment: "[À COMPLÉTER : conditions d'escompte pour paiement anticipé]"
-        late_payment: '[À COMPLÉTER : pénalités de retard, à indiquer seulement pour un client professionnel]'
 
 services:
     # default configuration for services in *this* file

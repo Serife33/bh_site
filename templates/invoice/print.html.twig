@@ -42,11 +42,11 @@
     <section class="parties">
         <div>
             <h2 class="titre">Vendeur</h2>
-            <p><strong>{{ company.name }}</strong>, {{ doc.info(company.legal_name) }}</p>
-            <p>Capital {{ doc.info(company.capital) }}</p>
-            <p>Siège : {{ doc.info(company.head_office) }}</p>
-            <p>SIRET {{ doc.info(company.siret) }} · RCS {{ doc.info(company.rcs) }}</p>
-            <p>TVA intracommunautaire {{ doc.info(company.vat_number) }}</p>
+            <p><strong>{{ company.name }}</strong>, {{ company.legal_name }}</p>
+            <p>Capital {{ company.capital }}</p>
+            <p>Siège : {{ company.head_office }}</p>
+            <p>SIRET {{ company.siret }} · RCS {{ company.rcs }}</p>
+            <p>TVA intracommunautaire {{ company.vat_number }}</p>
         </div>
         <div>
             <h2 class="titre">Client</h2>
@@ -170,10 +170,7 @@
             <h2 class="titre">Paiement</h2>
             <dl>
                 <dt>Conditions</dt><dd>Acompte de {{ acompte_demande }} à la signature du devis. {{ solde ? 'Solde payable' : 'Reste à payer' }} {{ doc.reste(quote) }}.</dd>
-                {% if invoice.issued %}<dt>Date de paiement</dt><dd>{{ solde ? 'Solde' : 'Acompte' }} réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}
-                <dt>Escompte</dt><dd>{{ doc.info(company.early_payment) }}</dd>
-                <dt>Retard de paiement</dt><dd>{{ doc.info(company.late_payment) }}</dd>
-            </dl>
+                {% if invoice.issued %}<dt>Date de paiement</dt><dd>{{ solde ? 'Solde' : 'Acompte' }} réglé le {{ invoice.issuedAt|date_longue }}</dd>{% endif %}            </dl>
         </div>
         <div class="mentions">
             <h2 class="titre">Mentions</h2>

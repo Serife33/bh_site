@@ -153,9 +153,9 @@
     </section>
 
     <footer class="pied">
-        <p>{{ company.name }} · {{ doc.info(company.legal_name) }} · Capital {{ doc.info(company.capital) }}</p>
-        <p>Siège {{ doc.info(company.head_office) }}</p>
-        <p>SIRET {{ doc.info(company.siret) }} · RCS {{ doc.info(company.rcs) }} · TVA intracommunautaire {{ doc.info(company.vat_number) }}</p>
+        <p>{{ company.name }} · {{ company.legal_name }} · Capital {{ company.capital }}</p>
+        <p>Siège {{ company.head_office }}</p>
+        <p>SIRET {{ company.siret }} · RCS {{ company.rcs }} · TVA intracommunautaire {{ company.vat_number }}</p>
     </footer>
     </div>
 {% endblock %}

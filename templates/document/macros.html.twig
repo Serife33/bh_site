@@ -1,6 +1,3 @@
-{# Une information de la société (paramètre company de config/services.yaml) : encadrée en pointillés tant qu'elle reste à compléter #}
-{% macro info(valeur) %}{% if valeur starts with '[' %}<span class="ac">{{ valeur }}</span>{% else %}{{ valeur }}{% endif %}{% endmacro %}
-
 {# Un pourcentage (remise saisie, taux de TVA ou d'acompte du devis) : « 20 », « 12,50 » #}
 {% macro taux(valeur) %}{{ valeur|replace({'.00': '', '.': ','}) }}&nbsp;%{% endmacro %}
 

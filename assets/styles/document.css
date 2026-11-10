@@ -31,7 +31,6 @@ ul { list-style: none; }
 }
 
 /* Emplacement d'une information encore inconnue : pointillés taupe, jamais de fausse donnée */
-.ac { padding: 0 1mm; border: 1px dashed var(--taupe); background: #FBF7F1; color: var(--brun); }
 
 /* En-tête */
 .entete { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6mm 10mm; padding-bottom: 6mm; border-bottom: 1px solid var(--taupe-clair); }
