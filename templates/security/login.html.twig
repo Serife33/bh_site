@@ -24,7 +24,8 @@
     <label for="password">Mot de Passe</label>
     <input type="password" name="_password" id="password" autocomplete="current-password" required>
 
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+    {# data-controller : charge le script qui fabrique le jeton à l'envoi. Sans lui, une session qui l'a déjà utilisé refuse la connexion. #}
+    <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
 
     <button type="submit"> Se connecter </button>
 </form>
