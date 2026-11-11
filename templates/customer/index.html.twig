@@ -21,6 +21,7 @@
                     <th>Téléphone</th>
                     <th>E-mail</th>
                     <th>Adresse de livraison</th>
+                    <th>Nous a connus par</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -31,6 +32,7 @@
                     <td class="num">{{ customer.phone }}</td>
                     <td>{{ customer.email }}</td>
                     <td>{{ customer.address }}</td>
+                    <td>{{ customer.source }}</td>
                     <td class="actions">
                         <a href="{{ path('app_quote_new', {client: customer.id}) }}">Nouveau devis</a>
                         <a href="{{ path('app_quote_index', {q: customer.lastName}) }}">Ses devis</a>
@@ -38,7 +40,7 @@
                     </td>
                 </tr>
             {% else %}
-                <tr><td colspan="5">Aucun client ne correspond à cette recherche.</td></tr>
+                <tr><td colspan="6">Aucun client ne correspond à cette recherche.</td></tr>
             {% endfor %}
             </tbody>
         </table>

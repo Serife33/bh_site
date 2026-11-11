@@ -1,4 +1,7 @@
 {{ form_start(form) }}
     {{ form_widget(form) }}
+    <datalist id="sources-clients">
+        {% for source in constant('App\\Entity\\Customer::SOURCES') %}<option value="{{ source }}"></option>{% endfor %}
+    </datalist>
     <button type="submit">{{ button_label }}</button>
 {{ form_end(form) }}

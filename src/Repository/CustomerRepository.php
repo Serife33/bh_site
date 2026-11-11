@@ -23,7 +23,7 @@ class CustomerRepository extends ServiceEntityRepository
     public function findForAdminQuery(string $search): Query
     {
         $qb = $this->createQueryBuilder('c')
-            ->select('c.id', 'c.lastName', 'c.firstName', 'c.phone', 'c.email', 'c.address')
+            ->select('c.id', 'c.lastName', 'c.firstName', 'c.phone', 'c.email', 'c.address', 'c.source')
             ->orderBy('c.lastName', 'ASC')
             ->addOrderBy('c.firstName', 'ASC')
             ->addOrderBy('c.id', 'ASC');   // départage : sans clé finale unique, la pagination oublie des lignes

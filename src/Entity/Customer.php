@@ -10,6 +10,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 class Customer
 {
+    // Proposés dans le champ « Comment le client nous a connus » ; une autre réponse peut être tapée librement
+    public const SOURCES = ['Instagram', 'Facebook', 'TikTok', 'Snapchat', 'WhatsApp', 'Google', 'Site internet',
+        'Bouche-à-oreille', 'Passage devant le showroom', 'Déjà client'];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -37,6 +41,10 @@ class Customer
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Length(max: 255, maxMessage: "L'adresse ne peut pas dépasser {{ limit }} caractères.")]
     private ?string $address = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\Length(max: 100, maxMessage: 'La réponse ne peut pas dépasser {{ limit }} caractères.')]
+    private ?string $source = null;
 
     public function getId(): ?int
     {
@@ -99,6 +107,18 @@ class Customer
     public function setAddress(?string $address): static
     {
         $this->address = $address;
+
+        return $this;
+    }
+
+    public function getSource(): ?string
+    {
+        return $this->source;
+    }
+
+    public function setSource(?string $source): static
+    {
+        $this->source = $source;
 
         return $this;
     }

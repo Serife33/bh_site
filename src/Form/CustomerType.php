@@ -24,6 +24,13 @@ class CustomerType extends AbstractType
                 'required' => false,
                 'attr' => ['placeholder' => 'Numéro et rue, code postal, ville'],
             ])
+            // La liste des réponses proposées est dans customer/_form.html.twig (datalist)
+            ->add('source', TextType::class, [
+                'label' => 'Comment le client nous a connus',
+                'required' => false,
+                'attr' => ['list' => 'sources-clients', 'maxlength' => 100, 'autocomplete' => 'off'],
+                'help' => "Choisissez dans la liste, ou tapez autre chose si ce n'est pas dedans.",
+            ])
         ;
     }
 

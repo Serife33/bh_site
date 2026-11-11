@@ -195,6 +195,21 @@ final class QuoteControllerTest extends WebTestCase
         self::assertSelectorTextNotContains('tbody', 'Exemple');
     }
 
+    // D'où vient le client : proposé dans une liste, ou tapé librement, puis affiché dans le fichier client
+    public function testCustomerSourceIsSavedAndListed(): void
+    {
+        $this->client->loginUser($this->seller);
+        $crawler = $this->client->request('GET', '/admin/client/new');
+        self::assertSelectorExists('datalist#sources-clients option[value="Instagram"]');
+
+        $this->client->submit($crawler->selectButton('Créer le client')->form([
+            'customer[lastName]' => 'Provenance',
+            'customer[source]' => "Salon de l'habitat",
+        ]));
+        $this->client->request('GET', '/admin/client?q=Provenance');
+        self::assertSelectorTextContains('tbody', "Salon de l'habitat");
+    }
+
     // Une ligne libre : le nom tapé dans le champ « Article », sans produit choisi, est le nom imprimé
     public function testFreeLineByTheArticleField(): void
     {
